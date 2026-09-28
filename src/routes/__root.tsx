@@ -148,7 +148,16 @@ function SiteDisclaimer() {
     <footer className="border-t border-border/60 px-4 py-5 text-center text-xs text-muted-foreground">
       <p className="mx-auto max-w-2xl">
         This is a prototype of BAOWOW, an application prototype for automated appointment-based
-        businesses developed by PROTOCELL IO, intended for demonstration purposes only.
+        businesses developed by{" "}
+        <a
+          href="https://protocell.io"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline-offset-2 hover:underline"
+        >
+          PROTOCELL IO
+        </a>
+        , intended for demonstration purposes only.
       </p>
       <p className="mt-1.5 flex items-center justify-center gap-3">
         <Link to="/terms-and-conditions" className="underline-offset-2 hover:underline">
