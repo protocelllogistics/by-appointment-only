@@ -178,7 +178,6 @@ const seed: Appt[] = [
       mine: true,
       notes: "Booked last week online.",
     }),
-    inCalendar: true,
     code: "B5C4E7",
     mobile: CUSTOMER.mobile,
     email: CUSTOMER.email,
