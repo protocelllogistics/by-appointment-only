@@ -11,9 +11,5 @@ export const Route = createFileRoute("/terms-and-conditions")({
     { name: "twitter:card", content: "summary_large_image" },
     { name: "robots", content: "noindex, nofollow" },
   ], links: [{ rel: "canonical", href: "https://baowow.xyz/terms-and-conditions" }] }),
-  component: TermsAndConditionsPage,
+  component: () => null,
 });
-
-function TermsAndConditionsPage() {
-  return <main />;
-}

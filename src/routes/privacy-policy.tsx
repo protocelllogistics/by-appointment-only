@@ -11,9 +11,5 @@ export const Route = createFileRoute("/privacy-policy")({
     { name: "twitter:card", content: "summary_large_image" },
     { name: "robots", content: "noindex, nofollow" },
   ], links: [{ rel: "canonical", href: "https://baowow.xyz/privacy-policy" }] }),
-  component: PrivacyPolicyPage,
+  component: () => null,
 });
-
-function PrivacyPolicyPage() {
-  return <main />;
-}
