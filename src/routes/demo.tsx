@@ -1,7 +1,7 @@
 import { createFileRoute, useHydrated } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BellRing, CalendarDays, Globe, Mail, MessageCircle, Phone, RotateCcw, X } from "lucide-react";
+import { BellRing, CalendarDays, CalendarPlus, Globe, Mail, MessageCircle, Phone, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { sizeDemoAppointment } from "@/lib/demo.functions";
 import { validateDemoEditable } from "@/lib/demo-validation";
@@ -28,6 +28,8 @@ import {
   SHOP_PHONE,
 } from "./-demo/customer-apps";
 import "./-demo/demo.css";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { NOTE_PRESETS, PET_NAMES, hexCode, icsHref, toggleNote } from "@/lib/demo-presets";
 
 export const Route = createFileRoute("/demo")({
   head: () => ({
@@ -157,7 +159,7 @@ const seed: Appt[] = [
       mine: true,
       notes: "Booked last week online.",
     }),
-    code: "BSC4T7",
+    code: "B5C4E7",
     mobile: CUSTOMER.mobile,
     email: CUSTOMER.email,
     inCalendar: true,
@@ -178,8 +180,7 @@ const about = (m: number) => {
   return `about ${h} hour${h > 1 ? "s" : ""}${r ? ` ${r} minutes` : ""}`;
 };
 const signed = (m: number) => (m === 0 ? "±0 min" : `${m > 0 ? "+" : "−"}${dur(Math.abs(m))}`);
-const newCode = () =>
-  Array.from({ length: 6 }, () => "ABCDEFGHJKMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 31)]).join("");
+const newCode = hexCode;
 
 export const AUTOMATIONS: { kind: Automation; title: string; when: string }[] = [
   { kind: "tomorrow", title: "Appointment tomorrow", when: "Day before, 17:00" },
@@ -232,8 +233,9 @@ const emptyForm = {
   service: "Full style",
   stylist: "Any available",
   notes: "",
-  contact: "Messages" as Channel,
+  contact: "Messages" as Channel | "Phone",
 };
+const deliver = (c: Channel | "Phone"): Channel => (c === "Email" ? "Email" : "Messages");
 
 function DemoPage() {
   const size = useServerFn(sizeDemoAppointment);
@@ -260,7 +262,7 @@ function DemoPage() {
   const [pending, setPending] = useState<{ date: string; option: { stylist: string; start: number; size: Size } }>();
   const [form, setForm] = useState(emptyForm);
   const prefer = useRef<Channel>("Messages");
-  prefer.current = form.contact;
+  prefer.current = deliver(form.contact);
   const notifTimer = useRef<number | undefined>(undefined);
   const apptsRef = useRef(appts);
   apptsRef.current = appts;
@@ -468,7 +470,8 @@ function DemoPage() {
     addLog(
       `${source} booking added: ${a.pet}, ${a.service} with ${a.stylist}. ${dur(a.minutes)} protected (Index ${a.index}); customer told ${about(a.tell)}.`,
     );
-    automate("confirm", a);
+    // Delay the confirmation a few simulated seconds so it doesn't read as instant.
+    window.setTimeout(() => automate("confirm", a), 3500);
     if (source === "Phone") {
       setPanel({ kind: "appointment", id });
       return;
@@ -492,6 +495,21 @@ function DemoPage() {
     setPhoneView("done");
   }
   function cancel(a: Appt, staff = false) {
+    const lead = (Date.parse(`${a.date}T00:00:00Z`) - Date.parse(`${TODAY}T00:00:00Z`)) / 60000 + a.start - NOW;
+    if (!staff && lead < 1440) {
+      addLog(`${a.pet} cancelled with ${dur(Math.max(0, Math.round(lead)))} notice (under 24h) → £${NO_SHOW_FEE_GBP} no-show fee applies automatically.`);
+      window.setTimeout(
+        () =>
+          notify({
+            subject: `Late cancellation · ${a.pet}`,
+            time: toTime(NOW),
+            apptId: a.id,
+            text: `${a.pet}'s visit was cancelled less than 24 hours before the start, so the £${NO_SHOW_FEE_GBP} no-show fee applies.`,
+            actions: ["pay-noshow", "rebook"],
+          }),
+        2500,
+      );
+    }
     setAppts((all) => all.map((x) => (x.id === a.id ? { ...x, status: "Cancelled" } : x)));
     addLog(
       `${staff ? "Staff" : "Customer"} cancelled ${a.pet}. ${dur(a.minutes)} released and calendar entry removed.`,
@@ -886,7 +904,7 @@ function DemoPage() {
             <AutomationsPanel
               target={target}
               messages={messages}
-              channel={form.contact}
+              channel={deliver(form.contact)}
               run={(k) => automate(k, target)}
             />
           ) : (
@@ -1342,11 +1360,26 @@ function AdminDrawer({
 function ContactChoice({ form, setForm }: { form: any; setForm: (x: any) => void }) {
   return (
     <div className="dm-field">
-      <span>Send updates by</span>
-      <div className="dm-seg">
-        {(["Messages", "Email"] as const).map((c) => (
-          <button key={c} type="button" data-on={form.contact === c} onClick={() => setForm({ ...form, contact: c })}>
-            {c}
+      <span>Send me updates by</span>
+      <div className="dm-seg dm-seg-icons" role="radiogroup" aria-label="Send me updates by">
+        {(
+          [
+            ["Phone", Phone, "Phone"],
+            ["Messages", MessageCircle, "Text message"],
+            ["Email", Mail, "Email"],
+          ] as const
+        ).map(([c, Icon, label]) => (
+          <button
+            key={c}
+            type="button"
+            role="radio"
+            aria-checked={form.contact === c}
+            aria-label={label}
+            title={label}
+            data-on={form.contact === c}
+            onClick={() => setForm({ ...form, contact: c })}
+          >
+            <Icon size={18} />
           </button>
         ))}
       </div>
@@ -1409,35 +1442,23 @@ function StaffBooking({
       </div>
       <label className="dm-field">
         <span>Pet name</span>
-        <input value={form.petName} maxLength={30} onChange={(e) => setForm({ ...form, petName: e.target.value })} />
+        <DmSelect value={form.petName} options={PET_NAMES.includes(form.petName) ? PET_NAMES : [form.petName, ...PET_NAMES]} onChange={(v) => setForm({ ...form, petName: v })} />
       </label>
       <label className="dm-field">
         <span>Service</span>
-        <select value={form.service} onChange={(e) => setForm({ ...form, service: e.target.value })}>
-          {SERVICES.map((x) => (
-            <option key={x}>{x}</option>
-          ))}
-        </select>
+        <DmSelect value={form.service} options={SERVICES} onChange={(v) => setForm({ ...form, service: v })} />
       </label>
       <label className="dm-field">
         <span>Breed</span>
-        <select value={form.breed} onChange={(e) => setForm({ ...form, breed: e.target.value })}>
-          {BREEDS.map((x) => (
-            <option key={x}>{x}</option>
-          ))}
-        </select>
+        <DmSelect value={form.breed} options={BREEDS} onChange={(v) => setForm({ ...form, breed: v })} />
       </label>
       <label className="dm-field">
         <span>Pet stylist</span>
-        <select value={form.stylist} onChange={(e) => setForm({ ...form, stylist: e.target.value })}>
-          {["Any available", ...STYLISTS].map((x) => (
-            <option key={x}>{x}</option>
-          ))}
-        </select>
+        <DmSelect value={form.stylist} options={["Any available", ...STYLISTS]} onChange={(v) => setForm({ ...form, stylist: v })} />
       </label>
       <label className="dm-field">
         <span>Notes</span>
-        <textarea value={form.notes} maxLength={300} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+        <NoteChips value={form.notes} onChange={(v) => setForm({ ...form, notes: v })} />
       </label>
       <ContactChoice form={form} setForm={setForm} />
       <Button className="dm-cta" onClick={() => prepareTimes()}>
@@ -1699,7 +1720,7 @@ function PhoneShell({
               setPending={setPending}
             />
           ) : view === "details" && pending ? (
-            <BookingReview form={form} pending={pending} createBooking={createBooking} />
+            <BookingReview form={form} setForm={setForm} pending={pending} createBooking={createBooking} setView={setView} />
           ) : view === "checking" ? (
             <div className="dm-checking">
               <div className="dm-pulse" />
@@ -1707,7 +1728,7 @@ function PhoneShell({
               <p>Securing your time…</p>
             </div>
           ) : view === "done" && current ? (
-            <Done a={current} setView={setView} contact={form.contact} />
+            <Done a={current} setView={setView} contact={deliver(form.contact)} onCalendar={() => selectAction("ics", current.id)} />
           ) : view === "cancel" && current ? (
             <Cancel a={current} codeInput={codeInput} setCodeInput={setCodeInput} cancel={cancel} setView={setView} />
           ) : null}
@@ -1741,39 +1762,26 @@ function BookingStart({ form, setForm, errors, busy, prepareTimes }: any) {
       </div>
       <label className="dm-field">
         <span>Pet’s name</span>
-        <input value={form.petName} maxLength={30} onChange={(e) => setForm({ ...form, petName: e.target.value })} />
+        <DmSelect value={form.petName} options={PET_NAMES.includes(form.petName) ? PET_NAMES : [form.petName, ...PET_NAMES]} onChange={(v) => setForm({ ...form, petName: v })} />
         {errors.petName && <em>{errors.petName}</em>}
       </label>
       <label className="dm-field">
         <span>Breed</span>
-        <select value={form.breed} onChange={(e) => setForm({ ...form, breed: e.target.value })}>
-          {BREEDS.map((x) => (
-            <option key={x}>{x}</option>
-          ))}
-        </select>
+        <DmSelect value={form.breed} options={BREEDS} onChange={(v) => setForm({ ...form, breed: v })} />
       </label>
       <label className="dm-field">
         <span>Service</span>
-        <select value={form.service} onChange={(e) => setForm({ ...form, service: e.target.value })}>
-          {SERVICES.map((x) => (
-            <option key={x}>{x}</option>
-          ))}
-        </select>
+        <DmSelect value={form.service} options={SERVICES} onChange={(v) => setForm({ ...form, service: v })} />
       </label>
       <label className="dm-field">
         <span>Pet stylist</span>
-        <select value={form.stylist} onChange={(e) => setForm({ ...form, stylist: e.target.value })}>
-          {["Any available", ...STYLISTS].map((x) => (
-            <option key={x}>{x}</option>
-          ))}
-        </select>
+        <DmSelect value={form.stylist} options={["Any available", ...STYLISTS]} onChange={(v) => setForm({ ...form, stylist: v })} />
       </label>
       <label className="dm-field">
         <span>Anything we should know?</span>
-        <textarea value={form.notes} maxLength={300} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+        <NoteChips value={form.notes} onChange={(v) => setForm({ ...form, notes: v })} />
         {errors.notes && <em>{errors.notes}</em>}
       </label>
-      <ContactChoice form={form} setForm={setForm} />
       <button className="dm-cta" disabled={busy} onClick={() => prepareTimes()}>
         {busy ? "Checking…" : "Show times"}
       </button>
@@ -1799,7 +1807,7 @@ function Times({
         <h2>Confirm it’s you</h2>
         <label className="dm-field">
           <span>Confirmation code</span>
-          <input value={codeInput} maxLength={6} onChange={(e) => setCodeInput(e.target.value.toUpperCase())} />
+          <CodeFill value={codeInput} code={current?.code ?? ""} onFill={setCodeInput} />
         </label>
         <button
           className="dm-cta"
@@ -1843,35 +1851,38 @@ function Times({
     </div>
   );
 }
-function BookingReview({ form, pending, createBooking }: any) {
+function BookingReview({ form, setForm, pending, createBooking, setView }: any) {
   return (
     <div className="dm-book">
+      <div className="dm-reserving">
+        <span>
+          You are reserving{" "}
+          <b>
+            {toTime(pending.option.start)}, {dayLabel(pending.date)}
+          </b>{" "}
+          with <b>{pending.option.stylist}</b>
+        </span>
+        <button type="button" onClick={() => setView("times")}>
+          Change
+        </button>
+      </div>
       <span className="dm-kick">Step 2 of 2</span>
       <h2>Check your visit</h2>
+      <p className="dm-lasts">
+        Your appointment will last <b>{about(pending.option.size.tellClient)}</b> and costs{" "}
+        <b>£{PRICE_GBP[form.service] ?? 40}</b>.
+      </p>
       <div className="dm-facts">
         <div>
           <span>Pet</span>
           <b>{form.petName}</b>
         </div>
         <div>
-          <span>When</span>
-          <b>
-            {dayLabel(pending.date)}, {toTime(pending.option.start)}
-          </b>
-        </div>
-        <div>
           <span>Service</span>
           <b>{form.service}</b>
         </div>
-        <div>
-          <span>Pet stylist</span>
-          <b>{pending.option.stylist}</b>
-        </div>
-        <div>
-          <span>Lasts</span>
-          <b>{about(pending.option.size.tellClient)}</b>
-        </div>
       </div>
+      <ContactChoice form={form} setForm={setForm} />
       <p className="dm-note-card">Demo only. Nothing will be sent to or saved in the backend.</p>
       <button className="dm-cta" onClick={() => createBooking(pending.option, pending.date)}>
         Confirm booking
@@ -1879,7 +1890,17 @@ function BookingReview({ form, pending, createBooking }: any) {
     </div>
   );
 }
-function Done({ a, setView, contact }: { a: Appt; setView: (v: PhoneView) => void; contact: Channel }) {
+function Done({
+  a,
+  setView,
+  contact,
+  onCalendar,
+}: {
+  a: Appt;
+  setView: (v: PhoneView) => void;
+  contact: Channel;
+  onCalendar: () => void;
+}) {
   return (
     <div className="dm-done">
       <i>✓</i>
@@ -1904,7 +1925,24 @@ function Done({ a, setView, contact }: { a: Appt; setView: (v: PhoneView) => voi
           <b>{a.stylist}</b>
         </div>
       </div>
-      <p>Your confirmation, calendar link and pay-in-advance link are in {contact === "Email" ? "Mail" : "Messages"}.</p>
+        <div>
+          <span>Cost</span>
+          <b>£{PRICE_GBP[a.service] ?? 40}</b>
+        </div>
+        <div>
+          <span>Confirmation number</span>
+          <b className="dm-code">{a.code}</b>
+        </div>
+      </div>
+      <a
+        className="dm-cta dm-ics"
+        download={`appointment-${a.code}.ics`}
+        href={icsHref({ title: `${a.service} · ${a.pet}`, date: a.date, start: toTime(a.start), minutes: a.tell, code: a.code, who: a.stylist })}
+        onClick={onCalendar}
+      >
+        <CalendarPlus size={16} /> Add to calendar (.ics)
+      </a>
+      <p>Your confirmation will arrive shortly in {contact === "Email" ? "Mail" : "Messages"}, with calendar and pay-in-advance links.</p>
       <button className="dm-cta" onClick={() => setView("home")}>
         Done
       </button>
@@ -1920,7 +1958,7 @@ function Cancel({ a, codeInput, setCodeInput, cancel, setView }: any) {
       </p>
       <label className="dm-field">
         <span>Confirmation code</span>
-        <input value={codeInput} maxLength={6} onChange={(e) => setCodeInput(e.target.value.toUpperCase())} />
+        <CodeFill value={codeInput} code={a.code} onFill={setCodeInput} />
       </label>
       <button
         className="dm-cta"
@@ -1932,6 +1970,45 @@ function Cancel({ a, codeInput, setCodeInput, cancel, setView }: any) {
         }}
       >
         Cancel booking
+      </button>
+    </div>
+  );
+}
+
+function DmSelect({ value, options, onChange }: { value: string; options: string[]; onChange: (v: string) => void }) {
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="dm-select">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent className="dm-select-menu">
+        {options.map((o) => (
+          <SelectItem key={o} value={o}>
+            {o}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+function NoteChips({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const on = value ? value.split(" · ") : [];
+  return (
+    <div className="dm-note-chips">
+      {NOTE_PRESETS.map((n) => (
+        <button key={n} type="button" aria-pressed={on.includes(n)} onClick={() => onChange(toggleNote(value, n))}>
+          {n}
+        </button>
+      ))}
+    </div>
+  );
+}
+function CodeFill({ value, code, onFill }: { value: string; code: string; onFill: (v: string) => void }) {
+  return (
+    <div className="dm-codefill">
+      <b>{value || "——————"}</b>
+      <button type="button" onClick={() => onFill(code)}>
+        Paste from confirmation
       </button>
     </div>
   );
