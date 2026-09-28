@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import "./handheld.css";
 
 type Screen = "Today" | "Tasks" | "Pets" | "Shifts";
-type Visit = { pet: string; service: string; stylist: string; start: string; end: string; state: string; action?: string; note?: string; tone?: string };
+type Visit = { pet: string; service: string; stylist: string; start: string; end: string; state: string; action?: string | undefined; note?: string | undefined; tone?: string | undefined };
 
 const initialVisits: Visit[] = [
   { pet: "Biscuit", service: "Nail trim", stylist: "Tom", start: "08:58", end: "09:40", state: "Checked out", action: "Out 09:40" },
