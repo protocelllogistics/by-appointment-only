@@ -1,7 +1,7 @@
-import { createFileRoute, useHydrated } from "@tanstack/react-router";
+import { Link, createFileRoute, useHydrated } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BellRing, CalendarDays, CalendarPlus, Globe, Mail, MessageCircle, Phone, RotateCcw, X } from "lucide-react";
+import { BellRing, LogOut, CalendarDays, CalendarPlus, Globe, Mail, MessageCircle, Phone, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { sizeDemoAppointment } from "@/lib/demo.functions";
 import { validateDemoEditable } from "@/lib/demo-validation";
@@ -72,7 +72,7 @@ const LATE_GRACE = 15,
   NO_SHOW_AFTER = 25,
   LATE_ROTATION = [8, 14, 22, 30];
 // Demo pacing (real ms): a quiet intro, then a generous window for the visitor to act as the customer.
-const INTRO_MS = 5000,
+const INTRO_MS = 12000,
   OVERRUN_BUFFER = 20,
   STILL_GOING_LEAD = 10,
   SIM_MIN_MS = 1500,
@@ -308,14 +308,36 @@ function DemoPage() {
     ) as Record<string, Size>;
   }, [rawSizes, shift, sizingService]);
 
+  const phoneViewRef = useRef(phoneView);
+  phoneViewRef.current = phoneView;
+  const queued = useRef<Omit<Msg, "id">[]>([]);
+  useEffect(() => {
+    if (phoneView !== "home" || !queued.current.length) return;
+    const t = window.setTimeout(() => {
+      if (phoneViewRef.current !== "home") return;
+      const q = queued.current;
+      queued.current = [];
+      deliverNow(q);
+    }, 2500);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phoneView, messages.length]);
+  // Shop messages only arrive while the phone rests on its home screen.
   const send = (next: Omit<Msg, "id">[]) => {
+    if (next.some((m) => m.from === "shop") && phoneViewRef.current !== "home") {
+      queued.current.push(...next);
+      return;
+    }
+    deliverNow(next);
+  };
+  const deliverNow = (next: Omit<Msg, "id">[]) => {
     const stamped = next.map((x, i) => ({ ...x, id: Date.now() + Math.random() + i }));
     setMessages((all) => [...all, ...stamped]);
     const fromShop = stamped.filter((m) => m.from === "shop");
     if (fromShop.length) {
       setUnread((u) => {
         const n = { ...u };
-        fromShop.forEach((m) => (n[m.channel] += 1));
+        fromShop.forEach((m) => (n[m.channel] = 1));
         return n;
       });
       setNotif(fromShop[fromShop.length - 1]);
@@ -408,7 +430,7 @@ function DemoPage() {
         actions: ["call", "reschedule"],
       },
       late: {
-        subject: `Running late?`,
+        subject: `Late show reminder · ${a.pet}`,
         text: `Running late? ${a.pet} was due at ${toTime(a.start)}. Give us a call on ${SHOP_PHONE} — we hold your slot for ${NO_SHOW_AFTER} minutes. The first ${LATE_GRACE} minutes are included; after that a £${LATE_FEE_GBP} late fee applies.`,
         actions: ["call"],
       },
@@ -453,26 +475,6 @@ function DemoPage() {
         const a = mine();
         if (a) automate(reminder[0], a, reminder[1]);
       }, INTRO_MS),
-      window.setTimeout(() => {
-        const a = mine();
-        if (!a) return;
-        setGuide({ title: `${a.pet} · ${a.service}`, body: `By Appointment Only · ${toTime(a.start)}–${toTime(a.start + a.tell)}`, time: "now" });
-        addLog(`${a.customer}'s own calendar reminded them; not checked in yet. Waiting for contact before applying late rules.`, toTime(a.start));
-        const late = window.setTimeout(() => {
-          const b = mine();
-          if (b && awaiting.current) automate("late", b, toTime(b.start + 5));
-        }, ENGAGE_WINDOW_MS / 2);
-        const fee = window.setTimeout(() => {
-          const b = mine();
-          awaiting.current = null;
-          setGuide(undefined);
-          if (!b) return;
-          addLog(`No contact from ${b.customer} — system proceeds automatically.`, toTime(b.start + LATE_GRACE));
-          simulateLate(b, 19);
-        }, ENGAGE_WINDOW_MS);
-        timers.push(late, fee);
-        awaiting.current = { id: a.id, timer: fee };
-      }, INTRO_MS + 5000),
     ];
     return () => {
       timers.forEach((id) => window.clearTimeout(id));
@@ -590,6 +592,21 @@ function DemoPage() {
   }
   function changeAppointment(a: Appt, o: { stylist: string; start: number; size: Size }, date: string) {
     const z = allocate(a.service, o.size.index);
+    const lead = (Date.parse(`${a.date}T00:00:00Z`) - Date.parse(`${TODAY}T00:00:00Z`)) / 60000 + a.start - NOW;
+    if (lead < 1440) {
+      addLog(`${a.pet} changed with under 24h notice → £${NO_SHOW_FEE_GBP} no-show fee applied automatically.`);
+      window.setTimeout(
+        () =>
+          notify({
+            subject: `Late change · ${a.pet}`,
+            time: toTime(NOW),
+            apptId: a.id,
+            text: `${a.pet}'s visit was changed less than 24 hours before the start, so the £${NO_SHOW_FEE_GBP} no-show fee applies.`,
+            actions: ["pay-noshow"],
+          }),
+        2500,
+      );
+    }
     const moved = { ...a, date, start: o.start, stylist: o.stylist, minutes: z.minutes, index: z.index, tell: z.tell };
     setAppts((all) => all.map((x) => (x.id === a.id ? moved : x)));
     addLog(`${a.pet} moved to ${dayLabel(date)} at ${toTime(o.start)}. Calendar entry updated.`);
@@ -649,7 +666,7 @@ function DemoPage() {
   function simulateLate(a: Appt, lateBy = LATE_ROTATION[scenarioTurn.current % LATE_ROTATION.length]!) {
     // Not checked in 5 min after start → automatic "running late" message.
     if (a.mine) automate("late", a, toTime(a.start + 5));
-    else addLog(`Not checked in at ${toTime(a.start + 5)} → “Running late?” sent to ${a.customer} automatically.`, toTime(a.start + 5));
+    else addLog(`Not checked in at ${toTime(a.start + 5)} → Late show reminder sent to ${a.customer} automatically.`, toTime(a.start + 5));
     if (lateBy > NO_SHOW_AFTER) {
       addLog(`${a.pet} still not here after ${NO_SHOW_AFTER} min → system marks no-show automatically.`, toTime(a.start + NO_SHOW_AFTER));
       return simulateNoShow(a);
@@ -954,6 +971,7 @@ function DemoPage() {
     setAppts(seed);
     setMessages([pastConfirmation()]);
     setGuide(undefined);
+    queued.current = [];
     setCalls([]);
     setUnread({ Messages: 0, Email: 0 });
     setNotif(undefined);
@@ -981,6 +999,12 @@ function DemoPage() {
         </div>
         <span className="sp" />
         <span className="dm-pill">Fri 25 Sep · {toTime(clock)}</span>
+        <Button asChild className="dm-pill">
+          <Link to="/">
+            <LogOut size={15} />
+            Exit demo
+          </Link>
+        </Button>
         <Button className="dm-pill" onClick={() => runScenario("late")}>
           Simulate late arrival
         </Button>
@@ -1176,7 +1200,7 @@ function DemoPage() {
               flow={{ checkIn, stillGoing, markDone, checkOut, lateShow: simulateLateShow }}
               clock={clock}
               dueOut={dueOut}
-              sendLate={(a) => automate("late", a)}
+              log={log}
               createBooking={createBooking}
             />
           )}
@@ -1367,7 +1391,7 @@ function AdminDrawer({
   flow,
   clock,
   dueOut,
-  sendLate,
+  log,
   createBooking,
 }: {
   clock: number;
@@ -1389,7 +1413,7 @@ function AdminDrawer({
   noShow: (a: Appt) => void;
   reschedule: (a: Appt) => void;
   flow: Record<"checkIn" | "stillGoing" | "markDone" | "checkOut", (a: Appt) => void> & { lateShow: () => void };
-  sendLate: (a: Appt) => void;
+  log: string[];
   createBooking: (o: { stylist: string; start: number; size: Size }, d: string, s?: Appt["source"]) => void;
 }) {
   const a = panel?.kind === "appointment" ? appts.find((x) => x.id === panel.id) : undefined;
@@ -1457,19 +1481,15 @@ function AdminDrawer({
             )}
             {a.status === "Done" && <Button onClick={() => flow.checkOut(a)}>Check out</Button>}
             {a.status === "No-show" && <Button onClick={() => flow.lateShow()}>Customer arrived — override</Button>}
-            <Button disabled={a.status !== "Confirmed"} onClick={() => reschedule(a)}>
-              Move 30 min later
-            </Button>
-            <Button disabled={a.status !== "Confirmed" || a.date !== TODAY} onClick={() => sendLate(a)}>
-              Send “running late”
-            </Button>
-            <Button disabled={a.status !== "Confirmed"} onClick={() => cancel(a, true)}>
-              Cancel booking
-            </Button>
-            <Button disabled={a.status !== "Confirmed" || a.date !== TODAY} onClick={() => noShow(a)}>
-              No-show + fee link
-            </Button>
           </div>
+          <h3>System log</h3>
+          <ul className="dm-note-card dm-auto-log">
+            {log.filter((l) => l.includes(a.pet)).length ? (
+              log.filter((l) => l.includes(a.pet)).map((l, i) => <li key={i}>{l}</li>)
+            ) : (
+              <li>No automated events yet.</li>
+            )}
+          </ul>
         </>
       ) : (
         <StaffBooking
