@@ -318,9 +318,9 @@ function HomePage() {
             <a className="btn btn-outline team" href="#team">
               Meet the team
             </a>
-            <a className="btn btn-outline team" href="#why">
+            <Link className="btn btn-outline team" to="/why-baowow">
               Why BAOWOW?
-            </a>
+            </Link>
             <div className="photo">
               <img src={teamSalonPhoto.url} alt="The By Appointment Only team in the salon with their dogs" />
             </div>
