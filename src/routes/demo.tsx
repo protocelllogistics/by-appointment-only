@@ -1924,7 +1924,6 @@ function Done({
           <span>Pet stylist</span>
           <b>{a.stylist}</b>
         </div>
-      </div>
         <div>
           <span>Cost</span>
           <b>£{PRICE_GBP[a.service] ?? 40}</b>
