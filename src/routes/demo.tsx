@@ -406,7 +406,7 @@ function DemoPage() {
       },
       late: {
         subject: `Running late?`,
-        text: `Running late? ${a.pet} was due at ${toTime(a.start)}. Give us a call on ${SHOP_PHONE} — we hold your slot for ${NO_SHOW_AFTER} minutes. A £${LATE_FEE_GBP} late fee applies after ${LATE_GRACE} minutes.`,
+        text: `Running late? ${a.pet} was due at ${toTime(a.start)}. Give us a call on ${SHOP_PHONE} — we hold your slot for ${NO_SHOW_AFTER} minutes. The first ${LATE_GRACE} minutes are included; after that a £${LATE_FEE_GBP} late fee applies.`,
         actions: ["call"],
       },
       latefee: {
