@@ -19,7 +19,8 @@ export type Appt = {
   index: Index;
   tell: number;
   status: Status;
-  source: "Online" | "Phone" | "Google Calendar";
+  source: "Online" | "Phone" | "Google Calendar" | "Walk-in";
+  lateBy?: number;
   calendarMinutes?: number;
   mine: boolean;
   notes: string;
