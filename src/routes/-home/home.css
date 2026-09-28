@@ -131,6 +131,7 @@ textarea.input{border-radius:22px;padding:12px 18px;resize:none;min-height:72px}
   .hero h1{font-size:150px;margin-top:110px}
   .hero .sub{font-size:24px;line-height:1.75;margin-top:34px;max-width:38ch}
   .hero .team{display:inline-flex;align-self:flex-start;margin-top:44px;min-height:67px;padding:0 32px;font-size:20px}
+  .hero .team + .team{margin-top:16px}
   .photo{display:none}
   .spacer{flex:1;min-height:30px}
   .whiskers{display:block;width:min(960px,50vw);height:253px;margin-left:-5vw;overflow:visible}
