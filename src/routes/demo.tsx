@@ -317,7 +317,7 @@ function DemoPage() {
       if (phoneViewRef.current !== "home") return;
       const q = queued.current;
       queued.current = [];
-      deliver(q);
+      deliverNow(q);
     }, 2500);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -328,9 +328,9 @@ function DemoPage() {
       queued.current.push(...next);
       return;
     }
-    deliver(next);
+    deliverNow(next);
   };
-  const deliver = (next: Omit<Msg, "id">[]) => {
+  const deliverNow = (next: Omit<Msg, "id">[]) => {
     const stamped = next.map((x, i) => ({ ...x, id: Date.now() + Math.random() + i }));
     setMessages((all) => [...all, ...stamped]);
     const fromShop = stamped.filter((m) => m.from === "shop");
