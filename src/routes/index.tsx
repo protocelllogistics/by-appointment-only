@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 import homeCss from "./-home/home.css?url";
 import { initHero } from "./-home/booking";
+import { PRICE_GBP_PUBLIC } from "@/lib/demo-presets";
 import logoTransparent from "@/assets/Logo_BAO_transparent.png";
 import tomPhoto from "@/assets/TOM.jpeg.asset.json";
 import mayaPhoto from "@/assets/Maya.jpeg.asset.json";
@@ -398,7 +399,9 @@ function HomePage() {
                 <div className="service-detail" id="service-detail" role="tabpanel">
                   <div className="service-detail-head">
                     <h3>{selectedService}</h3>
-                    <span>Average {SERVICE_DETAILS[selectedService].duration}</span>
+                    <span>
+                      Average {SERVICE_DETAILS[selectedService].duration} · <b>£{PRICE_GBP_PUBLIC[selectedService]}</b>
+                    </span>
                   </div>
                   <div className="service-includes">
                     <div className="service-includes-label">Includes</div>
@@ -408,6 +411,13 @@ function HomePage() {
                       ))}
                     </ul>
                   </div>
+                  <button
+                    type="button"
+                    className="btn btn-primary service-book"
+                    onClick={() => document.dispatchEvent(new CustomEvent("bao:book", { detail: { service: selectedService } }))}
+                  >
+                    Book {selectedService} now · £{PRICE_GBP_PUBLIC[selectedService]}
+                  </button>
                 </div>
               </div>
             </section>

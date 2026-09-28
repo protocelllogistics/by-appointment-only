@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { CalendarPlus, CreditCard, Download, Lock, Phone, PhoneOff } from "lucide-react";
 import { toTime } from "@/lib/demo-rota";
 import { CARDHOLDERS, REPLY_PRESETS, TEST_CARDS, cycle } from "@/lib/demo-presets";
+import type { CallLog } from "./types";
 import type { Appt, Checkout, LinkAction, Msg } from "./types";
 
 export const SHOP_PHONE = "020 7946 0123";
@@ -247,7 +248,7 @@ export function CheckoutApp({
   );
 }
 
-export function DialerApp({ onCall }: { onCall: () => void }) {
+export function DialerApp({ onCall, calls = [] }: { onCall: () => void; calls?: CallLog[] }) {
   const [inCall, setInCall] = useState(false);
   const [secs, setSecs] = useState(0);
   useEffect(() => {
@@ -282,6 +283,23 @@ export function DialerApp({ onCall }: { onCall: () => void }) {
           ? "The staff screen now shows this caller’s booking recommendations."
           : "Calling opens a matching phone-booking recommendation for staff."}
       </small>
+      {!inCall && calls.length > 0 && (
+        <div className="dm-calls">
+          <b>Recent calls from the shop</b>
+          {[...calls].reverse().map((c) => (
+            <details key={c.id}>
+              <summary>
+                <Phone size={13} /> {c.subject} <small>{c.time}</small>
+              </summary>
+              {c.lines.map((l, i) => (
+                <p key={i} data-who={l.who}>
+                  <em>{l.who === "shop" ? "Shop" : "You"}</em> “{l.text}”
+                </p>
+              ))}
+            </details>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -230,11 +230,45 @@ export function initHero(signal: AbortSignal) {
     loadAvailability();
   };
 
+  // "Book now" on a service: open booking in place with that service chosen — no scrolling.
+  let flowHome = null;
+  const onBookService = (e) => {
+    const svc = e.detail?.service;
+    if (!SERVICES.includes(svc)) return;
+    S.service = svc;
+    renderGroups();
+    if (desktop()) {
+      // The hero sits in a transformed pager, so lift the panel to <body> to float over the page.
+      if (!flowHome) {
+        const el = $("flow");
+        flowHome = document.createComment("flow");
+        el.replaceWith(flowHome);
+        document.body.appendChild(el);
+      }
+      $("flow").classList.add("modal");
+      document.documentElement.classList.add("book-modal");
+    }
+    $("showTimes").click();
+  };
+  document.addEventListener("bao:book", onBookService, { signal });
+  signal.addEventListener("abort", () => {
+    if (flowHome) flowHome.replaceWith($("flow"));
+    document.documentElement.classList.remove("book-modal");
+  });
+
   /* ---------- Flow ---------- */
   function go(step) {
     S.step = step;
     S.breedOpen = false;
     const inFlow = step !== "taps";
+    if (!inFlow && flowHome) {
+      flowHome.replaceWith($("flow"));
+      flowHome = null;
+    }
+    if (!inFlow) {
+      $("flow").classList.remove("modal");
+      document.documentElement.classList.remove("book-modal");
+    }
     $("flow").classList.toggle("on", inFlow);
     $("taps").classList.toggle("hidden", inFlow && desktop());
     if (!desktop()) {

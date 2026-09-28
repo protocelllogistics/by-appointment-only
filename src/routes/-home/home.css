@@ -246,3 +246,7 @@ textarea.input{border-radius:22px;padding:12px 18px;resize:none;min-height:72px}
 .contact-seg button{width:56px;height:48px;display:grid;place-items:center;border:2px solid transparent;border-radius:999px;background:var(--color-bg);color:var(--color-neutral-800);cursor:pointer}
 .contact-seg button .icon{width:20px;height:20px}
 .contact-seg button[aria-checked="true"]{border-color:var(--color-accent);background:var(--color-accent-100);color:var(--color-accent-800)}
+
+.service-book{margin-top:18px;min-height:52px;align-self:flex-start}
+@media(min-width:1024px){html.book-modal .flow.modal{position:fixed!important;top:48px!important;bottom:24px!important;left:50%!important;right:auto!important;width:min(600px,92vw)!important;transform:translateX(-50%)!important;z-index:90!important;border-radius:34px!important}
+html.book-modal body::after{content:"";position:fixed;inset:0;z-index:85;background:rgb(0 0 0/.35);pointer-events:none}}
