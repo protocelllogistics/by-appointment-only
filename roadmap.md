@@ -24,3 +24,4 @@
 - [x] Keep the public homepage booking placeholder browser-only until the user authorizes backend collection.
 - [x] Restore normal customer homepage scrolling on phones and close the booking sheet or flow when its backdrop is tapped.
 - [x] Auto-generate fictional gender-neutral customer identities across public, demo and staff-created bookings; only filtered pet name and notes stay editable.
+- [ ] Replace the embedded phone terminal with one native, borderless handheld UI shared by mobile Dashboard and mobile demo; keep its controls presentation-only for now.
