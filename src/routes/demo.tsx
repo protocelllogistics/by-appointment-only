@@ -224,26 +224,17 @@ function DemoRoute() {
 }
 function MobileDemo() {
   const [stay, setStay] = useState(false);
-  if (stay)
-    return (
-      <div className="dm-mobile-terminal">
-        <div className="dm-mobile-banner">
-          <b>Stylist terminal</b>
-          <span>The full two-screen demo works best in a desktop browser.</span>
-        </div>
-        <iframe src="/dashboard/mobile.html" title="Stylist terminal" />
-      </div>
-    );
+  if (stay) return <DemoPage mobile />;
   return (
     <main className="dm-mobile-choice">
       <div>
         <span>Interactive demo</span>
         <h1>Best viewed on a full browser</h1>
         <p>
-          The complete demonstration places the staff diary beside the customer’s phone. On this phone you can continue
-          into the simplified stylist terminal.
+          The complete demonstration places the staff diary beside the customer’s phone. On this phone you can switch
+          between the stylist’s Hand-Held App and the customer’s phone.
         </p>
-        <Button onClick={() => setStay(true)}>Open stylist terminal</Button>
+        <Button onClick={() => setStay(true)}>Open Hand-Held App</Button>
       </div>
     </main>
   );
@@ -259,7 +250,8 @@ const emptyForm = {
 };
 const deliver = (c: Channel | "Phone"): Channel => (c === "Email" ? "Email" : "Messages");
 
-function DemoPage() {
+function DemoPage({ mobile = false }: { mobile?: boolean }) {
+  const [mTab, setMTab] = useState<"app" | "phone">("app");
   const size = useServerFn(sizeDemoAppointment);
   const [appts, setAppts] = useState(seed),
     [messages, setMessages] = useState<Msg[]>(() => [pastConfirmation()]),
@@ -991,7 +983,7 @@ function DemoPage() {
   const target =
     [...appts].reverse().find((a) => a.mine && a.status === "Confirmed") ?? appts.find((a) => a.id === MY_SEED_ID)!;
   return (
-    <div className="dm">
+    <div className="dm" data-mobile={mobile || undefined} data-tab={mobile ? mTab : undefined}>
       <header className="dm-top">
         <div>
           <h1>By Appointment Only</h1>
@@ -1023,7 +1015,23 @@ function DemoPage() {
           Reset
         </Button>
       </header>
+      {mobile && (
+        <nav className="dm-mtabs" role="tablist" aria-label="Demo view">
+          <button role="tab" aria-selected={mTab === "app"} onClick={() => setMTab("app")}>
+            Hand-Held App
+          </button>
+          <button role="tab" aria-selected={mTab === "phone"} onClick={() => setMTab("phone")}>
+            Customer phone
+            {messages.some((m) => !m.read) && <i aria-label="1 unread" />}
+          </button>
+        </nav>
+      )}
       <div className="dm-stage">
+        {mobile && (
+          <section className="dm-handheld" aria-label="Hand-Held App">
+            <iframe src="/dashboard/mobile.html" title="Hand-Held App" />
+          </section>
+        )}
         <section className="dm-admin" aria-label="Staff dashboard">
           <nav className="dm-admin-tabs">
             {["Today", "Bookings", "Automations", "Customers & pets", "Staff rota"].map((t) => (
