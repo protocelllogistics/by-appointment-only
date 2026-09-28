@@ -282,6 +282,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
   const awaiting = useRef<{ id: number; timer: number } | null>(null);
   const [pending, setPending] = useState<{ date: string; option: { stylist: string; start: number; size: Size } }>();
   const [form, setForm] = useState(emptyForm);
+  const [prepay, setPrepay] = useState(false);
   const prefer = useRef<Channel>("Messages");
   prefer.current = deliver(form.contact);
   const byCall = useRef(false);
@@ -582,6 +583,13 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
       return;
     }
     setPhoneView("checking");
+    if (prepay && source === "Online") {
+      window.setTimeout(() => {
+        setCheckout({ kind: "pay-advance", apptId: id, amount: PRICE_GBP[a.service] ?? 40, label: `${a.service} — paid in advance`, thenDone: true });
+        setPhoneView("checkout");
+      }, 1100);
+      return;
+    }
     window.setTimeout(() => setPhoneView("done"), 1100);
   }
   function changeAppointment(a: Appt, o: { stylist: string; start: number; size: Size }, date: string) {
@@ -915,6 +923,8 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     const a = appts.find((x) => x.id === c.apptId);
     setAppts((all) => all.map((x) => (x.id === c.apptId ? { ...x, paid: [...(x.paid ?? []), c.label] } : x)));
     addLog(`Payment received: £${c.amount.toFixed(2)} — ${c.label}${a ? ` (${a.pet})` : ""}.`);
+    if (c.kind === "pay-advance") addLog(`Fast check-out applied${a ? ` for ${a.pet}` : ""}: prepaid, desk only confirms collection.`);
+    if (c.thenDone) window.setTimeout(() => setPhoneView("done"), 1400);
     notify({
       subject: "Payment receipt",
       time: toTime(NOW),
@@ -1232,6 +1242,8 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
           customerSays={customerSays}
           form={form}
           setForm={setForm}
+          prepay={prepay}
+          setPrepay={setPrepay}
           errors={errors}
           busy={busy}
           sizes={sizes}
@@ -1490,6 +1502,7 @@ function AdminDrawer({
                 {a.paid.map((p) => (
                   <span key={p}>Paid · {p}</span>
                 ))}
+                {a.paid.some((p) => p.includes("paid in advance")) && <span>Fast check-out</span>}
               </div>
             ) : null}
           </div>
@@ -1790,6 +1803,8 @@ function PhoneShell({
   pending,
   setPending,
   onCall,
+  prepay,
+  setPrepay,
 }: any) {
   const apps = [
     { id: "phone", label: "Phone", icon: Phone },
@@ -1913,7 +1928,7 @@ function PhoneShell({
               setPending={setPending}
             />
           ) : view === "details" && pending ? (
-            <BookingReview form={form} setForm={setForm} pending={pending} createBooking={createBooking} setView={setView} />
+            <BookingReview form={form} setForm={setForm} prepay={prepay} setPrepay={setPrepay} pending={pending} createBooking={createBooking} setView={setView} />
           ) : view === "checking" ? (
             <div className="dm-checking">
               <div className="dm-pulse" />
@@ -2044,7 +2059,7 @@ function Times({
     </div>
   );
 }
-function BookingReview({ form, setForm, pending, createBooking, setView }: any) {
+function BookingReview({ form, setForm, prepay, setPrepay, pending, createBooking, setView }: any) {
   return (
     <div className="dm-book">
       <div className="dm-reserving">
@@ -2076,9 +2091,16 @@ function BookingReview({ form, setForm, pending, createBooking, setView }: any) 
         </div>
       </div>
       <ContactChoice form={form} setForm={setForm} />
+      <label className="dm-prepay">
+        <input type="checkbox" checked={prepay} onChange={(e) => setPrepay(e.target.checked)} />
+        <span>
+          <b>Pay now for fast check-out · £{PRICE_GBP[form.service] ?? 40}</b>
+          <small>Skip paying at collection. Simulated checkout, no real transaction.</small>
+        </span>
+      </label>
       <p className="dm-note-card">Demo only. Nothing will be sent to or saved in the backend.</p>
       <button className="dm-cta" onClick={() => createBooking(pending.option, pending.date)}>
-        Confirm booking
+        {prepay ? "Confirm and pay" : "Confirm booking"}
       </button>
     </div>
   );
@@ -2124,6 +2146,10 @@ function Done({
         <div>
           <span>Confirmation number</span>
           <b className="dm-code">{a.code}</b>
+        </div>
+        <div>
+          <span>Fast check-out</span>
+          <b>{a.paid?.some((p) => p.includes("paid in advance")) ? "Applied · prepaid" : "Not applied"}</b>
         </div>
       </div>
       <a

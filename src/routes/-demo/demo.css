@@ -81,3 +81,7 @@
 
 .dm-disclaimer{max-width:1460px;margin:28px auto 0;padding:18px 0 4px;border-top:1px solid color-mix(in srgb,var(--bg) 42%,transparent);color:color-mix(in srgb,var(--bg) 78%,transparent);font-size:12px;line-height:1.55}
 .dm-disclaimer p{margin:0;max-width:780px}.dm-disclaimer nav{display:flex;gap:10px;margin-top:5px}.dm-disclaimer a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+
+.dm-prepay{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid var(--color-neutral-300,#ddd);border-radius:12px;cursor:pointer}
+.dm-prepay input{margin-top:3px;accent-color:var(--color-accent-700,#c4502f)}
+.dm-prepay span{display:flex;flex-direction:column;gap:2px}.dm-prepay small{opacity:.75;font-size:12px}
