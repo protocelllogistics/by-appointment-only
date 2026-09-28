@@ -31,7 +31,7 @@ export const Route = createFileRoute("/why-baowow")({
 const STORY = [
   {
     title: "The problem",
-    body: "We all know that days rarely run entirely as planned. Yet booking tools are built as calendars: as pre-planned days. Customers book online, by phone, by email or at the door, while late arrivals, no-shows and work taking longer than expected change the day. Most systems keep showing the plan while everyone else deals with the reality, and every commitment the business has to change risks the trust its customer placed in it.",
+    body: "We all know that days rarely run entirely as planned. Yet booking tools are built as calendars: as pre-planned days. Customers book via various ways, while late arrivals, no-shows and work taking longer than expected change the day. Most systems keep showing the plan while everyone else deals with the reality, and every commitment the business has to change risks the trust its customer placed in it.",
   },
   {
     title: "The solution",
@@ -91,7 +91,6 @@ function WhyBaowowPage() {
                 </div>
               ))}
             </div>
-
 
             <div className="why-cta">
               <a className="access-link" href="mailto:apps@protocell.io">
