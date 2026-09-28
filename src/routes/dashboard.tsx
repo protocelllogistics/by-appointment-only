@@ -4,6 +4,7 @@ import { getDashboardStaffData } from "@/lib/dashboard-data.functions";
 import { getDashboardHistory } from "@/lib/dashboard-history.functions";
 import { DashboardApp } from "./-dashboard/dashboard-app";
 import { Handheld } from "./-dashboard/handheld";
+import { usePhoneViewport } from "@/lib/use-phone-viewport";
 import type { HistoryData } from "./-dashboard/history-math";
 
 const historyQuery = { queryKey: ["dashboard-seed-history"], queryFn: () => getDashboardHistory() };
@@ -35,8 +36,8 @@ export const Route = createFileRoute("/dashboard")({
 // Select the operational handheld before mounting the full desktop Dashboard.
 function Dashboard() {
   const hydrated = useHydrated();
+  const isPhone = usePhoneViewport();
   if (!hydrated) return <div className="dash-loading">Loading Dashboard…</div>;
-  const isPhone = /Android|iPhone|iPod|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.matchMedia("(max-width: 767px)").matches;
   if (isPhone) return <Handheld />;
   return <DesktopDashboard/>;
 }

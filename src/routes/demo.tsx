@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { BellRing, LogOut, CalendarDays, CalendarPlus, Globe, Mail, MessageCircle, Phone, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Handheld } from "./-dashboard/handheld";
+import { usePhoneViewport } from "@/lib/use-phone-viewport";
 import { sizeDemoAppointment } from "@/lib/demo.functions";
 import { validateDemoEditable } from "@/lib/demo-validation";
 import { createFictionalContact } from "@/lib/fictional-contact";
@@ -217,15 +218,15 @@ export const AUTOMATIONS: { kind: Automation; title: string; when: string }[] = 
 
 function DemoRoute() {
   const hydrated = useHydrated();
+  const phone = usePhoneViewport();
+  const [opened, setOpened] = useState(false);
+  useEffect(() => {
+    if (!phone) setOpened(true);
+  }, [phone]);
   if (!hydrated) return <div className="dm-mobile-loading">Opening demo…</div>;
-  const phone =
-    /Android|iPhone|iPod|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-    window.matchMedia("(max-width:767px)").matches;
-  return phone ? <MobileDemo /> : <DemoPage />;
+  return phone && !opened ? <MobileDemo onOpen={() => setOpened(true)} /> : <DemoPage mobile={phone} />;
 }
-function MobileDemo() {
-  const [stay, setStay] = useState(false);
-  if (stay) return <DemoPage mobile />;
+function MobileDemo({ onOpen }: { onOpen: () => void }) {
   return (
     <main className="dm-mobile-choice">
       <div>
@@ -235,7 +236,7 @@ function MobileDemo() {
           The complete demonstration places the staff diary beside the customer’s phone. On this phone you can switch
           between the stylist’s Hand-Held App and the customer’s phone.
         </p>
-        <Button onClick={() => setStay(true)}>Open Hand-Held App</Button>
+        <Button onClick={onOpen}>Open Hand-Held App</Button>
       </div>
     </main>
   );

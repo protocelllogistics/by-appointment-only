@@ -13,7 +13,7 @@
 - Keep booking selection UI reusable between the mobile sheet and desktop hero to prevent behaviour drift.
 - Front page lives in src/routes/index.tsx (markup as JSX, selection chips server-rendered) with its CSS/behaviour in src/routes/-home/; booking stays in-page and must show a loading state until real availability resolves — user requirement: no false fully-booked flash before "Book in 1 minute".
 
-- Staff back office is `/dashboard`: phones receive only the native stylist handheld UI, while tablet/desktop receive the uploaded full Dashboard — this is operational separation, not responsive redesign; open only in pre-production, role-protect before launch.
+- Staff back office is `/dashboard`: widths up to 767px receive only the native stylist handheld UI, while wider widths receive the full Dashboard, switching live on resize regardless of device identity; open only in pre-production, role-protect before launch.
 - Treat the uploaded mock’s staff Today records, states, actions, right rail, and chart as canonical unless the user explicitly changes them.
 - Replace demo data with uploaded System CSVs in dependency order; preserve both Dashboard presentations and public booking UI.
 - Use one route-adjacent React handheld UI in mobile Dashboard and mobile demo; the supplied HTML and screenshots are visual/interaction references, never an embedded runtime, so both presentations stay canonical.
