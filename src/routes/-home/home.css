@@ -131,8 +131,8 @@ textarea.input{border-radius:22px;padding:12px 18px;resize:none;min-height:72px}
   .brand{font-size:32px;gap:16px}.brand i{width:46px;height:46px}.brand i::after{width:16px;height:16px}
   .hero h1{font-size:150px;margin-top:110px}
   .hero .sub{font-size:24px;line-height:1.75;margin-top:34px;max-width:38ch}
-  .hero .team{display:inline-flex;align-self:flex-start;margin-top:44px;min-height:67px;padding:0 32px;font-size:20px}
-  .hero .team + .team{margin-top:16px}
+  .hero .team-row{display:flex;flex-wrap:wrap;align-self:flex-start;gap:16px;margin-top:44px}
+  .hero .team{display:inline-flex;min-height:67px;padding:0 32px;font-size:20px}
   .photo{display:none}
   .spacer{flex:1;min-height:30px}
   .whiskers{display:block;width:min(960px,50vw);height:253px;margin-left:-5vw;overflow:visible}
@@ -176,7 +176,8 @@ textarea.input{border-radius:22px;padding:12px 18px;resize:none;min-height:72px}
   .hero h1{font-size:112px;margin-top:80px}
   .brand{font-size:24px;gap:12px}.brand i{width:34px;height:34px}.brand i::after{width:12px;height:12px}
   .hero .sub{font-size:19px;line-height:1.55;margin-top:28px}
-  .hero .team{font-size:16px;min-height:48px;margin-top:32px;padding:0 24px}
+  .hero .team-row{margin-top:32px}
+  .hero .team{font-size:16px;min-height:48px;padding:0 24px}
   .addr{font-size:15px;margin-top:26px;gap:8px}.addr .icon{width:16px;height:16px}
   .taps{left:-40px;top:60px;width:800px;height:800px;padding:0 105px 0 115px;gap:18px}
   .taps h2{font-size:40px}.taps .groups{gap:17px}
