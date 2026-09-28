@@ -320,10 +320,10 @@ function HomePage() {
               <path d="M0 118 C220 124 450 146 670 182 C450 150 220 132 0 126 Z" fill="var(--color-accent-400)" />
             </svg>
             <div className="hero-access">
-              <a className="btn btn-outline access" href="mailto:apps@protocell.io">
+              <a className="btn btn-ghost access" href="mailto:apps@protocell.io">
                 Request Product Access
               </a>
-              <Link className="btn btn-ghost access" to="/demo">
+              <Link className="btn btn-primary access" to="/demo">
                 View Demo
               </Link>
             </div>
