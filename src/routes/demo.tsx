@@ -1685,7 +1685,7 @@ function PhoneShell({
               {notif.call ? <Phone size={14} /> : notif.channel === "Email" ? <Mail size={14} /> : <MessageCircle size={14} />}
             </i>
             <span>
-              <b>{notif.call ? "Missed call handled · By Appointment Only" : notif.channel === "Email" ? notif.subject : "By Appointment Only"}</b>
+              <b>{notif.call ? "Call · By Appointment Only" : notif.channel === "Email" ? notif.subject : "By Appointment Only"}</b>
               <small>{notif.text.split("\n")[0]}</small>
             </span>
           </button>
