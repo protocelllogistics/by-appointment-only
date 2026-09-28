@@ -1136,13 +1136,13 @@ function AutomationsPanel({
   );
 }
 const subjectKey = (k: Automation) =>
-    late: "Running late",
-    latefee: "Late arrival fee",
+  ({
     confirm: "Booking confirmed",
     tomorrow: "Reminder:",
     today: "Today:",
     "2h": "In 2 hours",
     late: "Running late",
+    latefee: "Late arrival fee",
     noshow: "You missed",
     advance: "Pay in advance",
   })[k];
