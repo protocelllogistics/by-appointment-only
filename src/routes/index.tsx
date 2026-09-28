@@ -443,7 +443,7 @@ function HomePage() {
                   </div>
                   <button
                     type="button"
-                    className="btn btn-primary service-book"
+                    className="btn btn-ghost service-book"
                     onClick={() =>
                       document.dispatchEvent(new CustomEvent("bao:book", { detail: { service: selectedService } }))
                     }
