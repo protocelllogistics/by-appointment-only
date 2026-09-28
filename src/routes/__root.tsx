@@ -131,7 +131,33 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <SiteDisclaimer />
       <CookieConsent />
     </QueryClientProvider>
+  );
+}
+
+function SiteDisclaimer() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // Front-end pages only — not the staff dashboard, staff terminal, or sign-in.
+  if (pathname.startsWith("/dashboard") || pathname.startsWith("/staff") || pathname.startsWith("/auth")) {
+    return null;
+  }
+  return (
+    <footer className="border-t border-border/60 px-4 py-5 text-center text-xs text-muted-foreground">
+      <p className="mx-auto max-w-2xl">
+        This is a prototype of BAOWOW, an application prototype for automated appointment-based
+        businesses developed by PROTOCELL IO, intended for demonstration purposes only.
+      </p>
+      <p className="mt-1.5 flex items-center justify-center gap-3">
+        <Link to="/terms-and-conditions" className="underline-offset-2 hover:underline">
+          Terms &amp; Conditions
+        </Link>
+        <span aria-hidden="true">·</span>
+        <Link to="/privacy-policy" className="underline-offset-2 hover:underline">
+          Privacy Policy
+        </Link>
+      </p>
+    </footer>
   );
 }
