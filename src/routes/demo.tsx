@@ -1,8 +1,9 @@
 import { Link, createFileRoute, useHydrated } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BellRing, LogOut, CalendarDays, CalendarPlus, Globe, Mail, MessageCircle, Phone, RotateCcw, X } from "lucide-react";
+import { BellRing, LogOut, CalendarDays, CalendarPlus, Globe, Mail, MessageCircle, Phone, Play, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Handheld } from "./-dashboard/handheld";
 import { usePhoneViewport } from "@/lib/use-phone-viewport";
 import { sizeDemoAppointment } from "@/lib/demo.functions";
@@ -1016,6 +1017,18 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
           <CalendarDays size={15} />
           Add calendar booking
         </Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="dm-pill"><Play size={15} aria-hidden="true" /> Walkthrough video</Button>
+          </DialogTrigger>
+          <DialogContent className="why-video-modal">
+            <DialogHeader>
+              <DialogTitle>Demo walkthrough</DialogTitle>
+              <DialogDescription>The walkthrough video is coming soon.</DialogDescription>
+            </DialogHeader>
+            <div className="why-video-frame"><Play size={36} aria-hidden="true" /><span>Video coming soon</span></div>
+          </DialogContent>
+        </Dialog>
         <Button asChild className="dm-pill">
           <Link to="/">
             <LogOut size={15} />

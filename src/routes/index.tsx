@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import homeCss from "./-home/home.css?url";
 import { initHero } from "./-home/booking";
 import { PRICE_GBP_PUBLIC } from "@/lib/demo-presets";
-import logoTransparent from "@/assets/Logo_BAO_transparent.png";
+import findUsImage from "@/assets/BAOWOW-Find-Us.jpeg.asset.json";
 import tomPhoto from "@/assets/TOM.jpeg.asset.json";
 import mayaPhoto from "@/assets/Maya.jpeg.asset.json";
 import samPhoto from "@/assets/Sam.jpeg.asset.json";
@@ -123,12 +123,12 @@ const groupsHtml = (
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "By Appointment Only — Neighbourhood Pet Stylists" },
-      { name: "description", content: "Neighbourhood pet stylists at 14 Church Street, Stoke Newington, London N16." },
-      { property: "og:title", content: "By Appointment Only — Neighbourhood Pet Stylists" },
+      { title: "By Appointment Only (BAOWOW) — Real-day Salon Bookings" },
+      { name: "description", content: "BAOWOW turns salon scheduling chaos into real-day bookings through risk-based buffering, intelligent automation and idle-time task recovery." },
+      { property: "og:title", content: "By Appointment Only (BAOWOW) — Real-day Salon Bookings" },
       {
         property: "og:description",
-        content: "Neighbourhood pet stylists at 14 Church Street, Stoke Newington, London N16.",
+        content: "BAOWOW turns salon scheduling chaos into real-day bookings through risk-based buffering, intelligent automation and idle-time task recovery.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://baowow.xyz/" },
@@ -539,8 +539,8 @@ function HomePage() {
               <h2 id="find-us-title">Find us</h2>
               <img
                 className="find-logo"
-                src={logoTransparent}
-                alt="By Appointment Only — Pet Grooming"
+                 src={findUsImage.url}
+                 alt="BAOWOW mark with a dog silhouette"
                 width={260}
                 height={260}
               />
