@@ -63,11 +63,23 @@ const TEAM_TAB = "The team";
 const SERVICE_DETAILS = {
   "Full style": {
     duration: "2–3 hours",
-    includes: ["Consultation and coat assessment", "Bath and condition", "Dry and brush-out", "Full breed-suitable cut", "Nails, ears and finishing"],
+    includes: [
+      "Consultation and coat assessment",
+      "Bath and condition",
+      "Dry and brush-out",
+      "Full breed-suitable cut",
+      "Nails, ears and finishing",
+    ],
   },
   "Bath & tidy": {
     duration: "1–2 hours",
-    includes: ["Bath and condition", "Dry and brush-out", "Face, feet and hygiene tidy", "Nail trim", "Finishing spritz"],
+    includes: [
+      "Bath and condition",
+      "Dry and brush-out",
+      "Face, feet and hygiene tidy",
+      "Nail trim",
+      "Finishing spritz",
+    ],
   },
   "Nail trim": {
     duration: "15 minutes",
@@ -75,7 +87,13 @@ const SERVICE_DETAILS = {
   },
   "Puppy intro": {
     duration: "45–60 minutes",
-    includes: ["Gentle salon introduction", "Bath and light dry", "Brush and comb", "Face, feet and hygiene tidy", "Positive handling breaks"],
+    includes: [
+      "Gentle salon introduction",
+      "Bath and light dry",
+      "Brush and comb",
+      "Face, feet and hygiene tidy",
+      "Positive handling breaks",
+    ],
   },
 } as const;
 const STYLISTS = ["Any available", "Maya", "Tom", "Priya", "Sam"];
@@ -307,7 +325,10 @@ function HomePage() {
               <br />
               dog days.
             </h1>
-            <p className="sub">By Appointment Only: Turning salon scheduling chaos and lost revenue into real-day bookings, through risk-based buffering, no-show recovery and idle-time task recovery.</p>
+            <p className="sub">
+              By Appointment Only: Turning salon scheduling chaos and lost revenue into real-day bookings, through
+              risk-based buffering, intelligent automation, and idle-time task recovery.
+            </p>
             <a className="btn btn-outline team" href="#team">
               Meet the team
             </a>
@@ -344,7 +365,10 @@ function HomePage() {
             <div className="scrim" id="scrim"></div>
             <div className="taps" id="taps" role="dialog" aria-modal="true" aria-labelledby="tapsTitle">
               <button className="handle" id="handle" aria-label="Close"></button>
-              <h2 id="tapsTitle"><span className="t-desk">Book in 1 minute</span><span className="t-mob">Book a visit</span></h2>
+              <h2 id="tapsTitle">
+                <span className="t-desk">Book in 1 minute</span>
+                <span className="t-mob">Book a visit</span>
+              </h2>
               <div className="groups" id="groups" dangerouslySetInnerHTML={{ __html: groupsHtml }} />
               <button className="btn btn-light go" id="showTimes">
                 Show times
@@ -418,7 +442,9 @@ function HomePage() {
                   <button
                     type="button"
                     className="btn btn-primary service-book"
-                    onClick={() => document.dispatchEvent(new CustomEvent("bao:book", { detail: { service: selectedService } }))}
+                    onClick={() =>
+                      document.dispatchEvent(new CustomEvent("bao:book", { detail: { service: selectedService } }))
+                    }
                   >
                     Book {selectedService} now · £{PRICE_GBP_PUBLIC[selectedService]}
                   </button>
@@ -460,43 +486,45 @@ function HomePage() {
                         <img src={teamPhoto.url} alt="The By Appointment Only team outside the salon" />
                       </div>
                     </article>
-                  ) : (() => {
-                    const m = (TEAM.find((x) => x.name === teamMember) ?? TEAM[0]) as TeamMember;
-                    return (
-                      <article className="team-card" id="team-card">
-                        {m.photo ? (
-                          <div className="team-photo">
-                            <img src={m.photo} alt={m.alt} />
-                          </div>
-                        ) : (
-                          <div className="team-photo team-photo-empty" aria-hidden="true">
-                            <PawDeco className="team-empty-paw" />
-                          </div>
-                        )}
-                        <div className="team-info">
-                          <PawDeco className="team-paw-deco" />
-                          <h3>{m.name}</h3>
-                          {m.role && <div className="team-info-role">{m.role}</div>}
-                          <span className="team-rule" aria-hidden="true"></span>
-                          {m.bio?.map((p, i) => (
-                            <p className="team-bio" key={i}>
-                              {p}
-                            </p>
-                          ))}
-                          {m.facts && (
-                            <ul className="team-facts">
-                              {m.facts.map((f) => (
-                                <li key={f.label}>
-                                  <FactIcon k={f.icon} />
-                                  <span>{f.label}</span>
-                                </li>
-                              ))}
-                            </ul>
+                  ) : (
+                    (() => {
+                      const m = (TEAM.find((x) => x.name === teamMember) ?? TEAM[0]) as TeamMember;
+                      return (
+                        <article className="team-card" id="team-card">
+                          {m.photo ? (
+                            <div className="team-photo">
+                              <img src={m.photo} alt={m.alt} />
+                            </div>
+                          ) : (
+                            <div className="team-photo team-photo-empty" aria-hidden="true">
+                              <PawDeco className="team-empty-paw" />
+                            </div>
                           )}
-                        </div>
-                      </article>
-                    );
-                  })()}
+                          <div className="team-info">
+                            <PawDeco className="team-paw-deco" />
+                            <h3>{m.name}</h3>
+                            {m.role && <div className="team-info-role">{m.role}</div>}
+                            <span className="team-rule" aria-hidden="true"></span>
+                            {m.bio?.map((p, i) => (
+                              <p className="team-bio" key={i}>
+                                {p}
+                              </p>
+                            ))}
+                            {m.facts && (
+                              <ul className="team-facts">
+                                {m.facts.map((f) => (
+                                  <li key={f.label}>
+                                    <FactIcon k={f.icon} />
+                                    <span>{f.label}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        </article>
+                      );
+                    })()
+                  )}
                 </div>
               </div>
             </section>
