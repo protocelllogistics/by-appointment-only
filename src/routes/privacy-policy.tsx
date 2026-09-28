@@ -9,6 +9,11 @@ export const Route = createFileRoute("/privacy-policy")({
     { property: "og:type", content: "website" },
     { property: "og:url", content: "https://baowow.xyz/privacy-policy" },
     { name: "twitter:card", content: "summary_large_image" },
+    { name: "robots", content: "noindex, nofollow" },
   ], links: [{ rel: "canonical", href: "https://baowow.xyz/privacy-policy" }] }),
-  component: () => null,
+  component: PrivacyPolicyPage,
 });
+
+function PrivacyPolicyPage() {
+  return <main />;
+}
