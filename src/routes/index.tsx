@@ -208,10 +208,10 @@ function HomePage() {
   useEffect(() => {
     const desktopQuery = window.matchMedia("(min-width: 1024px)");
     const onMobileTeamClick = (e: MouseEvent) => {
-      const link = e.target instanceof Element ? e.target.closest('a[href="#team"], a[href="#why"]') : null;
+      const link = e.target instanceof Element ? e.target.closest('a[href="#team"]') : null;
       if (!link) return;
       e.preventDefault();
-      document.querySelector("#team, #why")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.querySelector("#team")?.scrollIntoView({ behavior: "smooth", block: "start" });
     };
     if (!desktopQuery.matches) {
       document.addEventListener("click", onMobileTeamClick);
@@ -274,17 +274,10 @@ function HomePage() {
       }
     };
     const onClick = (e: MouseEvent) => {
-      const a = e.target instanceof Element ? e.target.closest('a[href="#team"], a[href="#why"]') : null;
+      const a = e.target instanceof Element ? e.target.closest('a[href="#team"]') : null;
       if (a) {
         e.preventDefault();
-        const wasOnPanel = panelRef.current === 1;
         go(1);
-        if (a.getAttribute("href") === "#why") {
-          window.setTimeout(
-            () => document.querySelector("#why")?.scrollIntoView({ behavior: "smooth", block: "start" }),
-            wasOnPanel ? 0 : 950,
-          );
-        }
       }
     };
     window.addEventListener("wheel", onWheel, { passive: false });
@@ -385,29 +378,6 @@ function HomePage() {
         </section>
         <div className="public-sections pager-panel" ref={secondRef}>
           <div className="public-inner">
-            <section className="public-section why-section" id="why" aria-labelledby="why-title">
-              <h2 id="why-title">Why BAOWOW?</h2>
-              <p className="why-lead">
-                By Appointment Only turns salon scheduling chaos and lost revenue into real-day bookings. Every
-                appointment carries the operational margin it actually needs, and the system absorbs the
-                friction automatically — the front desk and stylists simply confirm what the system already
-                prepared.
-              </p>
-              <div className="why-grid">
-                <div className="why-card">
-                  <h3>Risk-based buffering</h3>
-                  <p>Every booking carries a buffer sized to the appointment&rsquo;s real risk, so the day holds together even when a groom runs longer than planned.</p>
-                </div>
-                <div className="why-card">
-                  <h3>No-show recovery</h3>
-                  <p>Late arrivals and no-shows are detected and absorbed automatically, and freed time is handed back to the day instead of being lost.</p>
-                </div>
-                <div className="why-card">
-                  <h3>Idle-time task recovery</h3>
-                  <p>Time not used last minute converts into admin tasks and inventory checks, so no time is ever lost at business level.</p>
-                </div>
-              </div>
-            </section>
             <section className="public-section services-section">
               <h2>What we do</h2>
               <div className="services-explorer">

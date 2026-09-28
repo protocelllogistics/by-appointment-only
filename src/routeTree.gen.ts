@@ -17,6 +17,7 @@ import { Route as DemoRouteImport } from './routes/demo'
 import { Route as NoShowPolicyRouteImport } from './routes/no-show-policy'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as TermsAndConditionsRouteImport } from './routes/terms-and-conditions'
+import { Route as WhyBaowowRouteImport } from './routes/why-baowow'
 import { Route as StaffSplatRouteImport } from './routes/staff.$'
 
 const IndexRoute = IndexRouteImport.update({
@@ -59,6 +60,11 @@ const TermsAndConditionsRoute = TermsAndConditionsRouteImport.update({
   path: '/terms-and-conditions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WhyBaowowRoute = WhyBaowowRouteImport.update({
+  id: '/why-baowow',
+  path: '/why-baowow',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaffSplatRoute = StaffSplatRouteImport.update({
   id: '/staff/$',
   path: '/staff/$',
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/no-show-policy': typeof NoShowPolicyRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
+  '/why-baowow': typeof WhyBaowowRoute
   '/staff/$': typeof StaffSplatRoute
 }
 export interface FileRoutesByTo {
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/no-show-policy': typeof NoShowPolicyRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
+  '/why-baowow': typeof WhyBaowowRoute
   '/staff/$': typeof StaffSplatRoute
 }
 export interface FileRoutesById {
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/no-show-policy': typeof NoShowPolicyRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
+  '/why-baowow': typeof WhyBaowowRoute
   '/staff/$': typeof StaffSplatRoute
 }
 export interface FileRouteTypes {
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/no-show-policy'
     | '/privacy-policy'
     | '/terms-and-conditions'
+    | '/why-baowow'
     | '/staff/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/no-show-policy'
     | '/privacy-policy'
     | '/terms-and-conditions'
+    | '/why-baowow'
     | '/staff/$'
   id:
     | '__root__'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/no-show-policy'
     | '/privacy-policy'
     | '/terms-and-conditions'
+    | '/why-baowow'
     | '/staff/$'
   fileRoutesById: FileRoutesById
 }
@@ -144,6 +156,7 @@ export interface RootRouteChildren {
   NoShowPolicyRoute: typeof NoShowPolicyRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   TermsAndConditionsRoute: typeof TermsAndConditionsRoute
+  WhyBaowowRoute: typeof WhyBaowowRoute
   StaffSplatRoute: typeof StaffSplatRoute
 }
 
@@ -205,6 +218,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsAndConditionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/why-baowow': {
+      id: '/why-baowow'
+      path: '/why-baowow'
+      fullPath: '/why-baowow'
+      preLoaderRoute: typeof WhyBaowowRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/staff/$': {
       id: '/staff/$'
       path: '/staff/$'
@@ -224,6 +244,7 @@ const rootRouteChildren: RootRouteChildren = {
   NoShowPolicyRoute: NoShowPolicyRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   TermsAndConditionsRoute: TermsAndConditionsRoute,
+  WhyBaowowRoute: WhyBaowowRoute,
   StaffSplatRoute: StaffSplatRoute,
 }
 export const routeTree = rootRouteImport
