@@ -71,6 +71,7 @@ function mk(
   return { code: "", mobile: "", email: "", ...a, standard: z.standard, minutes: z.minutes, tell: z.tell };
 }
 const MY_SEED_ID = 5;
+type RecoveredTask = { id: number; time: string; minutes: number; stylist: string; kind: "Task" | "Walk-in"; text: string };
 const seed: Appt[] = [
   mk({
     id: 1,
@@ -247,7 +248,9 @@ function DemoPage() {
     [checkout, setCheckout] = useState<Checkout>(),
     [unread, setUnread] = useState<Record<Channel, number>>({ Messages: 0, Email: 0 }),
     [notif, setNotif] = useState<Msg>(),
-    [runId, setRunId] = useState(0);
+    [runId, setRunId] = useState(0),
+    [tasks, setTasks] = useState<RecoveredTask[]>([]);
+  const scenarioTurn = useRef(0);
   const [pending, setPending] = useState<{ date: string; option: { stylist: string; start: number; size: Size } }>();
   const [form, setForm] = useState(emptyForm);
   const prefer = useRef<Channel>("Messages");
@@ -363,14 +366,18 @@ function DemoPage() {
       [700, "tomorrow", "Thu 17:00"],
       [1400, "today", "07:30"],
       [2100, "2h", "08:00"],
-      [6000, "late", "10:05"],
-      [14000, "noshow", "10:15"],
     ];
     const timers = steps.map(([ms, kind, t]) =>
       window.setTimeout(() => {
         const a = apptsRef.current.find((x) => x.id === me.id);
         if (a && a.status === "Confirmed") automate(kind, a, t);
       }, ms),
+    );
+    timers.push(
+      window.setTimeout(() => {
+        const a = apptsRef.current.find((x) => x.id === me.id);
+        if (a && a.status === "Confirmed" && !a.lateBy) simulateLate(a, 12);
+      }, 6000),
     );
     return () => {
       timers.forEach((id) => window.clearTimeout(id));
@@ -488,8 +495,97 @@ function DemoPage() {
     setPanel(null);
   }
   function noShow(a: Appt) {
-    automate("noshow", a);
+    simulateNoShow(a);
     setPanel(null);
+  }
+  const addTasks = (list: Omit<RecoveredTask, "id">[]) =>
+    setTasks((all) => [...list.map((t, i) => ({ ...t, id: Date.now() + i + Math.random() })), ...all]);
+  // Next scenario target: rotate through today's confirmed, non-walk-in appointments.
+  function nextTarget(skip: (a: Appt) => boolean) {
+    const pool = apptsRef.current
+      .filter((a) => a.date === TODAY && a.status === "Confirmed" && a.source !== "Walk-in" && !skip(a))
+      .sort((a, b) => a.start - b.start);
+    if (!pool.length) return undefined;
+    return pool[scenarioTurn.current++ % pool.length];
+  }
+  function simulateLate(a: Appt, lateBy = 10 + ((scenarioTurn.current * 7) % 11)) {
+    const next = clampIndex(a.index - 1);
+    const z = allocate(a.service, next);
+    setAppts((all) =>
+      all.map((x) =>
+        x.id === a.id
+          ? { ...x, lateBy, index: z.index, minutes: z.minutes, tell: z.tell, flags: [...(x.flags ?? []), `Arrived ${lateBy} min late`] }
+          : x,
+      ),
+    );
+    const t = toTime(a.start + lateBy);
+    if (a.mine) automate("late", a, toTime(a.start + 5));
+    else addLog(`“Running late?” message sent to ${a.customer} by SMS.`, toTime(a.start + 5));
+    addLog(
+      `${a.pet} arrived ${lateBy} min late. Index ${a.index}→${z.index}: future visits get ${dur(z.minutes)} instead of ${dur(a.minutes)}; late fee link sent.`,
+      t,
+    );
+    addTasks([
+      {
+        time: toTime(a.start),
+        minutes: lateBy,
+        stylist: a.stylist,
+        kind: "Task",
+        text: lateBy >= 15 ? "Restock shampoo station and log towel stock" : "Prep station and confirm this afternoon's notes",
+      },
+    ]);
+  }
+  function simulateNoShow(a: Appt) {
+    const next = clampIndex(a.index - 2);
+    const z = allocate(a.service, next);
+    setAppts((all) =>
+      all.map((x) => (x.id === a.id ? { ...x, status: "No-show", index: z.index, minutes: z.minutes, tell: z.tell } : x)),
+    );
+    const t = toTime(a.start + 15);
+    if (a.mine) automate("noshow", a, t);
+    else addLog(`No-show fee link (£${NO_SHOW_FEE_GBP}) sent to ${a.customer} by SMS.`, t);
+    addLog(`${a.pet} did not arrive. Index ${a.index}→${z.index}; next booking will need a deposit and ${dur(z.minutes)}.`, t);
+    let free = a.minutes - 15;
+    const recovered: Omit<RecoveredTask, "id">[] = [
+      { time: toTime(a.start), minutes: 15, stylist: a.stylist, kind: "Task", text: "Grace period: call customer, update notes" },
+    ];
+    const walk = allocate("Nail trim", 4);
+    if (free >= walk.minutes + 10) {
+      const start = a.start + 15;
+      setAppts((all) => [
+        ...all,
+        mk({
+          id: Date.now(),
+          customer: "Walk-in customer",
+          pet: ["Rolo", "Nala", "Juno", "Pip"][scenarioTurn.current % 4]!,
+          breed: "Jack Russell",
+          service: "Nail trim",
+          stylist: a.stylist,
+          date: a.date,
+          start,
+          index: 4,
+          status: "Confirmed",
+          source: "Walk-in",
+          mine: false,
+          notes: `Walk-in captured in ${a.pet}'s released slot.`,
+        }),
+      ]);
+      recovered.push({ time: toTime(start), minutes: walk.minutes, stylist: a.stylist, kind: "Walk-in", text: `Walk-in nail trim booked (£${PRICE_GBP["Nail trim"] ?? 15})` });
+      addLog(`Walk-in captured at ${toTime(start)} with ${a.stylist} in the released slot.`, toTime(start));
+      free -= walk.minutes;
+      if (free > 0)
+        recovered.push({ time: toTime(start + walk.minutes), minutes: free, stylist: a.stylist, kind: "Task", text: "Inventory count: clippers, blades and shampoo" });
+    } else if (free > 0) {
+      recovered.push({ time: toTime(a.start + 15), minutes: free, stylist: a.stylist, kind: "Task", text: "Inventory count and supplier reorder" });
+    }
+    addTasks(recovered);
+  }
+  function runScenario(kind: "late" | "noshow") {
+    const a = nextTarget((x) => (kind === "late" ? !!x.lateBy : false));
+    if (!a) return addLog("No confirmed appointments left today to simulate.");
+    setDay(TODAY);
+    setAdminTab("Today");
+    kind === "late" ? simulateLate(a) : simulateNoShow(a);
   }
   function adjustIndex(a: Appt, delta: number) {
     const next = clampIndex(a.index + delta);
@@ -637,6 +733,8 @@ function DemoPage() {
     setShift(0);
     setCheckout(undefined);
     setForm(emptyForm);
+    setTasks([]);
+    scenarioTurn.current = 0;
     setRunId((n) => n + 1);
   };
   const target =
@@ -650,6 +748,12 @@ function DemoPage() {
         </div>
         <span className="sp" />
         <span className="dm-pill">Fri 25 Sep · 10:15</span>
+        <Button className="dm-pill" onClick={() => runScenario("late")}>
+          Simulate late arrival
+        </Button>
+        <Button className="dm-pill" onClick={() => runScenario("noshow")}>
+          Simulate no-show
+        </Button>
         <Button className="dm-pill" onClick={simulateCalendar}>
           <CalendarDays size={15} />
           Add calendar booking
@@ -704,6 +808,23 @@ function DemoPage() {
                         {a.pet}: {dur(a.minutes)} protected ({signed(a.minutes - a.standard)} buffer). Open to see why.
                       </span>
                     </button>
+                  ))}
+                </div>
+              )}
+              {tasks.length > 0 && (
+                <div className="dm-recovered">
+                  <b>
+                    Recovered time · {dur(tasks.reduce((n, t) => n + t.minutes, 0))} reused, 0 min lost
+                  </b>
+                  {tasks.map((t) => (
+                    <div key={t.id} data-kind={t.kind}>
+                      <span>{t.time}</span>
+                      <em>{t.kind}</em>
+                      <p>
+                        {t.stylist}: {t.text}
+                      </p>
+                      <small>{dur(t.minutes)}</small>
+                    </div>
                   ))}
                 </div>
               )}
