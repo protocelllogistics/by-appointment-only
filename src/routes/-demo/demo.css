@@ -73,6 +73,7 @@
 .dm[data-mobile][data-tab=app] .dm-handheld{display:block;width:100%;margin:0 auto;background:var(--color-bg)}
 .dm[data-mobile] .dm-handheld .hh{height:calc(100dvh - 128px);min-height:560px}
 .dm[data-mobile] .dm-phone{display:none}
+.dm[data-mobile][data-tab=phone] .dm-phone{display:block}
 .dm[data-mobile] .dm-phone{position:relative;top:0;max-width:330px;margin:0 auto;padding:8px;border-radius:40px}
 .dm[data-mobile] .dm-screen{height:calc(100dvh - 190px);min-height:540px;border-radius:32px}
 .dm[data-mobile] .dm-home{padding:24px 20px}.dm[data-mobile] .dm-home-date{margin:20px 0 60px}
