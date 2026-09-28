@@ -237,3 +237,12 @@ textarea.input{border-radius:22px;padding:12px 18px;resize:none;min-height:72px}
   .slot{min-height:66px;border-radius:999px}
   .dayh b{font-size:18px}
 }
+
+.banner-row .btn{flex:none;margin-top:-4px}
+.note-chips{display:flex;flex-wrap:wrap;gap:6px}
+.note-chip{min-height:40px;padding:0 14px;border:2px solid transparent;border-radius:999px;background:var(--color-bg);color:var(--color-text);font:inherit;font-size:14px;cursor:pointer}
+.note-chip[aria-pressed="true"]{border-color:var(--color-accent);background:var(--color-accent-100);color:var(--color-accent-800);font-weight:600}
+.contact-seg{display:flex;gap:8px}
+.contact-seg button{width:56px;height:48px;display:grid;place-items:center;border:2px solid transparent;border-radius:999px;background:var(--color-bg);color:var(--color-neutral-800);cursor:pointer}
+.contact-seg button .icon{width:20px;height:20px}
+.contact-seg button[aria-checked="true"]{border-color:var(--color-accent);background:var(--color-accent-100);color:var(--color-accent-800)}

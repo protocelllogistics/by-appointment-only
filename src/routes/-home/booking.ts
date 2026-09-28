@@ -2,6 +2,7 @@
 import { demoPublicSlots } from "@/lib/demo-rota";
 import { validateDemoEditable } from "@/lib/demo-validation";
 import { createFictionalContact } from "@/lib/fictional-contact";
+import { NOTE_PRESETS, PRICE_GBP_PUBLIC, hexCode, icsHref, toggleNote } from "@/lib/demo-presets";
 
 // Behaviour follows the supplied mockup, backed by live availability.
 export function initHero(signal: AbortSignal) {
@@ -20,6 +21,12 @@ export function initHero(signal: AbortSignal) {
     "Bath & tidy": "1 hour",
     "Nail trim": "30 minutes",
     "Puppy intro": "45 minutes",
+  };
+  const MINUTES = { "Full style": 120, "Bath & tidy": 60, "Nail trim": 30, "Puppy intro": 45 };
+  const CONTACT_ICONS = {
+    Phone: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
+    Messages: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/>',
+    Email: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
   };
   const BREEDS = [
     ["Chihuahua", "S"],
@@ -119,6 +126,8 @@ export function initHero(signal: AbortSignal) {
     pet: "",
     breed: "Cockapoo",
     notes: "",
+    contact: "Messages",
+    code: "",
     breedOpen: false,
     discounted: false,
   };
@@ -305,9 +314,9 @@ export function initHero(signal: AbortSignal) {
       <div class="muted" style="margin-top:-6px">${key === "Any" ? "Across all pet stylists" : "With " + esc(S.stylist) + " only"}</div>${availabilityContent}`;
     } else if (S.step === "details") {
       const p = S.picked;
-      h = `<div class="banner"><div class="banner-row"><span class="dot" aria-hidden="true"></span><div class="banner-text">You are reserving <b>${p.time}, ${p.day}</b> with <b>${p.who}</b></div></div><button class="btn" data-go="times">Change</button></div>
+      h = `<div class="banner"><div class="banner-row"><span class="dot" aria-hidden="true"></span><div class="banner-text">You are reserving <b>${p.time}, ${p.day}</b> with <b>${p.who}</b></div><button class="btn" data-go="times">Change</button></div></div>
       <div class="kicker">Step 2 of 2</div>
-      <div style="font-size:15px;color:var(--color-neutral-800);margin-top:-6px">Your appointment will last about <b>${ABOUT[S.service]}</b>.</div>
+      <div style="font-size:15px;color:var(--color-neutral-800);margin-top:-6px">Your appointment will last about <b>${ABOUT[S.service]}</b> and costs <b>£${PRICE_GBP_PUBLIC[S.service]}</b>.</div>
       <h3 style="font-size:22px">Your details</h3>
        <div class="field"><label for="f-owner">Full name · automatically generated</label><input class="input" id="f-owner" value="${esc(S.owner)}" readonly aria-readonly="true"></div>
        <div class="grid2"><div class="field"><label for="f-mobile">Mobile · automatically generated</label><input class="input" id="f-mobile" type="tel" value="${esc(S.mobile)}" readonly aria-readonly="true"></div>
@@ -316,7 +325,8 @@ export function initHero(signal: AbortSignal) {
       <div class="grid2"><div class="field"><label for="f-pet">Pet's name</label><input class="input" id="f-pet" value="${esc(S.pet)}" data-f="pet"></div>
       <div class="field"><label id="l-breed">Breed</label><div class="pick"><button type="button" id="breedBtn" aria-haspopup="listbox" aria-expanded="${S.breedOpen}" aria-labelledby="l-breed breedBtn"><span style="flex:1">${esc(S.breed)}</span><span class="chev"><svg class="icon" style="width:14px;height:14px" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></button>
         <ul role="listbox" class="${S.breedOpen ? "on" : ""}" aria-labelledby="l-breed">${BREEDS.map(([n, z]) => `<li role="option" tabindex="0" data-breed="${esc(n)}" aria-selected="${n === S.breed}"><span class="sz" style="background:${SIZE_C[z]}">${z}</span><span style="flex:1">${esc(n)}</span>${n === S.breed ? '<span style="color:var(--color-accent-700);font-weight:700">✓</span>' : ""}</li>`).join("")}</ul></div></div></div>
-      <div class="field"><label for="f-notes">Anything we should know?</label><textarea class="input" id="f-notes" rows="2" data-f="notes">${esc(S.notes)}</textarea></div>
+      <div class="field"><label id="l-notes">Anything we should know?</label><div class="note-chips" role="group" aria-labelledby="l-notes">${NOTE_PRESETS.map((n) => `<button type="button" class="note-chip" data-note="${esc(n)}" aria-pressed="${S.notes.split(" · ").includes(n)}">${esc(n)}</button>`).join("")}</div></div>
+      <div class="field"><label id="l-contact">Send me updates by</label><div class="contact-seg" role="radiogroup" aria-labelledby="l-contact">${Object.keys(CONTACT_ICONS).map((c) => `<button type="button" role="radio" aria-checked="${S.contact === c}" aria-label="${c === "Messages" ? "Text message" : c}" title="${c === "Messages" ? "Text message" : c}" data-contact="${c}"><svg class="icon" viewBox="0 0 24 24">${CONTACT_ICONS[c]}</svg></button>`).join("")}</div></div>
       <button class="btn btn-primary btn-block" style="min-height:56px;font-size:17px;margin-top:4px" id="confirm">Confirm booking</button>
       <button class="btn btn-ghost" style="align-self:center;font-size:14px;margin-top:-6px" data-go="reserved">Not sure yet? Reserve this slot at no extra cost</button>`;
     } else if (S.step === "checking") {
@@ -325,7 +335,8 @@ export function initHero(signal: AbortSignal) {
       const p = S.picked;
       h = `<div class="center"><div class="badge" style="background:var(--color-accent-2);color:var(--color-bg)"><svg class="icon" style="width:28px;height:28px" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>
       <h2 style="font-size:30px">${esc(S.pet || "Your pet")} is booked in</h2>
-      <div class="summary"><div><span>When</span><b>${p.day}, ${p.time}</b></div><div><span>Service</span><b>${esc(S.service)}</b></div><div><span>Lasts about</span><b>${ABOUT[S.service]}</b></div><div><span>Pet stylist</span><b>${p.who}</b></div>${S.owner ? `<div><span>Booked by</span><b>${esc(S.owner)}</b></div>` : ""}${S.discounted ? `<div style="color:var(--color-accent-2-800)"><span style="color:inherit">Thank-you discount</span><b>−${CONFIG.goodwill}</b></div>` : ""}</div>
+      <div class="summary"><div><span>When</span><b>${p.day}, ${p.time}</b></div><div><span>Service</span><b>${esc(S.service)}</b></div><div><span>Lasts about</span><b>${ABOUT[S.service]}</b></div><div><span>Pet stylist</span><b>${p.who}</b></div><div><span>Cost</span><b>£${PRICE_GBP_PUBLIC[S.service]}</b></div><div><span>Confirmation number</span><b style="font-family:ui-monospace,monospace;letter-spacing:.08em">${S.code}</b></div>${S.owner ? `<div><span>Booked by</span><b>${esc(S.owner)}</b></div>` : ""}${S.discounted ? `<div style="color:var(--color-accent-2-800)"><span style="color:inherit">Thank-you discount</span><b>−${CONFIG.goodwill}</b></div>` : ""}</div>
+       <a class="btn btn-primary btn-block" style="min-height:52px" download="appointment-${S.code}.ics" href="${icsHref({ title: `${S.service} · ${S.pet || "Your pet"}`, date: p.date, start: p.time, minutes: MINUTES[S.service] || 60, code: S.code, who: p.who })}">Add to calendar (.ics)</a>
        <p class="muted" style="margin:0">This demonstration used the fictional contact shown above. Nothing was sent or saved.</p>
       <button class="btn btn-outline btn-block" style="min-height:56px;font-size:17px;margin-top:4px" data-go="taps">Book another pet</button></div>`;
     } else if (S.step === "reserved") {
@@ -382,6 +393,18 @@ export function initHero(signal: AbortSignal) {
       $("breedBtn").focus();
       return;
     }
+    const note = e.target.closest("[data-note]");
+    if (note) {
+      S.notes = toggleNote(S.notes, note.dataset.note);
+      note.setAttribute("aria-pressed", String(S.notes.split(" · ").includes(note.dataset.note)));
+      return;
+    }
+    const ct = e.target.closest("[data-contact]");
+    if (ct) {
+      S.contact = ct.dataset.contact;
+      $("body").querySelectorAll("[data-contact]").forEach((x) => x.setAttribute("aria-checked", String(x === ct)));
+      return;
+    }
     if (e.target.closest("#confirm")) {
       S.discounted = false;
       return confirm();
@@ -421,6 +444,7 @@ export function initHero(signal: AbortSignal) {
     go("checking");
     if (CONFIG.simulateClash && !isRebook) return go("clash");
     // Public prototype only: no customer details or booking are sent or saved.
+    S.code = hexCode();
     window.setTimeout(() => go("done"), 1100);
   }
 

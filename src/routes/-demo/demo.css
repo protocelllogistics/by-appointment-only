@@ -37,3 +37,18 @@
 .dm-index .dm-breakdown b{font-size:13px;font-family:inherit;display:inline;margin:0}.dm-index .dm-breakdown span{font-size:12px}
 .dm-recovered{border:1px solid color-mix(in srgb,var(--teal) 45%,transparent);background:var(--teal-soft);border-radius:8px;padding:10px 12px;margin:0 0 12px;max-height:150px;overflow:auto}.dm-recovered>b{display:block;margin-bottom:6px;color:var(--teal-dark)}.dm-recovered div{display:grid;grid-template-columns:48px 62px 1fr auto;gap:8px;align-items:center;font-size:12px;padding:3px 0}.dm-recovered p{margin:0}.dm-recovered em{font-style:normal;border-radius:999px;padding:2px 7px;background:var(--paper);text-align:center}.dm-recovered div[data-kind=Walk-in] em{background:var(--coral);color:var(--paper)}.dm-recovered small{color:var(--muted)}
 .dm-auto-note{display:block;margin-top:8px;color:var(--muted)}
+.dm .dm-select{width:100%;min-height:42px;border-radius:12px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font:inherit;padding:0 12px}
+.dm-select-menu{font-family:"Figtree",system-ui,sans-serif;border-radius:12px}
+.dm-note-chips{display:flex;flex-wrap:wrap;gap:6px}
+.dm-note-chips button,.dm-codefill button{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:13px}
+.dm-note-chips button[aria-pressed="true"]{background:var(--teal-soft);border-color:var(--teal);color:var(--teal-dark);font-weight:600}
+.dm-seg-icons button{display:grid;place-items:center;min-height:40px}
+.dm-codefill{display:flex;align-items:center;gap:10px}.dm-codefill b{font-family:ui-monospace,monospace;letter-spacing:.12em;font-size:16px}
+.dm-code{font-family:ui-monospace,monospace;letter-spacing:.1em}
+.dm-reserving{display:flex;align-items:center;gap:10px;background:var(--teal-soft);color:var(--teal-dark);border-radius:14px;padding:10px 12px;font-size:13px}
+.dm-reserving span{flex:1}.dm-reserving button{border:0;background:var(--paper);color:var(--teal-dark);border-radius:999px;padding:6px 12px;font-weight:600;flex:none}
+.dm-lasts{margin:0}
+.dm-ics{display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none}
+.dm-quick{display:flex;gap:6px;overflow-x:auto;padding:8px 10px;border-top:1px solid var(--line)}
+.dm-quick button{flex:none;border:1px solid var(--teal);background:var(--paper);color:var(--teal-dark);border-radius:999px;padding:7px 12px;font-size:12.5px;white-space:nowrap}
+.dm a.dm-ics{font-family:"Figtree",system-ui,sans-serif;font-weight:500}
