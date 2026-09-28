@@ -1022,7 +1022,6 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
           </button>
           <button role="tab" aria-selected={mTab === "phone"} onClick={() => setMTab("phone")}>
             Customer phone
-            {messages.some((m) => !m.read) && <i aria-label="1 unread" />}
           </button>
         </nav>
       )}

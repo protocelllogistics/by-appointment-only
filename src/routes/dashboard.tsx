@@ -37,7 +37,7 @@ function Dashboard() {
   const hydrated = useHydrated();
   if (!hydrated) return <div className="dash-loading">Loading Dashboard…</div>;
   const isPhone = /Android|iPhone|iPod|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.matchMedia("(max-width: 767px)").matches;
-  if (isPhone) return <iframe className="dash-mobile-frame" src="/dashboard/mobile.html" title="Stylist terminal" />;
+  if (isPhone) return <iframe className="dash-mobile-frame" src="/dashboard/mobile.html" title="Hand-Held App" />;
   return <DesktopDashboard/>;
 }
 
