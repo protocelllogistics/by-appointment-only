@@ -16,6 +16,7 @@ import {
   offsetLabel,
   type Index,
 } from "@/lib/demo-allocation";
+import { ACTIVE } from "./-demo/types";
 import type { Appt, Channel, Checkout, LinkAction, Msg, Size } from "./-demo/types";
 import {
   BrowserBar,
@@ -62,7 +63,11 @@ type PhoneView =
   | "cancel"
   | "checkout";
 type AdminPanel = { kind: "appointment"; id: number } | { kind: "new"; fromCall?: boolean } | null;
-type Automation = "confirm" | "tomorrow" | "today" | "2h" | "late" | "noshow" | "advance";
+type Automation = "confirm" | "tomorrow" | "today" | "2h" | "late" | "latefee" | "noshow" | "advance";
+const LATE_GRACE = 10,
+  NO_SHOW_AFTER = 25,
+  LATE_ROTATION = [8, 14, 22, 30];
+const isActive = (a: Appt) => ACTIVE.includes(a.status);
 
 function mk(
   a: Omit<Appt, "standard" | "minutes" | "tell" | "code" | "mobile" | "email" | "index"> & { index: Index },
@@ -181,7 +186,8 @@ export const AUTOMATIONS: { kind: Automation; title: string; when: string }[] = 
   { kind: "today", title: "Today reminder", when: "Morning of the visit, 07:30" },
   { kind: "2h", title: "In 2 hours we expect you", when: "2 hours before start" },
   { kind: "late", title: "Running late — give us a call", when: "5 minutes after start, not checked in" },
-  { kind: "noshow", title: "You didn’t show up (no-show fee)", when: "15 minutes after start, not checked in" },
+  { kind: "latefee", title: "Late arrival fee", when: `Arrival more than ${LATE_GRACE} min late` },
+  { kind: "noshow", title: "You didn’t show up (no-show fee)", when: `${NO_SHOW_AFTER} minutes after start, not checked in` },
   { kind: "advance", title: "Pay in advance for fast check-out", when: "With confirmation and reminders" },
 ];
 
@@ -289,7 +295,8 @@ function DemoPage() {
   const notify = (m: Omit<Msg, "id" | "channel" | "from">, channel: Channel = prefer.current) =>
     send([{ ...m, channel, from: "shop" }]);
   const addLog = (text: string, time = toTime(NOW)) => setLog((all) => [`${time} · ${text}`, ...all]);
-  const live = appts.filter((a) => a.status === "Confirmed");
+  const live = appts.filter(isActive);
+  const shown = appts.filter((a) => isActive(a) || a.status === "Checked out");
   const busyFor = (except?: number): Busy[] =>
     live
       .filter((a) => a.id !== except)
@@ -335,8 +342,13 @@ function DemoPage() {
       },
       late: {
         subject: `Running late?`,
-        text: `You're running late — ${a.pet} was due at ${toTime(a.start)}. Give us a call on ${SHOP_PHONE} and we'll hold your slot for 15 minutes. A £${LATE_FEE_GBP} late fee applies.`,
-        actions: ["call", "pay-late"],
+        text: `Running late? ${a.pet} was due at ${toTime(a.start)}. Give us a call on ${SHOP_PHONE} — we hold your slot for ${NO_SHOW_AFTER} minutes. A £${LATE_FEE_GBP} late fee applies after ${LATE_GRACE} minutes.`,
+        actions: ["call"],
+      },
+      latefee: {
+        subject: `Late arrival fee · ${a.pet}`,
+        text: `Thanks for letting ${a.pet} join us. You arrived more than ${LATE_GRACE} minutes late, so a £${LATE_FEE_GBP} late fee applies. Pay now to keep check-out quick.`,
+        actions: ["pay-late"],
       },
       noshow: {
         subject: `You missed ${a.pet}'s appointment`,
@@ -362,11 +374,10 @@ function DemoPage() {
   // Real-time automations as soon as the demo opens.
   useEffect(() => {
     const me = seed.find((a) => a.id === MY_SEED_ID)!;
-    const steps: [number, Automation, string][] = [
-      [700, "tomorrow", "Thu 17:00"],
-      [1400, "today", "07:30"],
-      [2100, "2h", "08:00"],
-    ];
+    // One reminder on the day: the good-morning message, unless the visit is too
+    // close to the morning, in which case only the 2-hour message goes out.
+    const steps: [number, Automation, string][] =
+      me.start - 120 <= toMin("07:30") + 60 ? [[900, "2h", toTime(me.start - 120)]] : [[900, "today", "07:30"]];
     const timers = steps.map(([ms, kind, t]) =>
       window.setTimeout(() => {
         const a = apptsRef.current.find((x) => x.id === me.id);
@@ -508,21 +519,32 @@ function DemoPage() {
     if (!pool.length) return undefined;
     return pool[scenarioTurn.current++ % pool.length];
   }
-  function simulateLate(a: Appt, lateBy = 10 + ((scenarioTurn.current * 7) % 11)) {
-    const next = clampIndex(a.index - 1);
-    const z = allocate(a.service, next);
+  function simulateLate(a: Appt, lateBy = LATE_ROTATION[scenarioTurn.current % LATE_ROTATION.length]!) {
+    // Not checked in 5 min after start → automatic "running late" message.
+    if (a.mine) automate("late", a, toTime(a.start + 5));
+    else addLog(`Not checked in at ${toTime(a.start + 5)} → “Running late?” sent to ${a.customer} automatically.`, toTime(a.start + 5));
+    if (lateBy > NO_SHOW_AFTER) {
+      addLog(`${a.pet} still not here after ${NO_SHOW_AFTER} min → system marks no-show automatically.`, toTime(a.start + NO_SHOW_AFTER));
+      return simulateNoShow(a);
+    }
+    const fee = lateBy > LATE_GRACE;
+    const z = allocate(a.service, fee ? clampIndex(a.index - 1) : a.index);
     setAppts((all) =>
       all.map((x) =>
         x.id === a.id
-          ? { ...x, lateBy, index: z.index, minutes: z.minutes, tell: z.tell, flags: [...(x.flags ?? []), `Arrived ${lateBy} min late`] }
+          ? { ...x, status: "Checked in", lateBy, index: z.index, minutes: z.minutes, tell: z.tell, flags: [...(x.flags ?? []), `Arrived ${lateBy} min late`] }
           : x,
       ),
     );
     const t = toTime(a.start + lateBy);
-    if (a.mine) automate("late", a, toTime(a.start + 5));
-    else addLog(`“Running late?” message sent to ${a.customer} by SMS.`, toTime(a.start + 5));
+    if (fee) {
+      if (a.mine) automate("latefee", a, t);
+      else addLog(`Late fee link (£${LATE_FEE_GBP}) sent to ${a.customer} automatically.`, t);
+    }
     addLog(
-      `${a.pet} arrived ${lateBy} min late. Index ${a.index}→${z.index}: future visits get ${dur(z.minutes)} instead of ${dur(a.minutes)}; late fee link sent.`,
+      fee
+        ? `${a.pet} checked in ${lateBy} min late (over ${LATE_GRACE}-min grace). Index ${a.index}→${z.index} automatically: future visits get ${dur(z.minutes)} instead of ${dur(a.minutes)}.`
+        : `${a.pet} checked in ${lateBy} min late — inside the ${LATE_GRACE}-min grace, no fee and Index stays ${a.index}.`,
       t,
     );
     addTasks([
@@ -535,23 +557,108 @@ function DemoPage() {
       },
     ]);
   }
+  // Customer turns up after the system already released the slot.
+  function simulateLateShow() {
+    const a = [...apptsRef.current].reverse().find((x) => x.date === TODAY && x.status === "No-show");
+    if (!a) return addLog("No no-show to recover yet — simulate a no-show first.");
+    setDay(TODAY);
+    setAdminTab("Today");
+    const arrive = a.start + NO_SHOW_AFTER + 10;
+    const busy = busyFor(a.id);
+    const fits = (stylist: string) =>
+      freeStarts(stylist, a.date, a.minutes, busy, 5, arrive).find((t) => t <= arrive + 15);
+    const order = [a.stylist, ...STYLISTS.filter((s) => s !== a.stylist)];
+    const stylist = order.find((s) => fits(s) != null);
+    const t = toTime(arrive);
+    if (stylist) {
+      const start = fits(stylist)!;
+      setAppts((all) =>
+        all.map((x) =>
+          x.id === a.id ? { ...x, status: "Checked in", start, stylist, lateBy: arrive - a.start, flags: [...(x.flags ?? []), "Arrived after no-show"] } : x,
+        ),
+      );
+      setTasks((all) => all.filter((k) => !(k.kind === "Task" && k.stylist === stylist && toMin(k.time) >= a.start)));
+      addLog(
+        `${a.pet} arrived ${arrive - a.start} min late, after the no-show. System found ${dur(a.minutes)} with ${stylist} at ${toTime(start)}${stylist !== a.stylist ? " (walk-in kept with " + a.stylist + ")" : ""}; flexible tasks pushed back. No-show fee swapped for £${LATE_FEE_GBP} late fee.`,
+        t,
+      );
+      if (a.mine) automate("latefee", a, t);
+    } else {
+      const next = STYLISTS.flatMap((s) =>
+        DAYS.flatMap((d) => freeStarts(s, d, a.minutes, busy, 15, d === TODAY ? arrive + 30 : 0).slice(0, 1).map((st) => ({ s, d, st }))),
+      ).sort((x, y) => x.d.localeCompare(y.d) || x.st - y.st)[0];
+      if (!next) return addLog(`${a.pet} arrived after the no-show; no capacity left — front desk to rebook.`, t);
+      const id = Date.now();
+      setAppts((all) => [...all, { ...a, id, status: "Confirmed", date: next.d, start: next.st, stylist: next.s, notes: `Rebooked after late arrival. ${a.notes}` }]);
+      addLog(`${a.pet} arrived after the no-show but today's bays are committed. Next safe slot offered automatically: ${dayLabel(next.d)} ${toTime(next.st)} with ${next.s}.`, t);
+    }
+  }
+  function checkIn(a: Appt) {
+    const lateBy = Math.max(0, NOW - a.start);
+    if (a.date === TODAY && lateBy > LATE_GRACE && a.start < NOW) return simulateLate(a, lateBy);
+    setAppts((all) => all.map((x) => (x.id === a.id ? { ...x, status: "Checked in" } : x)));
+    addLog(`${a.pet} checked in by staff.`);
+  }
+  function startWork(a: Appt) {
+    setAppts((all) => all.map((x) => (x.id === a.id ? { ...x, status: "In progress" } : x)));
+    addLog(`${a.stylist} started ${a.pet}'s ${a.service}.`);
+  }
+  function stillGoing(a: Appt) {
+    const minutes = a.minutes + 15;
+    const end = a.start + minutes;
+    setAppts((all) => all.map((x) => (x.id === a.id ? { ...x, minutes, overrun: (x.overrun ?? 0) + 15 } : x)));
+    const clash = apptsRef.current.find(
+      (x) => x.id !== a.id && isActive(x) && x.date === a.date && x.stylist === a.stylist && x.start < end && x.start >= a.start,
+    );
+    if (!clash) return addLog(`${a.pet} still going: +15 min. Diary extended — nothing affected.`);
+    const busy = busyFor(clash.id).concat({ stylist: a.stylist, date: a.date, start: a.start, end });
+    const other = STYLISTS.find((s) => s !== a.stylist && freeStarts(s, clash.date, clash.minutes, busy, 5, clash.start).includes(clash.start));
+    if (other) {
+      setAppts((all) => all.map((x) => (x.id === clash.id ? { ...x, stylist: other } : x)));
+      addLog(`${a.pet} still going: +15 min. ${clash.pet} moved to ${other} at the same time — customer's time unchanged.`);
+    } else {
+      setAppts((all) => all.map((x) => (x.id === clash.id ? { ...x, start: end } : x)));
+      addLog(`${a.pet} still going: +15 min. ${clash.pet} shifted to ${toTime(end)}; ${clash.customer} messaged automatically.`);
+      if (clash.mine)
+        notify({ subject: `Small delay · ${clash.pet}`, time: toTime(NOW), apptId: clash.id, text: `We're running 15 minutes behind — ${clash.pet}'s new time is ${toTime(end)}.`, actions: ["ics", "call"] });
+    }
+  }
+  function checkOut(a: Appt) {
+    const over = a.overrun ?? 0;
+    const early = over ? 0 : a.index <= 3 ? 15 : 0;
+    const next = clampIndex(a.index + (over ? -1 : early ? 1 : 0));
+    const z = allocate(a.service, next);
+    setAppts((all) =>
+      all.map((x) => (x.id === a.id ? { ...x, status: "Checked out", minutes: x.minutes - early, index: z.index, tell: z.tell } : x)),
+    );
+    if (early)
+      addTasks([{ time: toTime(a.start + a.minutes - early), minutes: early, stylist: a.stylist, kind: "Task", text: "Finished early — clean bay and prep next station" }]);
+    addLog(
+      over
+        ? `${a.pet} checked out ${over} min over. Index ${a.index}→${z.index} automatically; next visit sized at ${dur(z.minutes)}.`
+        : early
+          ? `${a.pet} checked out ${early} min early. Index ${a.index}→${z.index} automatically; ${early} min returned to the day.`
+          : `${a.pet} checked out on time. Index holds at ${a.index}.`,
+    );
+    if (a.mine && !a.paid?.length) automate("advance", a);
+  }
   function simulateNoShow(a: Appt) {
     const next = clampIndex(a.index - 2);
     const z = allocate(a.service, next);
     setAppts((all) =>
       all.map((x) => (x.id === a.id ? { ...x, status: "No-show", index: z.index, minutes: z.minutes, tell: z.tell } : x)),
     );
-    const t = toTime(a.start + 15);
+    const t = toTime(a.start + NO_SHOW_AFTER);
     if (a.mine) automate("noshow", a, t);
     else addLog(`No-show fee link (£${NO_SHOW_FEE_GBP}) sent to ${a.customer} by SMS.`, t);
     addLog(`${a.pet} did not arrive. Index ${a.index}→${z.index}; next booking will need a deposit and ${dur(z.minutes)}.`, t);
-    let free = a.minutes - 15;
+    let free = a.minutes - NO_SHOW_AFTER;
     const recovered: Omit<RecoveredTask, "id">[] = [
-      { time: toTime(a.start), minutes: 15, stylist: a.stylist, kind: "Task", text: "Grace period: call customer, update notes" },
+      { time: toTime(a.start), minutes: NO_SHOW_AFTER, stylist: a.stylist, kind: "Task", text: "Grace period: call customer, update notes" },
     ];
     const walk = allocate("Nail trim", 4);
     if (free >= walk.minutes + 10) {
-      const start = a.start + 15;
+      const start = a.start + NO_SHOW_AFTER;
       setAppts((all) => [
         ...all,
         mk({
@@ -576,7 +683,7 @@ function DemoPage() {
       if (free > 0)
         recovered.push({ time: toTime(start + walk.minutes), minutes: free, stylist: a.stylist, kind: "Task", text: "Inventory count: clippers, blades and shampoo" });
     } else if (free > 0) {
-      recovered.push({ time: toTime(a.start + 15), minutes: free, stylist: a.stylist, kind: "Task", text: "Inventory count and supplier reorder" });
+      recovered.push({ time: toTime(a.start + NO_SHOW_AFTER), minutes: free, stylist: a.stylist, kind: "Task", text: "Inventory count and supplier reorder" });
     }
     addTasks(recovered);
   }
@@ -586,17 +693,6 @@ function DemoPage() {
     setDay(TODAY);
     setAdminTab("Today");
     kind === "late" ? simulateLate(a) : simulateNoShow(a);
-  }
-  function adjustIndex(a: Appt, delta: number) {
-    const next = clampIndex(a.index + delta);
-    if (next === a.index) return;
-    const z = allocate(a.service, next);
-    setAppts((all) =>
-      all.map((x) => (x.id === a.id ? { ...x, index: z.index, minutes: z.minutes, tell: z.tell } : x)),
-    );
-    addLog(
-      `${a.pet} Index ${a.index}→${z.index} (demo): diary ${dur(a.minutes)}→${dur(z.minutes)}; customer told ${about(z.tell)}.`,
-    );
   }
   function staffReschedule(a: Appt) {
     const start = a.start + 30;
@@ -754,6 +850,9 @@ function DemoPage() {
         <Button className="dm-pill" onClick={() => runScenario("noshow")}>
           Simulate no-show
         </Button>
+        <Button className="dm-pill" onClick={simulateLateShow}>
+          Simulate late show after no-show
+        </Button>
         <Button className="dm-pill" onClick={simulateCalendar}>
           <CalendarDays size={15} />
           Add calendar booking
@@ -857,7 +956,7 @@ function DemoPage() {
                             )}
                           </>
                         )}
-                        {live
+                        {shown
                           .filter((a) => a.date === day && a.stylist === stylist)
                           .map((a) => (
                             <button
@@ -937,7 +1036,7 @@ function DemoPage() {
               cancel={cancel}
               noShow={noShow}
               reschedule={staffReschedule}
-              adjustIndex={adjustIndex}
+              flow={{ checkIn, startWork, stillGoing, checkOut, lateShow: simulateLateShow }}
               sendLate={(a) => automate("late", a)}
               createBooking={createBooking}
             />
@@ -1043,6 +1142,7 @@ const subjectKey = (k: Automation) =>
     today: "Today:",
     "2h": "In 2 hours",
     late: "Running late",
+    latefee: "Late arrival fee",
     noshow: "You missed",
     advance: "Pay in advance",
   })[k];
@@ -1106,27 +1206,6 @@ function IndexBreakdown({
     </div>
   );
 }
-function IndexStepper({
-  index,
-  onStep,
-  disabled,
-}: {
-  index: number;
-  onStep: (d: number) => void;
-  disabled?: boolean;
-}) {
-  return (
-    <div className="dm-stepper">
-      <Button variant="ghost" disabled={disabled || index <= 1} onClick={() => onStep(-1)}>
-        Index −1 · higher risk
-      </Button>
-      <Button variant="ghost" disabled={disabled || index >= 5} onClick={() => onStep(1)}>
-        Index +1 · lower risk
-      </Button>
-      <small>Demo only — lower Index widens the operational margin.</small>
-    </div>
-  );
-}
 function AdminDrawer({
   panel,
   appts,
@@ -1141,7 +1220,7 @@ function AdminDrawer({
   cancel,
   noShow,
   reschedule,
-  adjustIndex,
+  flow,
   sendLate,
   createBooking,
 }: {
@@ -1161,7 +1240,7 @@ function AdminDrawer({
   cancel: (a: Appt, staff?: boolean) => void;
   noShow: (a: Appt) => void;
   reschedule: (a: Appt) => void;
-  adjustIndex: (a: Appt, d: number) => void;
+  flow: Record<"checkIn" | "startWork" | "stillGoing" | "checkOut", (a: Appt) => void> & { lateShow: () => void };
   sendLate: (a: Appt) => void;
   createBooking: (o: { stylist: string; start: number; size: Size }, d: string, s?: Appt["source"]) => void;
 }) {
@@ -1202,11 +1281,7 @@ function AdminDrawer({
             <span>Index {a.index}</span>
             <b>{dur(a.minutes)} allocated</b>
             <IndexBreakdown standard={a.standard} minutes={a.minutes} tell={a.tell} service={a.service} />
-            <IndexStepper
-              index={a.index}
-              disabled={a.status !== "Confirmed"}
-              onStep={(d) => adjustIndex(a, d)}
-            />
+            <small className="dm-auto-note">Index updates automatically from check-ins, check-outs, lateness and no-shows.</small>
             {a.flags?.length ? (
               <div className="dm-behaviour-flags">
                 {a.flags.map((flag) => (
@@ -1225,6 +1300,15 @@ function AdminDrawer({
           <h3>Appointment notes</h3>
           <p className="dm-note-card">{a.notes}</p>
           <div className="dm-actions">
+            {a.status === "Confirmed" && a.date === TODAY && <Button onClick={() => flow.checkIn(a)}>Check in</Button>}
+            {a.status === "Checked in" && <Button onClick={() => flow.startWork(a)}>Start service</Button>}
+            {(a.status === "Checked in" || a.status === "In progress") && (
+              <>
+                <Button onClick={() => flow.stillGoing(a)}>Still going +15 min</Button>
+                <Button onClick={() => flow.checkOut(a)}>Check out</Button>
+              </>
+            )}
+            {a.status === "No-show" && <Button onClick={() => flow.lateShow()}>Customer arrived — override</Button>}
             <Button disabled={a.status !== "Confirmed"} onClick={() => reschedule(a)}>
               Move 30 min later
             </Button>
@@ -1366,7 +1450,6 @@ function StaffBooking({
               <b>Allocated time</b>
               <span>
                 Index {allocation.index}
-                {shift ? ` (adjusted ${shift > 0 ? "+" : ""}${shift})` : ""}
               </span>
             </div>
             <div className="dm-allocation-value">
@@ -1379,7 +1462,6 @@ function StaffBooking({
               tell={allocation.tellClient}
               service={form.service}
             />
-            <IndexStepper index={allocation.index} onStep={(d) => setShift(shift + d)} />
             <div className="dm-customer-time">
               Tell the customer: <b>{about(allocation.tellClient)}</b>
             </div>
