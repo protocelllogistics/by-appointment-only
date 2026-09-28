@@ -252,7 +252,7 @@ function DemoPage() {
   const [form, setForm] = useState(emptyForm);
   const prefer = useRef<Channel>("Messages");
   prefer.current = form.contact;
-  const notifTimer = useRef<number>();
+  const notifTimer = useRef<number | undefined>(undefined);
   const apptsRef = useRef(appts);
   apptsRef.current = appts;
 

@@ -42,7 +42,7 @@ export type Msg = {
   channel: Channel;
   from: "shop" | "me";
   time: string;
-  subject?: string;
+  subject?: string | undefined;
   text: string;
   apptId?: number;
   actions?: LinkAction[];
