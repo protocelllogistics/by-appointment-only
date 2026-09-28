@@ -9,6 +9,7 @@ export const Route = createFileRoute("/terms-and-conditions")({
     { property: "og:type", content: "website" },
     { property: "og:url", content: "https://baowow.xyz/terms-and-conditions" },
     { name: "twitter:card", content: "summary_large_image" },
+    { name: "robots", content: "noindex, nofollow" },
   ], links: [{ rel: "canonical", href: "https://baowow.xyz/terms-and-conditions" }] }),
   component: () => null,
 });
