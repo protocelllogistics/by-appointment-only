@@ -68,11 +68,28 @@ type PhoneView =
   | "checkout";
 type AdminPanel = { kind: "appointment"; id: number } | { kind: "new"; fromCall?: boolean } | null;
 type Automation = "confirm" | "tomorrow" | "today" | "2h" | "late" | "latefee" | "noshow" | "advance";
-const LATE_GRACE = 10,
+const LATE_GRACE = 15,
   NO_SHOW_AFTER = 25,
   LATE_ROTATION = [8, 14, 22, 30];
+// Demo pacing (real ms): a quiet intro, then a generous window for the visitor to act as the customer.
+const INTRO_MS = 5000,
+  ENGAGE_WINDOW_MS = 30000;
 const isActive = (a: Appt) => ACTIVE.includes(a.status);
 
+// Booked days ago: its confirmation is already in the thread and already read.
+function pastConfirmation(): Msg {
+  const a = seed.find((x) => x.id === MY_SEED_ID)!;
+  return {
+    id: 1,
+    channel: "Messages",
+    from: "shop",
+    time: "Tue 09:12",
+    apptId: a.id,
+    subject: `Booking confirmed · ${a.pet}`,
+    text: `${a.pet} is booked for Fri 25 Sep at ${toTime(a.start)} with ${a.stylist} — ${a.service}, ${about(a.tell)}.\nConfirmation: ${a.code}`,
+    actions: ["ics", "pay-advance", "reschedule", "cancel"],
+  };
+}
 function mk(
   a: Omit<Appt, "standard" | "minutes" | "tell" | "code" | "mobile" | "email" | "index"> & { index: Index },
 ): Appt {
@@ -161,6 +178,7 @@ const seed: Appt[] = [
       mine: true,
       notes: "Booked last week online.",
     }),
+    inCalendar: true,
     code: "B5C4E7",
     mobile: CUSTOMER.mobile,
     email: CUSTOMER.email,
@@ -242,7 +260,8 @@ const deliver = (c: Channel | "Phone"): Channel => (c === "Email" ? "Email" : "M
 function DemoPage() {
   const size = useServerFn(sizeDemoAppointment);
   const [appts, setAppts] = useState(seed),
-    [messages, setMessages] = useState<Msg[]>([]),
+    [messages, setMessages] = useState<Msg[]>(() => [pastConfirmation()]),
+    [guide, setGuide] = useState<string>(),
     [log, setLog] = useState(["10:15 · Diary opened. Calendar is up to date."]),
     [day, setDay] = useState(TODAY),
     [adminTab, setAdminTab] = useState("Today"),
@@ -262,6 +281,8 @@ function DemoPage() {
     [runId, setRunId] = useState(0),
     [tasks, setTasks] = useState<RecoveredTask[]>([]);
   const scenarioTurn = useRef(0);
+  // Late-arrival window: set when the calendar nudges the customer; cleared once they respond.
+  const awaiting = useRef<{ id: number; timer: number } | null>(null);
   const [pending, setPending] = useState<{ date: string; option: { stylist: string; start: number; size: Size } }>();
   const [form, setForm] = useState(emptyForm);
   const prefer = useRef<Channel>("Messages");
@@ -414,30 +435,68 @@ function DemoPage() {
     }
   }
 
-  // Real-time automations as soon as the demo opens.
+  // Real-time automations: a quiet intro, the day's single reminder, then the
+  // customer's own calendar nudges them and the demo waits for them to respond.
   useEffect(() => {
     const me = seed.find((a) => a.id === MY_SEED_ID)!;
-    // One reminder on the day: the good-morning message, unless the visit is too
-    // close to the morning, in which case only the 2-hour message goes out.
-    const steps: [number, Automation, string][] =
-      me.start - 120 <= toMin("07:30") + 60 ? [[900, "2h", toTime(me.start - 120)]] : [[900, "today", "07:30"]];
-    const timers = steps.map(([ms, kind, t]) =>
+    const mine = () => {
+      const a = apptsRef.current.find((x) => x.id === me.id);
+      return a && a.status === "Confirmed" && !a.lateBy ? a : undefined;
+    };
+    const reminder: [Automation, string] =
+      me.start - 120 <= toMin("07:30") + 60 ? ["2h", toTime(me.start - 120)] : ["today", "07:30"];
+    setGuide("Take a moment to look around — this phone belongs to the customer.");
+    const timers = [
       window.setTimeout(() => {
-        const a = apptsRef.current.find((x) => x.id === me.id);
-        if (a && a.status === "Confirmed") automate(kind, a, t);
-      }, ms),
-    );
-    timers.push(
+        setGuide(undefined);
+        const a = mine();
+        if (a) automate(reminder[0], a, reminder[1]);
+      }, INTRO_MS),
       window.setTimeout(() => {
-        const a = apptsRef.current.find((x) => x.id === me.id);
-        if (a && a.status === "Confirmed" && !a.lateBy) simulateLate(a, 12);
-      }, 6000),
-    );
+        const a = mine();
+        if (!a) return;
+        setNotif({ id: Date.now(), channel: "Messages", from: "shop", time: toTime(a.start), subject: "Calendar", text: `Calendar · ${a.pet} — ${a.service} now at ${toTime(a.start)}`, calendar: true });
+        window.clearTimeout(notifTimer.current);
+        notifTimer.current = window.setTimeout(() => setNotif(undefined), 6000);
+        setGuide(`You're the customer and you're running late for ${a.pet}. Message or call the shop to let them know.`);
+        addLog(`${a.customer}'s own calendar reminded them; not checked in yet. Waiting for contact before applying late rules.`, toTime(a.start));
+        const late = window.setTimeout(() => {
+          const b = mine();
+          if (b && awaiting.current) automate("late", b, toTime(b.start + 5));
+        }, ENGAGE_WINDOW_MS / 2);
+        const fee = window.setTimeout(() => {
+          const b = mine();
+          awaiting.current = null;
+          setGuide(undefined);
+          if (!b) return;
+          addLog(`No contact from ${b.customer} — system proceeds automatically.`, toTime(b.start + LATE_GRACE));
+          simulateLate(b, 19);
+        }, ENGAGE_WINDOW_MS);
+        timers.push(late, fee);
+        awaiting.current = { id: a.id, timer: fee };
+      }, INTRO_MS + 5000),
+    ];
     return () => {
       timers.forEach((id) => window.clearTimeout(id));
+      awaiting.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runId]);
+  // Customer responded during the late window: no fee, arrives inside the included 15 minutes.
+  function customerEngaged(how: string) {
+    const w = awaiting.current;
+    if (!w) return;
+    window.clearTimeout(w.timer);
+    awaiting.current = null;
+    setGuide(undefined);
+    const a = apptsRef.current.find((x) => x.id === w.id);
+    if (!a) return;
+    addLog(`${a.customer} ${how} to say they're running late — slot held, stylist told.`, toTime(a.start + 3));
+    window.setTimeout(() => {
+      const b = apptsRef.current.find((x) => x.id === w.id);
+      if (b && b.status === "Confirmed" && !b.lateBy) simulateLate(b, 12);
+    }, 4000);
+  }
 
   async function prepareTimes(reschedule?: Appt) {
     const valid = validateDemoEditable({
@@ -808,6 +867,7 @@ function DemoPage() {
       }
   }
   function customerSays(text: string, channel: Channel) {
+    customerEngaged(channel === "Email" ? "emailed" : "messaged");
     send([{ channel, from: "me", time: toTime(NOW), text, subject: channel === "Email" ? "Re: booking" : undefined }]);
     addLog(`New ${channel === "Email" ? "email" : "message"} from ${CUSTOMER.name}: “${text}”`);
     window.setTimeout(
@@ -876,7 +936,8 @@ function DemoPage() {
   };
   const reset = () => {
     setAppts(seed);
-    setMessages([]);
+    setMessages([pastConfirmation()]);
+    setGuide(undefined);
     setCalls([]);
     setUnread({ Messages: 0, Email: 0 });
     setNotif(undefined);
@@ -1110,6 +1171,7 @@ function DemoPage() {
           messages={messages}
           unread={unread}
           notif={notif}
+          guide={guide}
           calls={calls}
           appts={appts}
           checkout={checkout}
@@ -1132,6 +1194,7 @@ function DemoPage() {
           pending={pending}
           setPending={setPending}
           onCall={() => {
+            if (awaiting.current) return customerEngaged("called");
             setPanel({ kind: "new", fromCall: true });
             setAdminTab("Bookings");
             addLog(`Incoming call from ${CUSTOMER.name}. Phone-booking recommendations opened for staff.`);
@@ -1634,6 +1697,7 @@ function PhoneShell({
   messages,
   unread,
   notif,
+  guide,
   calls,
   appts,
   checkout,
@@ -1679,17 +1743,18 @@ function PhoneShell({
         {notif && (
           <button
             className="dm-notif"
-            onClick={() => openApp(notif.call ? "phone" : notif.channel === "Email" ? "email" : "messages")}
+            onClick={() => openApp(notif.calendar ? "calendar" : notif.call ? "phone" : notif.channel === "Email" ? "email" : "messages")}
           >
-            <i data-app={notif.call ? "phone" : notif.channel === "Email" ? "email" : "messages"}>
-              {notif.call ? <Phone size={14} /> : notif.channel === "Email" ? <Mail size={14} /> : <MessageCircle size={14} />}
+            <i data-app={notif.calendar ? "calendar" : notif.call ? "phone" : notif.channel === "Email" ? "email" : "messages"}>
+              {notif.calendar ? <CalendarDays size={14} /> : notif.call ? <Phone size={14} /> : notif.channel === "Email" ? <Mail size={14} /> : <MessageCircle size={14} />}
             </i>
             <span>
-              <b>{notif.call ? "Call · By Appointment Only" : notif.channel === "Email" ? notif.subject : "By Appointment Only"}</b>
+              <b>{notif.calendar ? "Calendar" : notif.call ? "Call · By Appointment Only" : notif.channel === "Email" ? notif.subject : "By Appointment Only"}</b>
               <small>{notif.text.split("\n")[0]}</small>
             </span>
           </button>
         )}
+        {guide && <div className="dm-guide" role="status">{guide}</div>}
         {view === "home" ? (
           <div className="dm-home">
             <div className="dm-home-date">Friday 25</div>

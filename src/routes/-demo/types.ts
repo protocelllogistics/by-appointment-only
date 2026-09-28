@@ -50,6 +50,7 @@ export type Msg = {
   apptId?: number;
   actions?: LinkAction[];
   call?: boolean;
+  calendar?: boolean;
 };
 export type CallLog = { id: number; time: string; subject: string; lines: { who: "shop" | "me"; text: string }[] };
 export type Checkout = { kind: "pay-late" | "pay-noshow" | "pay-advance"; apptId: number; amount: number; label: string };
