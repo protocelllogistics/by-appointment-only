@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CalendarPlus, CreditCard, Download, Lock, Phone, PhoneOff, Send } from "lucide-react";
 import { toTime } from "@/lib/demo-rota";
+import { CARDHOLDERS, REPLY_PRESETS, TEST_CARDS, cycle } from "@/lib/demo-presets";
 import type { Appt, Checkout, LinkAction, Msg } from "./types";
 
 export const SHOP_PHONE = "020 7946 0123";
@@ -15,6 +16,18 @@ export const ACTION_LABEL: Record<LinkAction, string> = {
   "pay-advance": "Pay now · fast check-out",
   call: `Call ${SHOP_PHONE}`,
 };
+
+function QuickReplies({ onSend }: { onSend: (t: string) => void }) {
+  return (
+    <div className="dm-quick" aria-label="Pre-written replies">
+      {REPLY_PRESETS.map((r) => (
+        <button key={r} type="button" onClick={() => onSend(r)}>
+          {r}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 function Actions({ m, onAction }: { m: Msg; onAction: (a: LinkAction, id?: number) => void }) {
   if (!m.actions?.length) return null;
@@ -38,7 +51,6 @@ export function MessagesApp({
   onAction: (a: LinkAction, id?: number) => void;
   onSend: (text: string) => void;
 }) {
-  const [draft, setDraft] = useState("");
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => {
     end.current?.scrollIntoView({ block: "end" });
@@ -61,21 +73,7 @@ export function MessagesApp({
         ))}
         <div ref={end} />
       </div>
-      <form
-        className="dm-compose"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const t = draft.trim().slice(0, 200);
-          if (!t) return;
-          onSend(t);
-          setDraft("");
-        }}
-      >
-        <input value={draft} maxLength={200} placeholder="Message the shop" onChange={(e) => setDraft(e.target.value)} />
-        <button aria-label="Send">
-          <Send size={16} />
-        </button>
-      </form>
+      <QuickReplies onSend={onSend} />
     </div>
   );
 }
@@ -90,7 +88,6 @@ export function MailApp({
   onSend: (text: string) => void;
 }) {
   const [open, setOpen] = useState<number | null>(null);
-  const [reply, setReply] = useState("");
   const m = list.find((x) => x.id === open);
   if (m)
     return (
@@ -105,22 +102,7 @@ export function MailApp({
         <p>{m.text}</p>
         <Actions m={m} onAction={onAction} />
         {m.from === "shop" && (
-          <form
-            className="dm-compose"
-            onSubmit={(e) => {
-              e.preventDefault();
-              const t = reply.trim().slice(0, 300);
-              if (!t) return;
-              onSend(t);
-              setReply("");
-              setOpen(null);
-            }}
-          >
-            <input value={reply} maxLength={300} placeholder="Reply…" onChange={(e) => setReply(e.target.value)} />
-            <button aria-label="Send reply">
-              <Send size={16} />
-            </button>
-          </form>
+          <QuickReplies onSend={(t) => { onSend(t); setOpen(null); }} />
         )}
       </div>
     );
@@ -207,6 +189,7 @@ export function CheckoutApp({
   onPaid: (c: Checkout) => void;
 }) {
   const [state, setState] = useState<"form" | "paying" | "paid">("form");
+  const [card] = useState(() => ({ name: cycle(CARDHOLDERS), number: cycle(TEST_CARDS) }));
   return (
     <div className="dm-checkout">
       {state === "paid" ? (
@@ -231,7 +214,7 @@ export function CheckoutApp({
           </label>
           <label>
             Card information
-            <input readOnly value="4242 4242 4242 4242" />
+            <input readOnly value={card.number} />
             <div className="dm-co-row">
               <input readOnly value="12 / 34" />
               <input readOnly value="123" />
@@ -239,7 +222,7 @@ export function CheckoutApp({
           </label>
           <label>
             Name on card
-            <input readOnly value="Demo cardholder" />
+            <input readOnly value={card.name} />
           </label>
           <button
             className="dm-co-pay"
