@@ -124,11 +124,16 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "By Appointment Only (BAOWOW) — Real-day Salon Bookings" },
-      { name: "description", content: "BAOWOW turns salon scheduling chaos into real-day bookings through risk-based buffering, intelligent automation and idle-time task recovery." },
+      {
+        name: "description",
+        content:
+          "BAOWOW turns salon scheduling chaos into real-day bookings through risk-based buffering, intelligent automation and idle-time task recovery.",
+      },
       { property: "og:title", content: "By Appointment Only (BAOWOW) — Real-day Salon Bookings" },
       {
         property: "og:description",
-        content: "BAOWOW turns salon scheduling chaos into real-day bookings through risk-based buffering, intelligent automation and idle-time task recovery.",
+        content:
+          "BAOWOW turns salon scheduling chaos into real-day bookings through risk-based buffering, intelligent automation and idle-time task recovery.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://baowow.xyz/" },
@@ -359,7 +364,7 @@ function HomePage() {
                 <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
                 <circle cx="12" cy="10" r="3" />
               </Icon>
-              14 Church Street, Stoke Newington, London N16
+              14 Paws Street, Barking, London
             </div>
           </div>
 
@@ -539,8 +544,8 @@ function HomePage() {
               <h2 id="find-us-title">Find us</h2>
               <img
                 className="find-logo"
-                 src={findUsImage.url}
-                 alt="BAOWOW mark with a dog silhouette"
+                src={findUsImage.url}
+                alt="BAOWOW mark with a dog silhouette"
                 width={260}
                 height={260}
               />
@@ -550,7 +555,7 @@ function HomePage() {
                   <circle cx="12" cy="10" r="3" />
                 </Icon>
                 <address>
-                  14 Church Street,
+                  14 Paws Street,
                   <br />
                   Stoke Newington,
                   <br />
@@ -611,7 +616,7 @@ function HomePage() {
           </div>
           <footer className="site-footer">
             <div className="footer-brand">By Appointment Only</div>
-            <div className="footer-addr">14 Church Street, Stoke Newington, London N16</div>
+            <div className="footer-addr">14 Paws Street, Barking, London</div>
             <nav className="footer-legal" aria-label="Legal">
               <a href="/terms-and-conditions">Terms & Conditions</a>
               <a href="/privacy-policy">Privacy Policy</a>
