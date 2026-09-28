@@ -1012,6 +1012,12 @@ function DemoPage() {
           <CalendarDays size={15} />
           Add calendar booking
         </Button>
+        <Button asChild className="dm-pill">
+          <Link to="/">
+            <LogOut size={15} />
+            Exit demo
+          </Link>
+        </Button>
         <Button className="dm-pill" onClick={reset}>
           <RotateCcw size={15} />
           Reset
