@@ -240,7 +240,7 @@ export function CheckoutApp({
             {state === "paying" ? "Processing…" : `Pay £${checkout.amount.toFixed(2)}`}
           </button>
           <small className="dm-co-note">
-            <Lock size={11} /> Simulated test checkout — no card is charged.
+            <Lock size={11} /> Simulated checkout with prefilled test details — not a real transaction, no card is charged.
           </small>
         </>
       )}

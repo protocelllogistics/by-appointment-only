@@ -2,7 +2,7 @@
 import { demoPublicSlots } from "@/lib/demo-rota";
 import { validateDemoEditable } from "@/lib/demo-validation";
 import { createFictionalContact } from "@/lib/fictional-contact";
-import { NOTE_PRESETS, PRICE_GBP_PUBLIC, hexCode, icsHref, toggleNote } from "@/lib/demo-presets";
+import { CARDHOLDERS, TEST_CARDS, cycle, NOTE_PRESETS, PRICE_GBP_PUBLIC, hexCode, icsHref, toggleNote } from "@/lib/demo-presets";
 
 // Behaviour follows the supplied mockup, backed by live availability.
 export function initHero(signal: AbortSignal) {
@@ -128,6 +128,10 @@ export function initHero(signal: AbortSignal) {
     notes: "",
     contact: "Messages",
     code: "",
+    prepay: false,
+    paid: false,
+    paying: false,
+    card: { name: "", number: "" },
     breedOpen: false,
     discounted: false,
   };
@@ -361,15 +365,23 @@ export function initHero(signal: AbortSignal) {
         <ul role="listbox" class="${S.breedOpen ? "on" : ""}" aria-labelledby="l-breed">${BREEDS.map(([n, z]) => `<li role="option" tabindex="0" data-breed="${esc(n)}" aria-selected="${n === S.breed}"><span class="sz" style="background:${SIZE_C[z]}">${z}</span><span style="flex:1">${esc(n)}</span>${n === S.breed ? '<span style="color:var(--color-accent-700);font-weight:700">✓</span>' : ""}</li>`).join("")}</ul></div></div></div>
       <div class="field"><label id="l-notes">Anything we should know?</label><div class="note-chips" role="group" aria-labelledby="l-notes">${NOTE_PRESETS.map((n) => `<button type="button" class="note-chip" data-note="${esc(n)}" aria-pressed="${S.notes.split(" · ").includes(n)}">${esc(n)}</button>`).join("")}</div></div>
       <div class="field"><label id="l-contact">Send me updates by</label><div class="contact-seg" role="radiogroup" aria-labelledby="l-contact">${Object.keys(CONTACT_ICONS).map((c) => `<button type="button" role="radio" aria-checked="${S.contact === c}" aria-label="${c === "Messages" ? "Text message" : c}" title="${c === "Messages" ? "Text message" : c}" data-contact="${c}"><svg class="icon" viewBox="0 0 24 24">${CONTACT_ICONS[c]}</svg></button>`).join("")}</div></div>
-      <button class="btn btn-primary btn-block" style="min-height:56px;font-size:17px;margin-top:4px" id="confirm">Confirm booking</button>
+      <label class="prepay"><input type="checkbox" id="prepay" ${S.prepay ? "checked" : ""}><span><b>Pay now for fast check-out · £${PRICE_GBP_PUBLIC[S.service]}</b><small>Skip paying at collection. Simulated checkout, no real transaction.</small></span></label>
+      <button class="btn btn-primary btn-block" style="min-height:56px;font-size:17px;margin-top:4px" id="confirm">${S.prepay ? "Confirm and pay" : "Confirm booking"}</button>
       <button class="btn btn-ghost" style="align-self:center;font-size:14px;margin-top:-6px" data-go="reserved">Not sure yet? Reserve this slot at no extra cost</button>`;
     } else if (S.step === "checking") {
       h = `<div class="center" style="align-items:center;text-align:center"><div class="pulse"></div><h2 style="font-size:24px">Fluffing the towels for ${esc(S.pet || "your pet")}…</h2><p class="muted" style="margin:-8px 0 0">Securing your time…</p></div>`;
+    } else if (S.step === "pay") {
+      h = `<div class="center co"><div class="co-merchant"><i>BA</i><div><small>By Appointment Only</small><b>£${PRICE_GBP_PUBLIC[S.service]}.00</b><span>${esc(S.service)} — paid in advance</span></div></div>
+      <div class="field"><label>Email</label><input class="input" readonly value="${esc(S.email)}"></div>
+      <div class="field"><label>Card information</label><input class="input" readonly value="${S.card.number}"><div class="grid2" style="margin-top:6px"><input class="input" readonly value="12 / 34"><input class="input" readonly value="123"></div></div>
+      <div class="field"><label>Name on card</label><input class="input" readonly value="${esc(S.card.name)}"></div>
+      <button class="btn btn-primary btn-block" style="min-height:56px;font-size:17px" id="paynow"${S.paying ? " disabled" : ""}>${S.paying ? "Processing…" : `Pay £${PRICE_GBP_PUBLIC[S.service]}.00`}</button>
+      <p class="muted" style="margin:0;font-size:13px;text-align:center">🔒 Simulated checkout with prefilled test details. This is not a real transaction and no card is charged.</p></div>`;
     } else if (S.step === "done") {
       const p = S.picked;
       h = `<div class="center"><div class="badge" style="background:var(--color-accent-2);color:var(--color-bg)"><svg class="icon" style="width:28px;height:28px" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>
       <h2 style="font-size:30px">${esc(S.pet || "Your pet")} is booked in</h2>
-      <div class="summary"><div><span>When</span><b>${p.day}, ${p.time}</b></div><div><span>Service</span><b>${esc(S.service)}</b></div><div><span>Lasts about</span><b>${ABOUT[S.service]}</b></div><div><span>Pet stylist</span><b>${p.who}</b></div><div><span>Cost</span><b>£${PRICE_GBP_PUBLIC[S.service]}</b></div><div><span>Confirmation number</span><b style="font-family:ui-monospace,monospace;letter-spacing:.08em">${S.code}</b></div>${S.owner ? `<div><span>Booked by</span><b>${esc(S.owner)}</b></div>` : ""}${S.discounted ? `<div style="color:var(--color-accent-2-800)"><span style="color:inherit">Thank-you discount</span><b>−${CONFIG.goodwill}</b></div>` : ""}</div>
+      <div class="summary"><div><span>When</span><b>${p.day}, ${p.time}</b></div><div><span>Service</span><b>${esc(S.service)}</b></div><div><span>Lasts about</span><b>${ABOUT[S.service]}</b></div><div><span>Pet stylist</span><b>${p.who}</b></div><div><span>Cost</span><b>£${PRICE_GBP_PUBLIC[S.service]}</b></div><div><span>Confirmation number</span><b style="font-family:ui-monospace,monospace;letter-spacing:.08em">${S.code}</b></div><div><span>Fast check-out</span><b>${S.paid ? "Applied · prepaid £" + PRICE_GBP_PUBLIC[S.service] : "Not applied"}</b></div>${S.owner ? `<div><span>Booked by</span><b>${esc(S.owner)}</b></div>` : ""}${S.discounted ? `<div style="color:var(--color-accent-2-800)"><span style="color:inherit">Thank-you discount</span><b>−${CONFIG.goodwill}</b></div>` : ""}</div>
       <div class="done-actions"><a class="btn btn-outline" download="appointment-${S.code}.ics" href="${icsHref({ title: `${S.service} · ${S.pet || "Your pet"}`, date: p.date, start: p.time, minutes: MINUTES[S.service] || 60, code: S.code, who: p.who })}">Add to calendar (.ics)</a><button class="btn btn-outline" data-go="taps">Book another pet</button></div>
        <p class="muted" style="margin:0">This demonstration used the fictional contact shown above. Nothing was sent or saved.</p>
       <p class="muted" style="margin:0;font-size:14px">Want to see how the business handles your request? <a href="/demo" style="color:var(--color-accent-800);text-decoration:underline">See the demo →</a></p></div>`;
@@ -439,6 +451,23 @@ export function initHero(signal: AbortSignal) {
       $("body").querySelectorAll("[data-contact]").forEach((x) => x.setAttribute("aria-checked", String(x === ct)));
       return;
     }
+    const pp = e.target.closest("#prepay");
+    if (pp) {
+      S.prepay = pp.checked;
+      const cb = $("body").querySelector("#confirm");
+      if (cb) cb.textContent = S.prepay ? "Confirm and pay" : "Confirm booking";
+      return;
+    }
+    if (e.target.closest("#paynow") && !S.paying) {
+      S.paying = true;
+      go("pay");
+      window.setTimeout(() => {
+        S.paying = false;
+        S.paid = true;
+        go("done");
+      }, 1200);
+      return;
+    }
     if (e.target.closest("#confirm")) {
       S.discounted = false;
       return confirm();
@@ -479,6 +508,12 @@ export function initHero(signal: AbortSignal) {
     if (CONFIG.simulateClash && !isRebook) return go("clash");
     // Public prototype only: no customer details or booking are sent or saved.
     S.code = hexCode();
+    S.paid = false;
+    if (S.prepay) {
+      S.card = { name: cycle(CARDHOLDERS), number: cycle(TEST_CARDS) };
+      window.setTimeout(() => go("pay"), 1100);
+      return;
+    }
     window.setTimeout(() => go("done"), 1100);
   }
 

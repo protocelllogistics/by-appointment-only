@@ -448,7 +448,7 @@ function HomePage() {
                       document.dispatchEvent(new CustomEvent("bao:book", { detail: { service: selectedService } }))
                     }
                   >
-                    Book {selectedService} now · £{PRICE_GBP_PUBLIC[selectedService]}
+                    Book {selectedService} now · £{PRICE_GBP_PUBLIC[selectedService]} →
                   </button>
                 </div>
               </div>
