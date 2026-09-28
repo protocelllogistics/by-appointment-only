@@ -999,12 +999,6 @@ function DemoPage() {
         </div>
         <span className="sp" />
         <span className="dm-pill">Fri 25 Sep · {toTime(clock)}</span>
-        <Button asChild className="dm-pill">
-          <Link to="/">
-            <LogOut size={15} />
-            Exit demo
-          </Link>
-        </Button>
         <Button className="dm-pill" onClick={() => runScenario("late")}>
           Simulate late arrival
         </Button>
@@ -1017,6 +1011,12 @@ function DemoPage() {
         <Button className="dm-pill" onClick={simulateCalendar}>
           <CalendarDays size={15} />
           Add calendar booking
+        </Button>
+        <Button asChild className="dm-pill">
+          <Link to="/">
+            <LogOut size={15} />
+            Exit demo
+          </Link>
         </Button>
         <Button className="dm-pill" onClick={reset}>
           <RotateCcw size={15} />
