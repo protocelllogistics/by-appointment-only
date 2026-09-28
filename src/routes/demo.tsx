@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BellRing, LogOut, CalendarDays, CalendarPlus, Globe, Mail, MessageCircle, Phone, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Handheld } from "./-dashboard/handheld";
 import { sizeDemoAppointment } from "@/lib/demo.functions";
 import { validateDemoEditable } from "@/lib/demo-validation";
 import { createFictionalContact } from "@/lib/fictional-contact";
@@ -1028,7 +1029,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
       <div className="dm-stage">
         {mobile && (
           <section className="dm-handheld" aria-label="Hand-Held App">
-            <iframe src="/dashboard/mobile.html" title="Hand-Held App" />
+            <Handheld />
           </section>
         )}
         <section className="dm-admin" aria-label="Staff dashboard">
