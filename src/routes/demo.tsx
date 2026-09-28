@@ -1242,6 +1242,8 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
           customerSays={customerSays}
           form={form}
           setForm={setForm}
+          prepay={prepay}
+          setPrepay={setPrepay}
           errors={errors}
           busy={busy}
           sizes={sizes}
@@ -1801,6 +1803,8 @@ function PhoneShell({
   pending,
   setPending,
   onCall,
+  prepay,
+  setPrepay,
 }: any) {
   const apps = [
     { id: "phone", label: "Phone", icon: Phone },
