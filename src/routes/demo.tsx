@@ -73,6 +73,9 @@ const LATE_GRACE = 15,
   LATE_ROTATION = [8, 14, 22, 30];
 // Demo pacing (real ms): a quiet intro, then a generous window for the visitor to act as the customer.
 const INTRO_MS = 5000,
+  OVERRUN_BUFFER = 20,
+  STILL_GOING_LEAD = 10,
+  SIM_MIN_MS = 1500,
   ENGAGE_WINDOW_MS = 30000;
 const isActive = (a: Appt) => ACTIVE.includes(a.status);
 
@@ -260,7 +263,8 @@ function DemoPage() {
   const size = useServerFn(sizeDemoAppointment);
   const [appts, setAppts] = useState(seed),
     [messages, setMessages] = useState<Msg[]>(() => [pastConfirmation()]),
-    [guide, setGuide] = useState<string>(),
+    [guide, setGuide] = useState<{ title: string; body: string; time: string }>(),
+    [clock, setClock] = useState(NOW),
     [log, setLog] = useState(["10:15 · Diary opened. Calendar is up to date."]),
     [day, setDay] = useState(TODAY),
     [adminTab, setAdminTab] = useState("Today"),
@@ -359,7 +363,7 @@ function DemoPage() {
   }
   const addLog = (text: string, time = toTime(NOW)) => setLog((all) => [`${time} · ${text}`, ...all]);
   const live = appts.filter(isActive);
-  const shown = appts.filter((a) => isActive(a) || a.status === "Checked out");
+  const shown = appts.filter((a) => isActive(a) || a.status === "Done" || a.status === "Checked out");
   const busyFor = (except?: number): Busy[] =>
     live
       .filter((a) => a.id !== except)
@@ -444,20 +448,15 @@ function DemoPage() {
     };
     const reminder: [Automation, string] =
       me.start - 120 <= toMin("07:30") + 60 ? ["2h", toTime(me.start - 120)] : ["today", "07:30"];
-    setGuide("Take a moment to look around — this phone belongs to the customer.");
     const timers = [
       window.setTimeout(() => {
-        setGuide(undefined);
         const a = mine();
         if (a) automate(reminder[0], a, reminder[1]);
       }, INTRO_MS),
       window.setTimeout(() => {
         const a = mine();
         if (!a) return;
-        setNotif({ id: Date.now(), channel: "Messages", from: "shop", time: toTime(a.start), subject: "Calendar", text: `Calendar · ${a.pet} — ${a.service} now at ${toTime(a.start)}`, calendar: true });
-        window.clearTimeout(notifTimer.current);
-        notifTimer.current = window.setTimeout(() => setNotif(undefined), 6000);
-        setGuide(`You're the customer and you're running late for ${a.pet}. Message or call the shop to let them know.`);
+        setGuide({ title: `${a.pet} · ${a.service}`, body: `By Appointment Only · ${toTime(a.start)}–${toTime(a.start + a.tell)}`, time: "now" });
         addLog(`${a.customer}'s own calendar reminded them; not checked in yet. Waiting for contact before applying late rules.`, toTime(a.start));
         const late = window.setTimeout(() => {
           const b = mine();
@@ -480,6 +479,17 @@ function DemoPage() {
       awaiting.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runId]);
+  useEffect(() => {
+    setClock(NOW);
+    let id: number | undefined;
+    const start = window.setTimeout(() => {
+      id = window.setInterval(() => setClock((c) => Math.min(c + 1, toMin("18:00"))), SIM_MIN_MS);
+    }, INTRO_MS);
+    return () => {
+      window.clearTimeout(start);
+      window.clearInterval(id);
+    };
   }, [runId]);
   // Customer responded during the late window: no fee, arrives inside the included 15 minutes.
   function customerEngaged(how: string) {
@@ -649,7 +659,7 @@ function DemoPage() {
     setAppts((all) =>
       all.map((x) =>
         x.id === a.id
-          ? { ...x, status: "Checked in", lateBy, index: z.index, minutes: z.minutes, tell: z.tell, flags: [...(x.flags ?? []), `Arrived ${lateBy} min late`] }
+          ? { ...x, status: "In progress", lateBy, index: z.index, minutes: z.minutes, tell: z.tell, flags: [...(x.flags ?? []), `Arrived ${lateBy} min late`] }
           : x,
       ),
     );
@@ -691,7 +701,7 @@ function DemoPage() {
       const start = fits(stylist)!;
       setAppts((all) =>
         all.map((x) =>
-          x.id === a.id ? { ...x, status: "Checked in", start, stylist, lateBy: arrive - a.start, flags: [...(x.flags ?? []), "Arrived after no-show"] } : x,
+          x.id === a.id ? { ...x, status: "In progress", start, stylist, lateBy: arrive - a.start, flags: [...(x.flags ?? []), "Arrived after no-show"] } : x,
         ),
       );
       setTasks((all) => all.filter((k) => !(k.kind === "Task" && k.stylist === stylist && toMin(k.time) >= a.start)));
@@ -710,54 +720,61 @@ function DemoPage() {
       addLog(`${a.pet} arrived after the no-show but today's bays are committed. Next safe slot offered automatically: ${dayLabel(next.d)} ${toTime(next.st)} with ${next.s}.`, t);
     }
   }
+  const dueOut = (a: Appt) => a.start + (a.lateBy ?? 0) + a.minutes;
   function checkIn(a: Appt) {
-    const lateBy = Math.max(0, NOW - a.start);
-    if (a.date === TODAY && lateBy > LATE_GRACE && a.start < NOW) return simulateLate(a, lateBy);
-    setAppts((all) => all.map((x) => (x.id === a.id ? { ...x, status: "Checked in" } : x)));
-    addLog(`${a.pet} checked in by staff.`);
+    const lateBy = Math.max(0, clock - a.start);
+    if (a.date === TODAY && lateBy > LATE_GRACE && a.start < clock) return simulateLate(a, lateBy);
+    setAppts((all) => all.map((x) => (x.id === a.id ? { ...x, status: "In progress", lateBy: x.lateBy ?? lateBy } : x)));
+    addLog(`${a.pet} checked in. Due out ${toTime(a.start + lateBy + a.minutes)}.`, toTime(clock));
   }
-  function startWork(a: Appt) {
-    setAppts((all) => all.map((x) => (x.id === a.id ? { ...x, status: "In progress" } : x)));
-    addLog(`${a.stylist} started ${a.pet}'s ${a.service}.`);
-  }
+  // One click. Only offered once the system sees the visit is within 10 min of due-out.
   function stillGoing(a: Appt) {
-    const minutes = a.minutes + 15;
-    const end = a.start + minutes;
-    setAppts((all) => all.map((x) => (x.id === a.id ? { ...x, minutes, overrun: (x.overrun ?? 0) + 15 } : x)));
+    const minutes = a.minutes + OVERRUN_BUFFER;
+    const end = a.start + (a.lateBy ?? 0) + minutes;
+    setAppts((all) =>
+      all.map((x) => (x.id === a.id ? { ...x, minutes, overrun: (x.overrun ?? 0) + OVERRUN_BUFFER, stillGoing: (x.stillGoing ?? 0) + 1 } : x)),
+    );
+    const t = toTime(clock);
     const clash = apptsRef.current.find(
       (x) => x.id !== a.id && isActive(x) && x.date === a.date && x.stylist === a.stylist && x.start < end && x.start >= a.start,
     );
-    if (!clash) return addLog(`${a.pet} still going: +15 min. Diary extended — nothing affected.`);
+    if (!clash) return addLog(`${a.pet} still going +${OVERRUN_BUFFER} min. New due-out ${toTime(end)} — nothing affected.`, t);
     const busy = busyFor(clash.id).concat({ stylist: a.stylist, date: a.date, start: a.start, end });
     const other = STYLISTS.find((s) => s !== a.stylist && freeStarts(s, clash.date, clash.minutes, busy, 5, clash.start).includes(clash.start));
     if (other) {
       setAppts((all) => all.map((x) => (x.id === clash.id ? { ...x, stylist: other } : x)));
-      addLog(`${a.pet} still going: +15 min. ${clash.pet} moved to ${other} at the same time — customer's time unchanged.`);
+      addLog(`${a.pet} still going +${OVERRUN_BUFFER} min. ${clash.pet} moved to ${other} at the same time — customer's time unchanged.`, t);
     } else {
       setAppts((all) => all.map((x) => (x.id === clash.id ? { ...x, start: end } : x)));
-      addLog(`${a.pet} still going: +15 min. ${clash.pet} shifted to ${toTime(end)}; ${clash.customer} messaged automatically.`);
+      addLog(`${a.pet} still going +${OVERRUN_BUFFER} min. ${clash.pet} shifted to ${toTime(end)}; ${clash.customer} messaged automatically.`, t);
       if (clash.mine)
-        notify({ subject: `Small delay · ${clash.pet}`, time: toTime(NOW), apptId: clash.id, text: `We're running 15 minutes behind — ${clash.pet}'s new time is ${toTime(end)}.`, actions: ["ics", "call"] });
+        notify({ subject: `Small delay · ${clash.pet}`, time: t, apptId: clash.id, text: `We're running a little behind — ${clash.pet}'s new time is ${toTime(end)}.`, actions: ["ics", "call"] });
     }
   }
-  function checkOut(a: Appt) {
-    const over = a.overrun ?? 0;
-    const early = over ? 0 : a.index <= 3 ? 15 : 0;
-    const next = clampIndex(a.index + (over ? -1 : early ? 1 : 0));
+  // Done = service finished (actual time measured). Pet waits for collection.
+  function markDone(a: Appt) {
+    const actual = Math.max(5, clock - a.start - (a.lateBy ?? 0));
+    const planned = a.minutes;
+    const diff = actual - planned;
+    const next = clampIndex(a.index + (diff > 5 ? -1 : diff < -10 ? 1 : 0));
     const z = allocate(a.service, next);
-    setAppts((all) =>
-      all.map((x) => (x.id === a.id ? { ...x, status: "Checked out", minutes: x.minutes - early, index: z.index, tell: z.tell } : x)),
-    );
-    if (early)
-      addTasks([{ time: toTime(a.start + a.minutes - early), minutes: early, stylist: a.stylist, kind: "Task", text: "Finished early — clean bay and prep next station" }]);
+    setAppts((all) => all.map((x) => (x.id === a.id ? { ...x, status: "Done", doneAt: clock, index: z.index, tell: z.tell } : x)));
+    const t = toTime(clock);
+    if (diff < -5)
+      addTasks([{ time: t, minutes: -diff, stylist: a.stylist, kind: "Task", text: "Finished early — clean bay and prep next station" }]);
     addLog(
-      over
-        ? `${a.pet} checked out ${over} min over. Index ${a.index}→${z.index} automatically; next visit sized at ${dur(z.minutes)}.`
-        : early
-          ? `${a.pet} checked out ${early} min early. Index ${a.index}→${z.index} automatically; ${early} min returned to the day.`
-          : `${a.pet} checked out on time. Index holds at ${a.index}.`,
+      `${a.pet} done: ${dur(actual)} actual vs ${dur(planned)} allocated${a.stillGoing ? ` (still going ×${a.stillGoing})` : ""}. ${
+        next !== a.index ? `Index ${a.index}→${z.index} automatically.` : `Index holds at ${a.index}.`
+      } Waiting for collection.`,
+      t,
     );
-    if (a.mine && !a.paid?.length) automate("advance", a);
+    if (a.mine) notify({ subject: `${a.pet} is ready`, time: t, apptId: a.id, text: `${a.pet} is ready for collection!${a.paid?.length ? " You've already paid — just pick up." : ` Pay £${PRICE_GBP[a.service] ?? 40} now for a quick check-out.`}`, actions: a.paid?.length ? [] : ["pay-advance"] });
+  }
+  // Check out = payment confirmed and pet collected. Separate from Done.
+  function checkOut(a: Appt) {
+    const paid = a.paid?.length ? a.paid : [...(a.paid ?? []), `${a.service} — paid at desk`];
+    setAppts((all) => all.map((x) => (x.id === a.id ? { ...x, status: "Checked out", paid } : x)));
+    addLog(`${a.pet} checked out: payment confirmed${a.paid?.length ? " (paid in advance)" : " at desk"}, collected by ${a.customer}.`, toTime(clock));
   }
   function simulateNoShow(a: Appt) {
     const next = clampIndex(a.index - 2);
@@ -963,7 +980,7 @@ function DemoPage() {
           <small>Public workflow prototype · nothing is saved</small>
         </div>
         <span className="sp" />
-        <span className="dm-pill">Fri 25 Sep · 10:15</span>
+        <span className="dm-pill">Fri 25 Sep · {toTime(clock)}</span>
         <Button className="dm-pill" onClick={() => runScenario("late")}>
           Simulate late arrival
         </Button>
@@ -1033,7 +1050,7 @@ function DemoPage() {
               {tasks.length > 0 && (
                 <div className="dm-recovered">
                   <b>
-                    Recovered time · {dur(tasks.reduce((n, t) => n + t.minutes, 0))} reused, 0 min lost
+                    {dur(tasks.reduce((n, t) => n + t.minutes, 0))} converted to tasks
                   </b>
                   {tasks.map((t) => (
                     <div key={t.id} data-kind={t.kind}>
@@ -1156,7 +1173,9 @@ function DemoPage() {
               cancel={cancel}
               noShow={noShow}
               reschedule={staffReschedule}
-              flow={{ checkIn, startWork, stillGoing, checkOut, lateShow: simulateLateShow }}
+              flow={{ checkIn, stillGoing, markDone, checkOut, lateShow: simulateLateShow }}
+              clock={clock}
+              dueOut={dueOut}
               sendLate={(a) => automate("late", a)}
               createBooking={createBooking}
             />
@@ -1171,6 +1190,8 @@ function DemoPage() {
           unread={unread}
           notif={notif}
           guide={guide}
+          clock={clock}
+          onAlert={(how: "messages" | "phone") => { setGuide(undefined); openApp(how); }}
           calls={calls}
           appts={appts}
           checkout={checkout}
@@ -1344,9 +1365,13 @@ function AdminDrawer({
   noShow,
   reschedule,
   flow,
+  clock,
+  dueOut,
   sendLate,
   createBooking,
 }: {
+  clock: number;
+  dueOut: (a: Appt) => number;
   panel: AdminPanel;
   appts: Appt[];
   sizes: Record<string, Size> | null;
@@ -1363,7 +1388,7 @@ function AdminDrawer({
   cancel: (a: Appt, staff?: boolean) => void;
   noShow: (a: Appt) => void;
   reschedule: (a: Appt) => void;
-  flow: Record<"checkIn" | "startWork" | "stillGoing" | "checkOut", (a: Appt) => void> & { lateShow: () => void };
+  flow: Record<"checkIn" | "stillGoing" | "markDone" | "checkOut", (a: Appt) => void> & { lateShow: () => void };
   sendLate: (a: Appt) => void;
   createBooking: (o: { stylist: string; start: number; size: Size }, d: string, s?: Appt["source"]) => void;
 }) {
@@ -1424,13 +1449,13 @@ function AdminDrawer({
           <p className="dm-note-card">{a.notes}</p>
           <div className="dm-actions">
             {a.status === "Confirmed" && a.date === TODAY && <Button onClick={() => flow.checkIn(a)}>Check in</Button>}
-            {a.status === "Checked in" && <Button onClick={() => flow.startWork(a)}>Start service</Button>}
             {(a.status === "Checked in" || a.status === "In progress") && (
               <>
-                <Button onClick={() => flow.stillGoing(a)}>Still going +15 min</Button>
-                <Button onClick={() => flow.checkOut(a)}>Check out</Button>
+                {clock >= dueOut(a) - STILL_GOING_LEAD && <Button onClick={() => flow.stillGoing(a)}>Still going</Button>}
+                <Button onClick={() => flow.markDone(a)}>Done</Button>
               </>
             )}
+            {a.status === "Done" && <Button onClick={() => flow.checkOut(a)}>Check out</Button>}
             {a.status === "No-show" && <Button onClick={() => flow.lateShow()}>Customer arrived — override</Button>}
             <Button disabled={a.status !== "Confirmed"} onClick={() => reschedule(a)}>
               Move 30 min later
@@ -1697,6 +1722,8 @@ function PhoneShell({
   unread,
   notif,
   guide,
+  clock,
+  onAlert,
   calls,
   appts,
   checkout,
@@ -1736,7 +1763,7 @@ function PhoneShell({
     <aside className="dm-phone" aria-label="Customer phone">
       <div className="dm-screen">
         <div className="dm-status">
-          <b>10:15</b>
+          <b>{toTime(clock)}</b>
           <span>5G ▮▮▮</span>
         </div>
         {notif && (
@@ -1753,7 +1780,21 @@ function PhoneShell({
             </span>
           </button>
         )}
-        {guide && <div className="dm-guide" role="status">{guide}</div>}
+        {guide && (
+          <div className="dm-calalert" role="alert">
+            <header>
+              <i><CalendarDays size={12} /></i>
+              <span>CALENDAR</span>
+              <small>{guide.time}</small>
+            </header>
+            <b>{guide.title}</b>
+            <p>{guide.body}</p>
+            <div>
+              <button onClick={() => onAlert("messages")}>Message</button>
+              <button onClick={() => onAlert("phone")}>Call</button>
+            </div>
+          </div>
+        )}
         {view === "home" ? (
           <div className="dm-home">
             <div className="dm-home-date">Friday 25</div>
