@@ -21,7 +21,10 @@ export const Route = createFileRoute("/why-baowow")({
       { property: "og:url", content: "https://baowow.xyz/why-baowow" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "https://baowow.xyz/why-baowow" }],
+    links: [
+      { rel: "stylesheet", href: homeCss },
+      { rel: "canonical", href: "https://baowow.xyz/why-baowow" },
+    ],
   }),
   component: WhyBaowowPage,
 });
