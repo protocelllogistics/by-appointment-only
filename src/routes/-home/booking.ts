@@ -251,7 +251,10 @@ export function initHero(signal: AbortSignal) {
     $("showTimes").click();
   };
   document.addEventListener("bao:book", onBookService, { signal });
-  $("scrim").addEventListener("click", () => document.documentElement.classList.contains("book-modal") && go("taps"), { signal });
+  signal.addEventListener("abort", () => {
+    if (flowHome) flowHome.replaceWith($("flow"));
+    document.documentElement.classList.remove("book-modal");
+  });
 
   /* ---------- Flow ---------- */
   function go(step) {

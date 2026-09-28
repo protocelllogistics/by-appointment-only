@@ -249,4 +249,4 @@ textarea.input{border-radius:22px;padding:12px 18px;resize:none;min-height:72px}
 
 .service-book{margin-top:18px;min-height:52px;align-self:flex-start}
 @media(min-width:1024px){html.book-modal .flow.modal{position:fixed!important;top:48px!important;bottom:24px!important;left:50%!important;right:auto!important;width:min(600px,92vw)!important;transform:translateX(-50%)!important;z-index:90!important;border-radius:34px!important}
-html.book-modal .scrim{display:block!important;opacity:1!important;pointer-events:auto!important;position:fixed;inset:0;z-index:85;background:rgb(0 0 0/.35)}}
+html.book-modal body::after{content:"";position:fixed;inset:0;z-index:85;background:rgb(0 0 0/.35);pointer-events:none}}
