@@ -1,4 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Play } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import pitchDeck from "@/assets/BAOWOW-Pitch-Deck.pdf.asset.json";
 
 import homeCss from "./-home/home.css?url";
 
@@ -90,6 +94,30 @@ function WhyBaowowPage() {
                   <p>{s.body}</p>
                 </div>
               ))}
+            </div>
+
+            <div className="why-resources">
+              <div>
+                <h3>Pitch presentation</h3>
+                <p>The presentation video will be available here soon.</p>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button type="button" variant="outline" className="why-video-trigger"><Play size={17} aria-hidden="true" /> Presentation video</Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-3xl rounded-md bg-background font-sans text-foreground">
+                    <DialogHeader>
+                      <DialogTitle>Pitch presentation</DialogTitle>
+                      <DialogDescription>The presentation video is coming soon.</DialogDescription>
+                    </DialogHeader>
+                    <div className="flex aspect-video flex-col items-center justify-center gap-3 rounded-md bg-primary text-primary-foreground"><Play size={36} aria-hidden="true" /><span>Video coming soon</span></div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              <div>
+                <h3>Pitch deck</h3>
+                <p>Explore the full BAOWOW presentation.</p>
+                <a className="why-deck-link" href={pitchDeck.url} target="_blank" rel="noopener noreferrer">View pitch deck (PDF) ↗</a>
+              </div>
             </div>
 
             <div className="why-cta">

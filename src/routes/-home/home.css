@@ -221,6 +221,13 @@ textarea.input{border-radius:22px;padding:12px 18px;resize:none;min-height:72px}
 .why-page-wrap{flex:1;display:flex;align-items:center}
 @media(min-width:800px){.why-cta{margin-top:48px}}
 
+.why-resources{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin-top:48px;padding-top:32px;border-top:1px solid var(--color-neutral-300)}
+.why-resources h3{font-family:var(--font-body);font-size:20px;font-weight:600;color:var(--color-accent-2-900)}
+.why-resources p{font-size:15px;color:var(--color-neutral-700);margin:9px 0 18px}
+.why-video-trigger{border:1px solid var(--color-accent-2-700);border-radius:6px;background:transparent;color:var(--color-accent-2-900);font-family:var(--font-body);font-weight:400;gap:9px}
+.why-deck-link{display:inline-flex;align-items:center;min-height:40px;font-size:15px;text-decoration:underline;text-underline-offset:4px}
+@media(max-width:600px){.why-resources{grid-template-columns:1fr;gap:30px}}
+
 
 /* desktop-only full-screen panels; phones retain the browser's native document scroll */
 @media (min-width:1024px){

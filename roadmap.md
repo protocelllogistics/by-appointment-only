@@ -1,5 +1,6 @@
 # Roadmap
 
+- [x] Add pitch-deck PDF and video placeholders, a demo walkthrough modal, BAOWOW metadata, and the supplied Find us picture without changing favicons.
 - [ ] Replace the old demo data path with the System specification's canonical schema and supplied CSV definitions, preserving the current website and both Dashboard presentations as visual structures; staff, rota, rota exceptions, staff shifts, services, service SOP, service inventory, service staff and breeds are loaded, with remaining dependencies blocked only on their source files.
 - [x] Remove the unverified “Next free” claim from the booking bar.
 - [x] Add a shared availability database and genuine conflict-safe booking functions.
