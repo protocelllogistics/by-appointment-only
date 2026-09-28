@@ -10,6 +10,7 @@ import mayaPhoto from "@/assets/Maya.jpeg.asset.json";
 import samPhoto from "@/assets/Sam.jpeg.asset.json";
 import priyaPhoto from "@/assets/Priya.jpeg.asset.json";
 import teamPhoto from "@/assets/Team.jpeg.asset.json";
+import teamSalonPhoto from "@/assets/team-salon.jpeg.asset.json";
 
 const SERVICES = ["Full style", "Bath & tidy", "Nail trim", "Puppy intro"] as const;
 type TeamFact = { icon: "scissors" | "paw" | "sparkles" | "grad"; label: string };
@@ -320,8 +321,8 @@ function HomePage() {
             <a className="btn btn-outline team" href="#why">
               Why BAOWOW?
             </a>
-            <div className="photo" aria-hidden="true">
-              Salon photo
+            <div className="photo">
+              <img src={teamSalonPhoto.url} alt="The By Appointment Only team in the salon with their dogs" />
             </div>
             <div className="spacer"></div>
             <svg className="whiskers" width="720" height="190" viewBox="0 0 720 190" aria-hidden="true">
@@ -330,10 +331,10 @@ function HomePage() {
               <path d="M0 118 C220 124 450 146 670 182 C450 150 220 132 0 126 Z" fill="var(--color-accent-400)" />
             </svg>
             <div className="hero-access">
-              <a className="btn btn-outline access" href="mailto:apps@protocell.io">
+              <a className="access-link" href="mailto:apps@protocell.io">
                 Request Product Access
               </a>
-              <Link className="btn btn-primary access" to="/demo">
+              <Link className="access-link" to="/demo">
                 View Demo
               </Link>
             </div>
