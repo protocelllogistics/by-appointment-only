@@ -74,6 +74,15 @@ function WhyBaowowPage() {
               automatically — the front desk and stylists simply confirm what the system already prepared.
             </p>
 
+            <div className="why-grid">
+              {PILLARS.map((p) => (
+                <div className="why-card" key={p.title}>
+                  <h3>{p.title}</h3>
+                  <p>{p.body}</p>
+                </div>
+              ))}
+            </div>
+
             <div className="why-story">
               {STORY.map((s) => (
                 <div className="why-story-block" key={s.title}>
@@ -83,14 +92,6 @@ function WhyBaowowPage() {
               ))}
             </div>
 
-            <div className="why-grid">
-              {PILLARS.map((p) => (
-                <div className="why-card" key={p.title}>
-                  <h3>{p.title}</h3>
-                  <p>{p.body}</p>
-                </div>
-              ))}
-            </div>
 
             <div className="why-cta">
               <a className="access-link" href="mailto:apps@protocell.io">
