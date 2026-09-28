@@ -1254,6 +1254,21 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
           }}
         />
       </div>
+      <div className="dm-disclaimer">
+        <p>
+          This is a prototype of BAOWOW, an application prototype for automated appointment-based businesses
+          developed by{" "}
+          <a href="https://protocell.io" target="_blank" rel="noopener noreferrer">
+            PROTOCELL IO
+          </a>
+          , intended for demonstration purposes only.
+        </p>
+        <nav aria-label="Legal">
+          <Link to="/terms-and-conditions">Terms &amp; Conditions</Link>
+          <span aria-hidden="true">·</span>
+          <Link to="/privacy-policy">Privacy Policy</Link>
+        </nav>
+      </div>
     </div>
   );
 }

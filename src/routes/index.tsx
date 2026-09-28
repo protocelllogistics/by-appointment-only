@@ -333,7 +333,7 @@ function HomePage() {
               <a className="btn btn-outline team" href="#team">
                 Meet the team
               </a>
-              <Link className="btn btn-outline team" to="/why-baowow">
+              <Link className="why-link" to="/why-baowow">
                 Why BAOWOW?
               </Link>
             </div>
@@ -619,6 +619,14 @@ function HomePage() {
               <a href="/cookies-policy">Cookies Policy</a>
               <Link to="/dashboard">Login</Link>
             </nav>
+            <p className="footer-disclaimer">
+              This is a prototype of BAOWOW, an application prototype for automated appointment-based businesses
+              developed by{" "}
+              <a href="https://protocell.io" target="_blank" rel="noopener noreferrer">
+                PROTOCELL IO
+              </a>
+              , intended for demonstration purposes only.
+            </p>
             <div className="footer-copy">© {new Date().getFullYear()} By Appointment Only. All rights reserved.</div>
           </footer>
         </section>

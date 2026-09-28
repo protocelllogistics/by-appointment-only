@@ -78,3 +78,6 @@
 .dm[data-mobile] .dm-screen{height:calc(100dvh - 190px);min-height:540px;border-radius:32px}
 .dm[data-mobile] .dm-home{padding:24px 20px}.dm[data-mobile] .dm-home-date{margin:20px 0 60px}
 .dm[data-mobile] .dm-phone-body{padding:14px 18px 44px}
+
+.dm-disclaimer{max-width:1460px;margin:28px auto 0;padding:18px 0 4px;border-top:1px solid color-mix(in srgb,var(--bg) 42%,transparent);color:color-mix(in srgb,var(--bg) 78%,transparent);font-size:12px;line-height:1.55}
+.dm-disclaimer p{margin:0;max-width:780px}.dm-disclaimer nav{display:flex;gap:10px;margin-top:5px}.dm-disclaimer a{color:inherit;text-decoration:underline;text-underline-offset:2px}
