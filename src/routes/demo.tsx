@@ -372,7 +372,9 @@ function DemoPage() {
         if (a && a.status === "Confirmed") automate(kind, a, t);
       }, ms),
     );
-    return () => timers.forEach(window.clearTimeout);
+    return () => {
+      timers.forEach((id) => window.clearTimeout(id));
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runId]);
 

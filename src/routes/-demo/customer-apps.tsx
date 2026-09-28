@@ -40,7 +40,9 @@ export function MessagesApp({
 }) {
   const [draft, setDraft] = useState("");
   const end = useRef<HTMLDivElement>(null);
-  useEffect(() => end.current?.scrollIntoView({ block: "end" }), [list.length]);
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: "end" });
+  }, [list.length]);
   return (
     <div className="dm-thread">
       <div className="dm-thread-who">
