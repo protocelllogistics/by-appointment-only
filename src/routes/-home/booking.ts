@@ -237,6 +237,12 @@ export function initHero(signal: AbortSignal) {
     S.service = svc;
     renderGroups();
     if (desktop()) {
+      // The hero sits in a transformed pager, so lift the panel to <body> to float over the page.
+      if (!flowHome) {
+        flowHome = document.createComment("flow");
+        $("flow").replaceWith(flowHome);
+        document.body.appendChild(flowHome.__el || (flowHome.__el = null) || document.createElement("i")).remove();
+      }
       $("flow").classList.add("modal");
       document.documentElement.classList.add("book-modal");
     }
@@ -250,6 +256,10 @@ export function initHero(signal: AbortSignal) {
     S.step = step;
     S.breedOpen = false;
     const inFlow = step !== "taps";
+    if (!inFlow && flowHome) {
+      flowHome.replaceWith($("flow"));
+      flowHome = null;
+    }
     if (!inFlow) {
       $("flow").classList.remove("modal");
       document.documentElement.classList.remove("book-modal");
