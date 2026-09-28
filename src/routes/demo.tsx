@@ -310,13 +310,13 @@ function DemoPage() {
 
   const phoneViewRef = useRef(phoneView);
   phoneViewRef.current = phoneView;
-  const pending = useRef<Omit<Msg, "id">[]>([]);
+  const queued = useRef<Omit<Msg, "id">[]>([]);
   useEffect(() => {
-    if (phoneView !== "home" || !pending.current.length) return;
+    if (phoneView !== "home" || !queued.current.length) return;
     const t = window.setTimeout(() => {
       if (phoneViewRef.current !== "home") return;
-      const q = pending.current;
-      pending.current = [];
+      const q = queued.current;
+      queued.current = [];
       deliver(q);
     }, 2500);
     return () => window.clearTimeout(t);
@@ -325,7 +325,7 @@ function DemoPage() {
   // Shop messages only arrive while the phone rests on its home screen.
   const send = (next: Omit<Msg, "id">[]) => {
     if (next.some((m) => m.from === "shop") && phoneViewRef.current !== "home") {
-      pending.current.push(...next);
+      queued.current.push(...next);
       return;
     }
     deliver(next);
@@ -971,7 +971,7 @@ function DemoPage() {
     setAppts(seed);
     setMessages([pastConfirmation()]);
     setGuide(undefined);
-    pending.current = [];
+    queued.current = [];
     setCalls([]);
     setUnread({ Messages: 0, Email: 0 });
     setNotif(undefined);
