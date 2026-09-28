@@ -57,3 +57,5 @@
 .dm-calls details{background:var(--paper);color:var(--ink);border-radius:12px;padding:8px 10px}
 .dm-calls summary{cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px}.dm-calls summary small{margin-left:auto;font-weight:400;color:var(--muted)}
 .dm-calls p{margin:6px 0 0;font-size:12.5px;font-style:italic}.dm-calls p em{font-style:normal;font-weight:700;margin-right:4px;color:var(--teal-dark)}.dm-calls p[data-who=me] em{color:var(--coral)}
+
+.dm-guide{position:absolute;z-index:4;left:12px;right:12px;bottom:18px;padding:10px 12px;border-radius:14px;font-size:12px;line-height:1.35;background:var(--ink);color:var(--paper);box-shadow:0 8px 24px color-mix(in srgb,var(--ink) 25%,transparent);animation:dm-drop .3s ease}.dm-notif i[data-app=calendar]{background:var(--teal)}
