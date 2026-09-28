@@ -329,12 +329,14 @@ function HomePage() {
               By Appointment Only: Turning salon scheduling chaos and lost revenue into real-day bookings, through
               risk-based buffering, intelligent automation, and idle-time task recovery.
             </p>
-            <a className="btn btn-outline team" href="#team">
-              Meet the team
-            </a>
-            <Link className="btn btn-outline team" to="/why-baowow">
-              Why BAOWOW?
-            </Link>
+            <div className="team-row">
+              <a className="btn btn-outline team" href="#team">
+                Meet the team
+              </a>
+              <Link className="btn btn-outline team" to="/why-baowow">
+                Why BAOWOW?
+              </Link>
+            </div>
             <div className="photo">
               <img src={teamSalonPhoto.url} alt="The By Appointment Only team in the salon with their dogs" />
             </div>
