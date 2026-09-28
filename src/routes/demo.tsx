@@ -1133,11 +1133,27 @@ function AdminDrawer({
     </aside>
   );
 }
+function ContactChoice({ form, setForm }: { form: any; setForm: (x: any) => void }) {
+  return (
+    <div className="dm-field">
+      <span>Send updates by</span>
+      <div className="dm-seg">
+        {(["Messages", "Email"] as const).map((c) => (
+          <button key={c} type="button" data-on={form.contact === c} onClick={() => setForm({ ...form, contact: c })}>
+            {c}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 function StaffBooking({
   fromCall,
   form,
   setForm,
   sizes,
+  shift,
+  setShift,
   prepareTimes,
   slotsFor,
   createBooking,
@@ -1146,6 +1162,8 @@ function StaffBooking({
   form: any;
   setForm: (x: any) => void;
   sizes: Record<string, Size> | null;
+  shift: number;
+  setShift: (n: number) => void;
   prepareTimes: () => Promise<void>;
   slotsFor: (x: Record<string, Size>) => { date: string; opts: { stylist: string; start: number; size: Size }[] }[];
   createBooking: (o: { stylist: string; start: number; size: Size }, d: string, s?: Appt["source"]) => void;
@@ -1215,6 +1233,7 @@ function StaffBooking({
         <span>Notes</span>
         <textarea value={form.notes} maxLength={300} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
       </label>
+      <ContactChoice form={form} setForm={setForm} />
       <Button className="dm-cta" onClick={() => prepareTimes()}>
         Show recommendations
       </Button>
@@ -1223,12 +1242,22 @@ function StaffBooking({
           <div className="dm-allocation">
             <div className="dm-allocation-head">
               <b>Allocated time</b>
-              <span>Recommended {dur(allocation.minutes)} × (Index 2)</span>
+              <span>
+                Index {allocation.index}
+                {shift ? ` (adjusted ${shift > 0 ? "+" : ""}${shift})` : ""}
+              </span>
             </div>
             <div className="dm-allocation-value">
               <strong>{dur(allocation.minutes)}</strong>
               <span>blocks the diary and the bay</span>
             </div>
+            <IndexBreakdown
+              standard={allocate(form.service, allocation.index).standard}
+              minutes={allocation.minutes}
+              tell={allocation.tellClient}
+              service={form.service}
+            />
+            <IndexStepper index={allocation.index} onStep={(d) => setShift(shift + d)} />
             <div className="dm-customer-time">
               Tell the customer: <b>{about(allocation.tellClient)}</b>
             </div>
