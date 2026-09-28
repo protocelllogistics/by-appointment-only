@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790372438994,
+      "tag": "0000_create_whisker_booking_backend",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790372467091,
+      "tag": "0001_seed_whisker_demo_records",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790372667096,
+      "tag": "0002_tighten_booking_function_permissions",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790585592345,
+      "tag": "0003_create_rota_exceptions_shifts",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790587676066,
+      "tag": "0004_add_canonical_staff_data_keys",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790588903075,
+      "tag": "0005_add_canonical_services_and_breeds",
+      "breakpoints": true
+    }
+  ]
+}

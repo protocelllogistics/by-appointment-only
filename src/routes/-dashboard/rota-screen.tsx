@@ -1,0 +1,12 @@
+import { useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import type { getDashboardStaffData } from "@/lib/dashboard-data.functions";
+type Data=Awaited<ReturnType<typeof getDashboardStaffData>>;
+const days=["mon","tue","wed","thu","fri","sat"];
+const sourceRota=[
+ {id:"S1",name:"Maya",role:"Senior · large breeds",hours:["08:30–17:30","08:30–17:30",null,"08:30–17:30","08:30–17:30","09:00–14:00"]},
+ {id:"S2",name:"Tom",role:"Pet stylist",hours:["09:00–17:30","09:00–17:30","09:00–17:30",null,"09:00–17:30","09:00–14:00"]},
+ {id:"S3",name:"Priya",role:"Pet stylist · cats too",hours:[null,"08:30–16:00","08:30–16:00","08:30–16:00","08:30–16:00","08:30–16:00"]},
+ {id:"S4",name:"Sam",role:"Collection & drop-off",hours:["08:30–17:30","08:30–17:30","08:30–17:30","08:30–17:30",null,null]},
+];
+export function RotaScreen({data}:{data:Data}){const byStaff=useMemo(()=>Object.fromEntries(data.staff.map(staff=>[staff.staff_id,data.rota.filter(row=>row.staff_id===staff.staff_id)])),[data]);const staffRows=data.staff.length?data.staff.map(staff=>({id:staff.staff_id,name:staff.name,role:`${staff.role}${staff.usual_bay?` · ${staff.usual_bay}`:""}`,hours:days.map(day=>{const row=byStaff[staff.staff_id]?.find(item=>item.weekday===day);return row?.working==="Y"?`${row.start?.slice(0,5)}–${row.end?.slice(0,5)}`:null})})):sourceRota;return <section className="dash-page"><header className="dash-head"><div className="dash-head-copy"><div className="dash-kicker">Week of 29 September</div><h1>Staff rota</h1></div><Button className="dash-outline-action">Copy last week</Button><Button className="dash-coral-action">Publish to calendar</Button></header><div className="dash-panel dash-rota-panel"><div className="dash-section-title"><h2>Pet stylists and hours</h2><span>Breaks shown in the bar</span></div><div className="dash-rota-grid"><div/>{days.map(day=><b className="dash-rota-day" key={day}>{day[0]?.toUpperCase()}{day.slice(1)}</b>)}{staffRows.map(staff=><div className="dash-rota-row" key={staff.id}><div className="dash-rota-person"><b>{staff.name}</b><span>{staff.role}</span></div>{staff.hours.map((hours,index)=>hours?<div className="dash-shift" key={days[index]}><b>{hours}</b><span>Break 12:00</span></div>:<div className="dash-shift off" key={days[index]}>Off</div>)}</div>)}</div></div></section>}

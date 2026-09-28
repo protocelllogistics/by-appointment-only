@@ -1,0 +1,26 @@
+# Roadmap
+
+- [ ] Replace the old demo data path with the System specification's canonical schema and supplied CSV definitions, preserving the current website and both Dashboard presentations as visual structures; staff, rota, rota exceptions, staff shifts, services, service SOP, service inventory, service staff and breeds are loaded, with remaining dependencies blocked only on their source files.
+- [x] Remove the unverified “Next free” claim from the booking bar.
+- [x] Add a shared availability database and genuine conflict-safe booking functions.
+- [x] Connect the existing booking overlay controls to live availability and booking confirmation.
+- [x] Build the specified staff-facing Today, continuity, rota, risk, and phone prompt screens.
+- [x] Add the supplied service, team, address, and opening-hours sections below the hero.
+- [ ] Add the remaining individual team profiles when approved photos and content are provided; Tom’s supplied profile is live.
+- [ ] Re-lock /dashboard (sign-in + staff role) before launch — pre-production unlock.
+- [x] Complete the canonical Today list, no-show shelf, actions, right rail, and chart view.
+- [x] Move Find us to homepage panel three while preserving the established visual style.
+- [x] Restore the staff Today screen to the exact canonical mock content and interactions.
+- [x] Add the requested Find Us tags and carry its styling into the team panel.
+- [x] Prevent false fully-booked content while live booking times load.
+- [x] Restore the Today page container structure to the canonical three-column mock.
+- [x] Make the Today free slot selectable with its canonical right-rail details.
+- [x] Use the supplied stylist terminal as the exclusive phone experience for /dashboard while preserving the full Dashboard on larger devices.
+- [ ] Complete the supplied desktop Dashboard conversion from its bundle into React; all destinations are now dedicated screens and the Today, Tasks, Bookings, rota, risk, Services, History, and Settings source states are being verified against the master HTML.
+- [ ] Reconcile every desktop Dashboard destination and its shared color, badge, menu, navigation and right-rail rules against the supplied HTML and images; do not treat structural placeholders or invented data as complete.
+- [x] Audit Clients & pets strictly against the master HTML and correct its presentation and interactions without inventing missing data.
+- [x] Centralize uploaded seed rules as reusable derivations and connect dependent screens while tables remain incomplete.
+- [x] Restore the public prototype demo: Index 1–5 language, actionable admin appointments, staff phone-booking recommendations, separate phone/messages/email/browser customer apps, fixed contact identity, full booking confirmation state, and mobile terminal fallback.
+- [x] Keep the public homepage booking placeholder browser-only until the user authorizes backend collection.
+- [x] Restore normal customer homepage scrolling on phones and close the booking sheet or flow when its backdrop is tapped.
+- [x] Auto-generate fictional gender-neutral customer identities across public, demo and staff-created bookings; only filtered pet name and notes stay editable.

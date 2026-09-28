@@ -1,0 +1,17 @@
+note_id,pet_id,date,source,context,note,adds_min
+N01,P001,2025-03-10,Jo Adeyemi (client),at booking,Nervous of the dryer,10
+N02,P001,2025-03-14,Maya,check-out,Settles after five minutes,0
+N03,P002,2025-06-14,Priya,check-out,Vocal but gentle,0
+N04,P002,2026-04-18,Maya,check-out,Heavy undercoat in spring,20
+N05,P003,2024-01-16,Sam,check-out,Two people needed in the bay,15
+N06,P003,2024-05-14,Sam,check-in,Pulls on the lead at drop-off,0
+N07,P004,2023-10-06,Tom,check-out,Dislikes paws being handled,5
+N08,P005,2024-05-07,Priya,check-out,"Calm, sleeps under the dryer",0
+N09,P006,2025-02-07,Tom,check-out,Snaps at nail clippers,5
+N10,P007,2025-04-14,Sam,check-in,"Excitable at check-in, settles in the bath",5
+N11,P008,2024-03-11,Maya,check-out,Fidgets when her face is dried,5
+N12,P009,2025-05-06,Tom,check-out,Easy to handle,0
+N13,P010,2026-05-19,Priya,check-out,"Mouthy with the brush, still a puppy",5
+N14,P011,2024-04-22,Emmanuel Gonzalez (client),at booking,"Stressed by barking. Book the first slot of the day, quiet bay",0
+N15,P011,2024-04-23,Priya,check-out,"Sheds heavily in spring, needs a full de-shed",15
+N16,P012,2026-08-07,Tom,check-out,"Hand-strip only, no clippers on the coat",10

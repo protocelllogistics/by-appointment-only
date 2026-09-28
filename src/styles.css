@@ -1,0 +1,100 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --font-heading: var(--font-heading-family);
+  --font-body: var(--font-body-family);
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-text);
+  --color-card: var(--color-surface);
+  --color-card-foreground: var(--color-text);
+  --color-popover: var(--color-bg);
+  --color-popover-foreground: var(--color-text);
+  --color-primary: var(--color-accent);
+  --color-primary-foreground: var(--color-bg);
+  --color-secondary: var(--color-accent-2-100);
+  --color-secondary-foreground: var(--color-accent-2-900);
+  --color-muted: var(--color-neutral-200);
+  --color-muted-foreground: var(--color-neutral-700);
+  --color-accent: var(--color-accent-100);
+  --color-accent-foreground: var(--color-accent-900);
+  --color-destructive: var(--color-accent-700);
+  --color-destructive-foreground: var(--color-bg);
+  --color-border: var(--color-neutral-300);
+  --color-input: var(--color-neutral-300);
+  --color-ring: var(--color-accent);
+}
+
+:root {
+  --radius: 24px;
+  --color-bg: #f5ead8;
+  --color-surface: #ebddc5;
+  --color-text: #201e1d;
+  --color-neutral-100: #f9f4ed;
+  --color-neutral-200: #eee7db;
+  --color-neutral-300: #dcd3c4;
+  --color-neutral-700: #645c50;
+  --color-neutral-800: #474238;
+  --color-accent: oklch(.64 .19 32);
+  --color-accent-100: oklch(.97 .038 32);
+  --color-accent-200: oklch(.93 .065 32);
+  --color-accent-300: oklch(.87 .103 32);
+  --color-accent-400: oklch(.79 .152 32);
+  --color-accent-600: oklch(.61 .19 32);
+  --color-accent-700: oklch(.51 .167 32);
+  --color-accent-800: oklch(.41 .137 32);
+  --color-accent-900: oklch(.31 .106 32);
+  --color-accent-2: oklch(.6 .11 195);
+  --color-accent-2-100: oklch(.97 .022 195);
+  --color-accent-2-200: oklch(.93 .037 195);
+  --color-accent-2-300: oklch(.87 .059 195);
+  --color-accent-2-700: oklch(.51 .097 195);
+  --color-accent-2-800: oklch(.41 .079 195);
+  --color-accent-2-900: oklch(.31 .062 195);
+  --font-heading-family: "Caprasimo", system-ui, sans-serif;
+  --font-body-family: "Figtree", system-ui, sans-serif;
+  --shadow-sm: 0 2px 8px color-mix(in srgb, #2e2b25 10%, transparent);
+  --shadow-md: 0 8px 20px color-mix(in srgb, #2e2b25 16%, transparent);
+  --shadow-lg: 0 12px 32px color-mix(in srgb, #2e2b25 22%, transparent);
+  --ease: cubic-bezier(.2,.8,.2,1);
+}
+
+@layer base {
+  * { border-color: var(--color-border); }
+  html { background: var(--color-accent-2-100); }
+  body { margin: 0; background: var(--color-background); color: var(--color-foreground); font-family: var(--font-body-family); }
+  button, a { letter-spacing: 0; }
+  :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+}
+
+.cookie-banner { position: fixed; z-index: 60; right: 14px; bottom: calc(100px + env(safe-area-inset-bottom)); left: 14px; border: 2px solid var(--color-accent-2-700); border-radius: 24px; padding: 18px; background: var(--color-bg); color: var(--color-text); box-shadow: var(--shadow-lg); }
+.cookie-banner p { margin: 0; font-size: 16px; line-height: 1.45; }
+.cookie-actions { display: grid; gap: 8px; margin-top: 16px; }
+.cookie-actions button { min-height: 48px; height: auto; border-radius: 999px; padding: 8px 16px; white-space: normal; }
+.cookie-actions button:first-child { border: 2px solid var(--color-accent-2-700); background: transparent; color: var(--color-accent-2-900); }
+.cookie-actions button:first-child:hover { background: var(--color-accent-2-200); }
+.cookie-actions button:last-child { background: var(--color-accent); color: var(--color-bg); }
+.cookie-actions button:last-child:hover { background: var(--color-accent-600); }
+.cookie-paw { position: absolute; top: -14px; right: 24px; width: 50px; height: 38px; transform: rotate(8deg); }
+.cookie-paw i, .cookie-paw span { position: absolute; display: block; border-radius: 999px; background: var(--color-accent-2-700); }
+.cookie-paw i { width: 11px; height: 14px; top: 0; }
+.cookie-paw i:nth-child(1) { left: 3px; transform: rotate(-18deg); }
+.cookie-paw i:nth-child(2) { left: 19px; top: -5px; }
+.cookie-paw i:nth-child(3) { right: 3px; transform: rotate(18deg); }
+.cookie-paw span { width: 29px; height: 22px; left: 10px; bottom: 0; }
+
+@media (min-width: 640px) {
+  .cookie-banner { right: 24px; bottom: 24px; left: auto; width: min(560px, calc(100vw - 48px)); }
+  .cookie-actions { grid-template-columns: 1fr 1fr; }
+}
+

@@ -1,0 +1,112 @@
+failure_id,booking_id,date,type,detail,counts_against_client
+F0001,H00131,2023-12-02,reassigned,"Moved to 2023-12-04, Maya off sick",N
+F0002,H00134,2023-12-02,reassigned,"Moved to 2023-12-04, Maya off sick",N
+F0003,H00383,2024-02-29,booking_clash,"Rebooked 10:00 with Tom, £5 off",N
+F0004,H00389,2024-03-01,booking_clash,"Rebooked 09:30 with Tom, £5 off",N
+F0005,H00416,2024-03-13,reassigned,"Reassigned to Tom, Priya off sick",N
+F0006,H00419,2024-03-13,reassigned,"Reassigned to Tom, Priya off sick",N
+F0007,H00502,2024-04-05,staff_late,"Waited 15 min, Tom clocked in late",N
+F0008,H00570,2024-03-24,booking_clash,"Rebooked 13:00 with Priya, £5 off",N
+F0009,H00599,2024-04-04,booking_clash,"Rebooked 10:00 with Priya, £5 off",N
+F0010,H00762,2024-05-25,reassigned,"Moved to 2024-05-28, Tom off sick",N
+F0011,H00764,2024-05-25,reassigned,"Reassigned to Maya, Tom off sick",N
+F0012,H00765,2024-05-25,reassigned,"Reassigned to Maya, Tom off sick",N
+F0013,H00809,2024-05-17,booking_clash,"Rebooked 09:00 with Maya, £5 off",N
+F0014,H00945,2024-05-30,booking_clash,"Rebooked 14:30 with Priya, £5 off",N
+F0015,H01247,2024-08-14,reassigned,"Moved to 2024-08-15, Sam off sick",N
+F0016,H01249,2024-08-14,reassigned,"Moved to 2024-08-15, Sam off sick",N
+F0017,H01251,2024-08-14,reassigned,"Moved to 2024-08-19, Sam off sick",N
+F0018,H01282,2024-08-19,booking_clash,"Rebooked 09:00 with Maya, £5 off",N
+F0019,H01314,2024-08-12,booking_clash,"Rebooked 09:00 with Tom, £5 off",N
+F0020,H01529,2024-09-11,booking_clash,"Rebooked 09:30 with Sam, £5 off",N
+F0021,H01535,2024-10-01,reassigned,"Reassigned to Maya, Sam off sick",N
+F0022,H01551,2024-09-25,booking_clash,"Rebooked 09:00 with Maya, £5 off",N
+F0023,H01615,2024-10-16,staff_late,"Waited 25 min, Tom clocked in late",N
+F0024,H01618,2024-10-16,stylist_overran,"Waited 6 min, Tom’s previous session overran",N
+F0025,H01646,2024-09-22,booking_clash,"Rebooked 10:45 with Sam, £5 off",N
+F0026,H01663,2024-10-24,reassigned,"Reassigned to Priya, Maya off sick",N
+F0027,H01665,2024-10-24,reassigned,"Reassigned to Priya, Maya off sick",N
+F0028,H01721,2024-11-03,booking_clash,"Rebooked 10:30 with Maya, £5 off",N
+F0029,H01735,2024-10-09,booking_clash,"Rebooked 10:00 with Tom, £5 off",N
+F0030,H01866,2024-11-18,booking_clash,"Rebooked 11:00 with Tom, £5 off",N
+F0031,H01879,2024-11-29,reassigned,"Reassigned to Maya, Tom off sick",N
+F0032,H01881,2024-11-29,reassigned,"Reassigned to Maya, Tom off sick",N
+F0033,H01882,2024-11-29,reassigned,"Reassigned to Maya, Tom off sick",N
+F0034,H01884,2024-11-29,reassigned,"Reassigned to Maya, Tom off sick",N
+F0035,H01885,2024-11-29,reassigned,"Reassigned to Maya, Tom off sick",N
+F0036,H01987,2024-11-19,booking_clash,"Rebooked 13:15 with Priya, £5 off",N
+F0037,H02114,2024-12-30,staff_late,"Waited 20 min, Maya clocked in late",N
+F0038,H02124,2024-12-31,reassigned,"Reassigned to Tom, Priya off sick",N
+F0039,H02126,2024-12-31,reassigned,"Reassigned to Sam, Priya off sick",N
+F0040,H02129,2024-12-31,reassigned,"Reassigned to Sam, Priya off sick",N
+F0041,H02214,2025-01-07,booking_clash,"Rebooked 10:30 with Priya, £5 off",N
+F0042,H02299,2025-02-10,reassigned,"Moved to 2025-02-11, Maya off sick",N
+F0043,H02300,2025-02-10,reassigned,"Moved to 2025-02-11, Maya off sick",N
+F0044,H02301,2025-02-10,reassigned,"Reassigned to Sam, Maya off sick",N
+F0045,H02311,2025-02-12,reassigned,"Moved to 2025-02-13, Priya off sick",N
+F0046,H02313,2025-02-12,reassigned,"Moved to 2025-02-13, Priya off sick",N
+F0047,H02387,2025-02-07,booking_clash,"Rebooked 11:00 with Tom, £5 off",N
+F0048,H02438,2025-02-26,booking_clash,"Rebooked 13:15 with Priya, £5 off",N
+F0049,H02583,2025-03-04,booking_clash,"Rebooked 15:00 with Tom, £5 off",N
+F0050,H02657,2025-04-14,reassigned,"Reassigned to Tom, Maya off sick",N
+F0051,H02658,2025-04-14,reassigned,"Reassigned to Tom, Maya off sick",N
+F0052,H02800,2025-05-08,reassigned,"Moved to 2025-05-09, Priya off sick",N
+F0053,H02804,2025-05-08,reassigned,"Moved to 2025-05-09, Priya off sick",N
+F0054,H02861,2025-05-16,booking_clash,"Rebooked 13:30 with Tom, £5 off",N
+F0055,H02983,2025-06-05,reassigned,"Moved to 2025-06-06, Maya off sick",N
+F0056,H02985,2025-06-05,reassigned,"Reassigned to Priya, Maya off sick",N
+F0057,H03279,2025-07-19,reassigned,"Moved to 2025-07-24, Priya off sick",N
+F0058,H03282,2025-07-19,reassigned,"Reassigned to Tom, Priya off sick",N
+F0059,H03284,2025-07-19,reassigned,"Reassigned to Tom, Priya off sick",N
+F0060,H03286,2025-07-19,reassigned,"Moved to 2025-07-25, Priya off sick",N
+F0061,H03288,2025-07-19,reassigned,"Moved to 2025-07-22, Priya off sick",N
+F0062,H03373,2025-07-16,booking_clash,"Rebooked 11:30 with Maya, £5 off",N
+F0063,H03494,2025-08-16,booking_clash,"Rebooked 10:45 with Tom, £5 off",N
+F0064,H03533,2025-08-22,reassigned,"Reassigned to Tom, Priya off sick",N
+F0065,H03537,2025-08-22,reassigned,"Moved to 2025-08-23, Priya off sick",N
+F0066,H03599,2025-09-01,reassigned,"Moved to 2025-09-02, Tom off sick",N
+F0067,H03602,2025-09-01,reassigned,"Moved to 2025-09-02, Tom off sick",N
+F0068,H03653,2025-09-10,reassigned,"Reassigned to Tom, Sam off sick",N
+F0069,H03812,2025-09-06,booking_clash,"Rebooked 10:15 with Tom, £5 off",N
+F0070,H03815,2025-09-19,booking_clash,"Rebooked 16:30 with Tom, £5 off",N
+F0071,H03822,2025-10-08,staff_late,"Waited 22 min, Tom clocked in late",N
+F0072,H03917,2025-10-19,booking_clash,"Rebooked 09:30 with Priya, £5 off",N
+F0073,H04006,2025-10-21,booking_clash,"Rebooked 14:30 with Priya, £5 off",N
+F0074,H04085,2025-11-19,reassigned,"Reassigned to Tom, Sam off sick",N
+F0075,H04091,2025-11-19,reassigned,"Moved to 2025-11-20, Sam off sick",N
+F0076,H04111,2025-11-22,booking_clash,"Rebooked 09:30 with Priya, £5 off",N
+F0077,H04117,2025-11-22,stylist_overran,"Waited 2 min, Maya’s previous session overran",N
+F0078,H04158,2025-11-29,staff_late,"Waited 26 min, Tom clocked in late",N
+F0079,H04161,2025-11-29,stylist_overran,"Waited 8 min, Tom’s previous session overran",N
+F0080,H04341,2025-12-19,reassigned,"Moved to 2025-12-23, Priya off sick",N
+F0081,H04343,2025-12-19,reassigned,"Moved to 2025-12-24, Priya off sick",N
+F0082,H04393,2025-12-27,staff_late,"Waited 27 min, Maya clocked in late",N
+F0083,H04554,2026-01-04,booking_clash,"Rebooked 09:30 with Priya, £5 off",N
+F0084,H04729,2026-03-03,reassigned,"Moved to 2026-03-05, Maya off sick",N
+F0085,H04732,2026-03-03,reassigned,"Reassigned to Tom, Maya off sick",N
+F0086,H04735,2026-03-03,reassigned,"Reassigned to Tom, Maya off sick",N
+F0087,H04856,2026-02-24,booking_clash,"Rebooked 13:30 with Maya, £5 off",N
+F0088,H04869,2026-02-28,booking_clash,"Rebooked 13:30 with Sam, £5 off",N
+F0089,H04919,2026-03-26,booking_clash,"Rebooked 14:00 with Tom, £5 off",N
+F0090,H04950,2026-04-08,staff_late,"Waited 14 min, Sam clocked in late",N
+F0091,H05040,2026-04-15,booking_clash,"Rebooked 14:30 with Tom, £5 off",N
+F0092,H05280,2026-05-18,booking_clash,"Rebooked 09:15 with Maya, £5 off",N
+F0093,H05288,2026-05-27,staff_late,"Waited 1 min, Priya clocked in late",N
+F0094,H05352,2026-06-04,staff_late,"Waited 12 min, Maya clocked in late",N
+F0095,H05426,2026-06-14,calendar_sync_gap,"Clash sent on WhatsApp, rebooked next day",N
+F0096,H05507,2026-06-15,booking_clash,"Rebooked 10:00 with Maya, £5 off",N
+F0097,H05531,2026-06-30,staff_late,"Waited 5 min, Maya clocked in late",N
+F0098,H05560,2026-07-03,stylist_overran,"Waited 20 min, Maya’s previous session overran",N
+F0099,H05575,2026-07-04,stylist_overran,"Waited 3 min, Priya’s previous session overran",N
+F0100,H05641,2026-07-14,reassigned,"Moved to Thu 16 Jul, Priya off sick",N
+F0101,H05646,2026-07-14,reassigned,"Reassigned to Maya, Priya off sick",N
+F0102,H05657,2026-07-15,booking_clash,"Rebooked 14:00 with Priya, £5 off",N
+F0103,H05862,2026-07-19,booking_clash,"Rebooked 11:00 with Maya, £5 off",N
+F0104,H05938,2026-08-01,booking_clash,"Rebooked 15:00 with Maya, £5 off",N
+F0105,H05953,2026-08-19,stylist_overran,"Waited 4 min, Tom’s previous session overran",N
+F0106,H06042,2026-08-29,stylist_overran,"Waited 2 min, Maya’s previous session overran",N
+F0107,H06046,2026-08-28,booking_clash,"Offered 10:30 with Tom, did not rebook",N
+F0108,H06136,2026-09-01,booking_clash,"Rebooked 13:30 with Maya, £5 off",N
+F0109,H06166,2026-08-29,booking_clash,"Rebooked 15:00 with Sam, £5 off",N
+F0110,T0010,2026-09-22,booking_clash,"Rebooked 15:00 with Priya, £5 off",N
+F0111,T0007,2026-09-25,reassigned,Reassigned to Priya · Luna overran on Maya’s bay,N
