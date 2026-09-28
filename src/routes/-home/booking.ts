@@ -231,6 +231,7 @@ export function initHero(signal: AbortSignal) {
   };
 
   // "Book now" on a service: open booking in place with that service chosen — no scrolling.
+  let flowHome = null;
   const onBookService = (e) => {
     const svc = e.detail?.service;
     if (!SERVICES.includes(svc)) return;
@@ -239,9 +240,10 @@ export function initHero(signal: AbortSignal) {
     if (desktop()) {
       // The hero sits in a transformed pager, so lift the panel to <body> to float over the page.
       if (!flowHome) {
+        const el = $("flow");
         flowHome = document.createComment("flow");
-        $("flow").replaceWith(flowHome);
-        document.body.appendChild(flowHome.__el || (flowHome.__el = null) || document.createElement("i")).remove();
+        el.replaceWith(flowHome);
+        document.body.appendChild(el);
       }
       $("flow").classList.add("modal");
       document.documentElement.classList.add("book-modal");
