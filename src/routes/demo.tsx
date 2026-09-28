@@ -950,10 +950,67 @@ function RotaPanel() {
     </div>
   );
 }
+function IndexBreakdown({
+  standard,
+  minutes,
+  tell,
+  service,
+}: {
+  standard: number;
+  minutes: number;
+  tell: number;
+  service: string;
+}) {
+  return (
+    <div className="dm-breakdown">
+      <div>
+        <span>Standard {service.toLowerCase()}</span>
+        <b>{dur(standard)}</b>
+      </div>
+      <div>
+        <span>Risk buffer from Index</span>
+        <b>{signed(minutes - standard)}</b>
+      </div>
+      <div data-strong>
+        <span>Allocated (staff diary)</span>
+        <b>{dur(minutes)}</b>
+      </div>
+      <div>
+        <span>Told to customer</span>
+        <b>
+          {about(tell)} <small>({offsetLabel(tell - minutes)})</small>
+        </b>
+      </div>
+    </div>
+  );
+}
+function IndexStepper({
+  index,
+  onStep,
+  disabled,
+}: {
+  index: number;
+  onStep: (d: number) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="dm-stepper">
+      <Button variant="ghost" disabled={disabled || index <= 1} onClick={() => onStep(-1)}>
+        Index −1 · higher risk
+      </Button>
+      <Button variant="ghost" disabled={disabled || index >= 5} onClick={() => onStep(1)}>
+        Index +1 · lower risk
+      </Button>
+      <small>Demo only — lower Index widens the operational margin.</small>
+    </div>
+  );
+}
 function AdminDrawer({
   panel,
   appts,
   sizes,
+  shift,
+  setShift,
   form,
   setForm,
   prepareTimes,
@@ -962,11 +1019,15 @@ function AdminDrawer({
   cancel,
   noShow,
   reschedule,
+  adjustIndex,
+  sendLate,
   createBooking,
 }: {
   panel: AdminPanel;
   appts: Appt[];
   sizes: Record<string, Size> | null;
+  shift: number;
+  setShift: (n: number) => void;
   form: any;
   setForm: (x: any) => void;
   prepareTimes: () => Promise<void>;
@@ -978,6 +1039,8 @@ function AdminDrawer({
   cancel: (a: Appt, staff?: boolean) => void;
   noShow: (a: Appt) => void;
   reschedule: (a: Appt) => void;
+  adjustIndex: (a: Appt, d: number) => void;
+  sendLate: (a: Appt) => void;
   createBooking: (o: { stylist: string; start: number; size: Size }, d: string, s?: Appt["source"]) => void;
 }) {
   const a = panel?.kind === "appointment" ? appts.find((x) => x.id === panel.id) : undefined;
@@ -1016,14 +1079,23 @@ function AdminDrawer({
           <div className="dm-index">
             <span>Index {a.index}</span>
             <b>{dur(a.minutes)} allocated</b>
-            <p>
-              Historical data indicates an increase in standard time with an Index of +1. The customer is recommended “
-              {about(a.tell)}”.
-            </p>
+            <IndexBreakdown standard={a.standard} minutes={a.minutes} tell={a.tell} service={a.service} />
+            <IndexStepper
+              index={a.index}
+              disabled={a.status !== "Confirmed"}
+              onStep={(d) => adjustIndex(a, d)}
+            />
             {a.flags?.length ? (
               <div className="dm-behaviour-flags">
                 {a.flags.map((flag) => (
                   <span key={flag}>{flag}</span>
+                ))}
+              </div>
+            ) : null}
+            {a.paid?.length ? (
+              <div className="dm-behaviour-flags">
+                {a.paid.map((p) => (
+                  <span key={p}>Paid · {p}</span>
                 ))}
               </div>
             ) : null}
@@ -1034,11 +1106,14 @@ function AdminDrawer({
             <Button disabled={a.status !== "Confirmed"} onClick={() => reschedule(a)}>
               Move 30 min later
             </Button>
+            <Button disabled={a.status !== "Confirmed" || a.date !== TODAY} onClick={() => sendLate(a)}>
+              Send “running late”
+            </Button>
             <Button disabled={a.status !== "Confirmed"} onClick={() => cancel(a, true)}>
               Cancel booking
             </Button>
             <Button disabled={a.status !== "Confirmed" || a.date !== TODAY} onClick={() => noShow(a)}>
-              No-show
+              No-show + fee link
             </Button>
           </div>
         </>
@@ -1048,6 +1123,8 @@ function AdminDrawer({
           form={form}
           setForm={setForm}
           sizes={sizes}
+          shift={shift}
+          setShift={setShift}
           prepareTimes={prepareTimes}
           slotsFor={slotsFor}
           createBooking={createBooking}
