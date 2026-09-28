@@ -1,6 +1,6 @@
 import type { Index } from "@/lib/demo-allocation";
 
-export type Status = "Confirmed" | "Checked in" | "In progress" | "Checked out" | "Cancelled" | "No-show";
+export type Status = "Confirmed" | "Checked in" | "In progress" | "Done" | "Checked out" | "Cancelled" | "No-show";
 export const ACTIVE: Status[] = ["Confirmed", "Checked in", "In progress"];
 export type Size = { minutes: number; index: Index; tellClient: number };
 export type Appt = {
@@ -23,6 +23,8 @@ export type Appt = {
   source: "Online" | "Phone" | "Google Calendar" | "Walk-in";
   lateBy?: number;
   overrun?: number;
+  stillGoing?: number;
+  doneAt?: number;
   calendarMinutes?: number;
   mine: boolean;
   notes: string;
