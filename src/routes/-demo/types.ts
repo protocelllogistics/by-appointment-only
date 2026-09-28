@@ -49,5 +49,7 @@ export type Msg = {
   text: string;
   apptId?: number;
   actions?: LinkAction[];
+  call?: boolean;
 };
+export type CallLog = { id: number; time: string; subject: string; lines: { who: "shop" | "me"; text: string }[] };
 export type Checkout = { kind: "pay-late" | "pay-noshow" | "pay-advance"; apptId: number; amount: number; label: string };

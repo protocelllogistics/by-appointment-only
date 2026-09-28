@@ -17,11 +17,13 @@ import {
   type Index,
 } from "@/lib/demo-allocation";
 import { ACTIVE } from "./-demo/types";
+import type { CallLog } from "./-demo/types";
 import type { Appt, Channel, Checkout, LinkAction, Msg, Size } from "./-demo/types";
 import {
   BrowserBar,
   CalendarApp,
   CheckoutApp,
+  ACTION_LABEL,
   DialerApp,
   MailApp,
   MessagesApp,
@@ -256,6 +258,7 @@ function DemoPage() {
     [checkout, setCheckout] = useState<Checkout>(),
     [unread, setUnread] = useState<Record<Channel, number>>({ Messages: 0, Email: 0 }),
     [notif, setNotif] = useState<Msg>(),
+    [calls, setCalls] = useState<CallLog[]>([]),
     [runId, setRunId] = useState(0),
     [tasks, setTasks] = useState<RecoveredTask[]>([]);
   const scenarioTurn = useRef(0);
@@ -263,6 +266,8 @@ function DemoPage() {
   const [form, setForm] = useState(emptyForm);
   const prefer = useRef<Channel>("Messages");
   prefer.current = deliver(form.contact);
+  const byCall = useRef(false);
+  byCall.current = form.contact === "Phone";
   const notifTimer = useRef<number | undefined>(undefined);
   const apptsRef = useRef(appts);
   apptsRef.current = appts;
@@ -294,8 +299,44 @@ function DemoPage() {
       notifTimer.current = window.setTimeout(() => setNotif(undefined), 3500);
     }
   };
-  const notify = (m: Omit<Msg, "id" | "channel" | "from">, channel: Channel = prefer.current) =>
-    send([{ ...m, channel, from: "shop" }]);
+  const notify = (m: Omit<Msg, "id" | "channel" | "from">, channel?: Channel) => {
+    if (!channel && byCall.current) return placeCall(m);
+    send([{ ...m, channel: channel ?? prefer.current, from: "shop" }]);
+  };
+  // Customers who prefer phone get a real conversation, not a transaction:
+  // staff call, and the system's flags for that pet are spoken on the call.
+  function placeCall(m: Omit<Msg, "id" | "channel" | "from">) {
+    const a = apptsRef.current.find((x) => x.id === m.apptId);
+    const first = CUSTOMER.name.split(" ")[0];
+    const links = (m.actions ?? []).filter((x) => x !== "call" && x !== "reschedule" && x !== "cancel" && x !== "rebook");
+    const subj = m.subject ?? "Call";
+    const lines: CallLog["lines"] = [
+      { who: "shop", text: `Hi ${first}, it's ${a?.stylist ?? "the front desk"} from By Appointment Only — have you got a minute?` },
+      { who: "me", text: "Yes, of course." },
+      { who: "shop", text: m.text.split("\n")[0]! },
+    ];
+    if (a?.flags?.length)
+      lines.push({
+        who: "shop",
+        text: `Just so you know, we've noted ${a.pet} is ${a.flags.map((f) => f.toLowerCase()).join(" and ")}, so we've set aside a bit of extra time and ${a.stylist} is aware.`,
+      });
+    lines.push({
+      who: "me",
+      text: /fee|missed|cancellation/i.test(subj) ? "Ah, sorry about that — thanks for letting me know." : /late/i.test(subj) ? "Sorry, we're nearly there!" : "Lovely, thank you.",
+    });
+    lines.push({
+      who: "shop",
+      text: links.length ? `No problem at all. I'll text you the ${links.map((l) => ACTION_LABEL[l].toLowerCase()).join(" and ")} link now.` : "Perfect — see you then!",
+    });
+    const call = { id: Date.now() + Math.random(), time: m.time, subject: subj, lines };
+    setCalls((all) => [...all, call]);
+    setNotif({ id: call.id, channel: "Messages", from: "shop", time: m.time, subject: subj, text: `Call · ${subj}`, call: true });
+    window.clearTimeout(notifTimer.current);
+    notifTimer.current = window.setTimeout(() => setNotif(undefined), 3500);
+    addLog(`${a?.stylist ?? "Staff"} called ${CUSTOMER.name} (prefers phone): “${subj}”${a?.flags?.length ? ", pet flags mentioned" : ""}.`, m.time);
+    if (links.length)
+      send([{ channel: "Messages", from: "shop", time: m.time, apptId: m.apptId, subject: subj, text: `As mentioned on the phone, here are your links.`, actions: links }]);
+  }
   const addLog = (text: string, time = toTime(NOW)) => setLog((all) => [`${time} · ${text}`, ...all]);
   const live = appts.filter(isActive);
   const shown = appts.filter((a) => isActive(a) || a.status === "Checked out");
@@ -836,6 +877,7 @@ function DemoPage() {
   const reset = () => {
     setAppts(seed);
     setMessages([]);
+    setCalls([]);
     setUnread({ Messages: 0, Email: 0 });
     setNotif(undefined);
     setLog(["10:15 · Demo reset."]);
@@ -1068,6 +1110,7 @@ function DemoPage() {
           messages={messages}
           unread={unread}
           notif={notif}
+          calls={calls}
           appts={appts}
           checkout={checkout}
           onPaid={onPaid}
@@ -1591,6 +1634,7 @@ function PhoneShell({
   messages,
   unread,
   notif,
+  calls,
   appts,
   checkout,
   onPaid,
@@ -1635,13 +1679,13 @@ function PhoneShell({
         {notif && (
           <button
             className="dm-notif"
-            onClick={() => openApp(notif.channel === "Email" ? "email" : "messages")}
+            onClick={() => openApp(notif.call ? "phone" : notif.channel === "Email" ? "email" : "messages")}
           >
-            <i data-app={notif.channel === "Email" ? "email" : "messages"}>
-              {notif.channel === "Email" ? <Mail size={14} /> : <MessageCircle size={14} />}
+            <i data-app={notif.call ? "phone" : notif.channel === "Email" ? "email" : "messages"}>
+              {notif.call ? <Phone size={14} /> : notif.channel === "Email" ? <Mail size={14} /> : <MessageCircle size={14} />}
             </i>
             <span>
-              <b>{notif.channel === "Email" ? notif.subject : "By Appointment Only"}</b>
+              <b>{notif.call ? "Missed call handled · By Appointment Only" : notif.channel === "Email" ? notif.subject : "By Appointment Only"}</b>
               <small>{notif.text.split("\n")[0]}</small>
             </span>
           </button>
@@ -1686,7 +1730,7 @@ function PhoneShell({
         {inBrowser && <BrowserBar url={url} />}
         <div className="dm-phone-body">
           {view === "app" && app === "phone" ? (
-            <DialerApp onCall={onCall} />
+            <DialerApp onCall={onCall} calls={calls} />
           ) : view === "app" && app === "messages" ? (
             <MessagesApp
               list={messages.filter((m: Msg) => m.channel === "Messages")}
