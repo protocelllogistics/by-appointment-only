@@ -28,6 +28,7 @@ html,body{margin:0}
 .done-actions{display:flex;gap:12px;width:100%}
 .done-actions .btn{flex:1;min-height:56px;font-size:17px;font-family:var(--font-body);font-weight:400;background:transparent;border:2px solid var(--color-accent-2-700);color:var(--color-accent-2-900)}
 .done-actions .btn:hover{border-color:var(--color-accent-2-900)}
+@media(max-width:767px){.done-actions{gap:8px}.done-actions .btn{min-height:52px;font-size:13.5px;padding:0 8px;white-space:nowrap}}
 .btn-block{width:100%}
 .icon{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.75;stroke-linecap:round;stroke-linejoin:round;flex:none}
 
