@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { CalendarPlus, CreditCard, Download, Lock, Phone, PhoneOff, Send } from "lucide-react";
+import { CalendarPlus, CreditCard, Download, Lock, Phone, PhoneOff } from "lucide-react";
 import { toTime } from "@/lib/demo-rota";
 import { CARDHOLDERS, REPLY_PRESETS, TEST_CARDS, cycle } from "@/lib/demo-presets";
 import type { Appt, Checkout, LinkAction, Msg } from "./types";
