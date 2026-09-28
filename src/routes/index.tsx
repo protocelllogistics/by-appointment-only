@@ -22,7 +22,7 @@ const TEAM: TeamMember[] = [
     photo: samPhoto.url,
     alt: "Sam from By Appointment Only greeting a golden retriever outside the salon",
     bio: [
-      "Sam and Maya founded By Appointment Only to bring a more personal, thoughtful approach to pet care to their local area. With a background in biology and a natural creative energy, Sam brings the character to the business — from the way clients are welcomed to the little details that make pets and their people feel at home.",
+      "Sam and their three siblings founded By Appointment Only to bring a more personal, thoughtful approach to pet care to their local area. With a background in biology and a natural creative energy, Sam brings the character to the business — from the way clients are welcomed to the little details that make pets and their people feel at home.",
     ],
     facts: [{ icon: "scissors", label: "All coat types" }],
   },
@@ -32,28 +32,28 @@ const TEAM: TeamMember[] = [
     photo: mayaPhoto.url,
     alt: "Maya, senior pet stylist at By Appointment Only, with two dogs and a cat",
     bio: [
-      "Maya is our senior pet stylist, specialising in large breeds and full-groom services. She's known for her calm handling, practical approach and experience working with dogs that need a little more time and patience.",
+      "One of the four siblings behind By Appointment Only, Maya is our senior pet stylist, specialising in large breeds and full-groom services. She's known for her calm handling, practical approach and experience working with dogs that need a little more time and patience.",
       "With a busy grooming schedule, Maya also helps keep the day moving when appointments change. She enjoys working across different breeds, personalities and coat types, and brings plenty of experience to every appointment.",
     ],
     facts: [{ icon: "scissors", label: "Large breeds" }],
   },
   {
     name: "Priya",
-    role: "Stylist",
+    role: "Co-Founder & Stylist",
     photo: priyaPhoto.url,
     alt: "Priya, pet stylist at By Appointment Only, with a golden retriever",
     bio: [
-      "Priya is a pet stylist with a calm, considered approach and a more adventurous side. She has a particular role in cat grooming while working across breeds, coat types and services, and brings an outdoorsy, natural perspective to the team.",
+      "One of the four siblings behind By Appointment Only, Priya is a pet stylist with a calm, considered approach and a more adventurous side. She has a particular role in cat grooming while working across breeds, coat types and services, and brings an outdoorsy, natural perspective to the team.",
     ],
     facts: [{ icon: "scissors", label: "Small dogs, cats" }],
   },
   {
     name: "Tom",
-    role: "Stylist",
+    role: "Co-Founder & Stylist",
     photo: tomPhoto.url,
     alt: "Tom, pet stylist at By Appointment Only, with a golden retriever",
     bio: [
-      "Tom is a pet stylist with a growing focus on developing his skills across all coat types and breeds. He enjoys working with a wide range of dogs and takes a thoughtful, detail-oriented approach to every groom.",
+      "One of the four siblings behind By Appointment Only, Tom is a pet stylist with a growing focus on developing his skills across all coat types and breeds. He enjoys working with a wide range of dogs and takes a thoughtful, detail-oriented approach to every groom.",
       "With a busy schedule, Tom plays an important role in keeping the day running smoothly and is working towards becoming a senior stylist.",
     ],
     facts: [{ icon: "scissors", label: "All breeds" }],
