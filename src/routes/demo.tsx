@@ -253,6 +253,8 @@ function DemoPage() {
   const prefer = useRef<Channel>("Messages");
   prefer.current = form.contact;
   const notifTimer = useRef<number>();
+  const apptsRef = useRef(appts);
+  apptsRef.current = appts;
 
   const current = phoneAppt ? appts.find((a) => a.id === phoneAppt) : undefined;
   const sizingService = phoneView === "reschedule" && current ? current.service : form.service;
@@ -366,11 +368,8 @@ function DemoPage() {
     ];
     const timers = steps.map(([ms, kind, t]) =>
       window.setTimeout(() => {
-        setAppts((all) => {
-          const a = all.find((x) => x.id === me.id);
-          if (a && a.status === "Confirmed") automate(kind, a, t);
-          return all;
-        });
+        const a = apptsRef.current.find((x) => x.id === me.id);
+        if (a && a.status === "Confirmed") automate(kind, a, t);
       }, ms),
     );
     return () => timers.forEach(window.clearTimeout);
@@ -1569,6 +1568,7 @@ function BookingStart({ form, setForm, errors, busy, prepareTimes }: any) {
         <textarea value={form.notes} maxLength={300} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
         {errors.notes && <em>{errors.notes}</em>}
       </label>
+      <ContactChoice form={form} setForm={setForm} />
       <button className="dm-cta" disabled={busy} onClick={() => prepareTimes()}>
         {busy ? "Checking…" : "Show times"}
       </button>
@@ -1674,7 +1674,7 @@ function BookingReview({ form, pending, createBooking }: any) {
     </div>
   );
 }
-function Done({ a, setView }: { a: Appt; setView: (v: PhoneView) => void }) {
+function Done({ a, setView, contact }: { a: Appt; setView: (v: PhoneView) => void; contact: Channel }) {
   return (
     <div className="dm-done">
       <i>✓</i>
@@ -1699,7 +1699,7 @@ function Done({ a, setView }: { a: Appt; setView: (v: PhoneView) => void }) {
           <b>{a.stylist}</b>
         </div>
       </div>
-      <p>Your confirmation is in Messages and Mail.</p>
+      <p>Your confirmation, calendar link and pay-in-advance link are in {contact === "Email" ? "Mail" : "Messages"}.</p>
       <button className="dm-cta" onClick={() => setView("home")}>
         Done
       </button>
