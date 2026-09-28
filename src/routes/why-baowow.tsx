@@ -104,12 +104,12 @@ function WhyBaowowPage() {
                   <DialogTrigger asChild>
                     <Button type="button" variant="outline" className="why-video-trigger"><Play size={17} aria-hidden="true" /> Presentation video</Button>
                   </DialogTrigger>
-                  <DialogContent className="why-video-modal">
+                  <DialogContent className="max-w-3xl rounded-md bg-background font-sans text-foreground">
                     <DialogHeader>
                       <DialogTitle>Pitch presentation</DialogTitle>
                       <DialogDescription>The presentation video is coming soon.</DialogDescription>
                     </DialogHeader>
-                    <div className="why-video-frame"><Play size={36} aria-hidden="true" /><span>Video coming soon</span></div>
+                    <div className="flex aspect-video flex-col items-center justify-center gap-3 rounded-md bg-primary text-primary-foreground"><Play size={36} aria-hidden="true" /><span>Video coming soon</span></div>
                   </DialogContent>
                 </Dialog>
               </div>

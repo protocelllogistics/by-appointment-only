@@ -1021,12 +1021,12 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
           <DialogTrigger asChild>
             <Button className="dm-pill"><Play size={15} aria-hidden="true" /> Walkthrough video</Button>
           </DialogTrigger>
-          <DialogContent className="why-video-modal">
+          <DialogContent className="max-w-3xl rounded-md bg-background font-sans text-foreground">
             <DialogHeader>
               <DialogTitle>Demo walkthrough</DialogTitle>
               <DialogDescription>The walkthrough video is coming soon.</DialogDescription>
             </DialogHeader>
-            <div className="why-video-frame"><Play size={36} aria-hidden="true" /><span>Video coming soon</span></div>
+            <div className="flex aspect-video flex-col items-center justify-center gap-3 rounded-md bg-primary text-primary-foreground"><Play size={36} aria-hidden="true" /><span>Video coming soon</span></div>
           </DialogContent>
         </Dialog>
         <Button asChild className="dm-pill">
