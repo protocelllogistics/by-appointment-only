@@ -1,12 +1,31 @@
 import { createFileRoute, useHydrated } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
-import { CalendarDays, Mail, MessageCircle, Phone, RotateCcw, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { BellRing, CalendarDays, Globe, Mail, MessageCircle, Phone, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { sizeDemoAppointment } from "@/lib/demo.functions";
 import { validateDemoEditable } from "@/lib/demo-validation";
 import { createFictionalContact } from "@/lib/fictional-contact";
 import { DEMO_ROTA, STYLISTS, addDays, freeStarts, isoWeekday, toMin, toTime, type Busy } from "@/lib/demo-rota";
+import {
+  LATE_FEE_GBP,
+  NO_SHOW_FEE_GBP,
+  PRICE_GBP,
+  allocate,
+  clampIndex,
+  offsetLabel,
+  type Index,
+} from "@/lib/demo-allocation";
+import type { Appt, Channel, Checkout, LinkAction, Msg, Size } from "./-demo/types";
+import {
+  BrowserBar,
+  CalendarApp,
+  CheckoutApp,
+  DialerApp,
+  MailApp,
+  MessagesApp,
+  SHOP_PHONE,
+} from "./-demo/customer-apps";
 import "./-demo/demo.css";
 
 export const Route = createFileRoute("/demo")({
@@ -30,123 +49,112 @@ const TODAY = "2026-09-25",
 const SERVICES = ["Full style", "Bath & tidy", "Nail trim", "Puppy intro"];
 const BREEDS = ["Cockapoo", "Poodle", "Spaniel", "Shih Tzu", "Siberian Husky", "Labrador"];
 const CUSTOMER = createFictionalContact();
-type Status = "Confirmed" | "Cancelled" | "No-show";
-type Size = { minutes: number; index: 1 | 2 | 3 | 4 | 5; tellClient: number };
-type Appt = {
-  id: number;
-  code: string;
-  customer: string;
-  mobile: string;
-  email: string;
-  pet: string;
-  breed: string;
-  service: string;
-  stylist: string;
-  date: string;
-  start: number;
-  minutes: number;
-  index: Size["index"];
-  tell: number;
-  status: Status;
-  source: "Online" | "Phone" | "Google Calendar";
-  calendarMinutes?: number;
-  mine: boolean;
-  notes: string;
-  flags?: string[];
-};
-type Msg = {
-  id: number;
-  channel: "WhatsApp" | "SMS" | "Email";
-  text: string;
-  apptId?: number;
-  actions?: ("reschedule" | "cancel" | "rebook")[];
-};
-type PhoneView = "home" | "app" | "browser" | "times" | "details" | "checking" | "done" | "reschedule" | "cancel";
+type PhoneApp = "browser" | "messages" | "email" | "phone" | "calendar";
+type PhoneView =
+  | "home"
+  | "app"
+  | "browser"
+  | "times"
+  | "details"
+  | "checking"
+  | "done"
+  | "reschedule"
+  | "cancel"
+  | "checkout";
 type AdminPanel = { kind: "appointment"; id: number } | { kind: "new"; fromCall?: boolean } | null;
+type Automation = "confirm" | "tomorrow" | "today" | "2h" | "late" | "noshow" | "advance";
 
+function mk(
+  a: Omit<Appt, "standard" | "minutes" | "tell" | "code" | "mobile" | "email" | "index"> & { index: Index },
+): Appt {
+  const z = allocate(a.service, a.index);
+  return { code: "", mobile: "", email: "", ...a, standard: z.standard, minutes: z.minutes, tell: z.tell };
+}
+const MY_SEED_ID = 5;
 const seed: Appt[] = [
-  {
+  mk({
     id: 1,
-    code: "",
     customer: "Chris Moreno",
-    mobile: "",
-    email: "",
     pet: "Pepper",
     breed: "Poodle",
     service: "Full style",
     stylist: "Maya",
     date: TODAY,
     start: toMin("09:00"),
-    minutes: 135,
     index: 3,
-    tell: 120,
     status: "Confirmed",
     source: "Online",
     mine: false,
     notes: "Keep the face round. Sensitive around front paws.",
     flags: ["Sensitive around front paws"],
-  },
-  {
+  }),
+  mk({
     id: 2,
-    code: "",
     customer: "Amir Haddad",
-    mobile: "",
-    email: "",
     pet: "Bella",
     breed: "Spaniel",
     service: "Bath & tidy",
     stylist: "Tom",
     date: TODAY,
-    start: toMin("11:00"),
-    minutes: 75,
+    start: toMin("11:30"),
     index: 4,
-    tell: 60,
     status: "Confirmed",
     source: "Phone",
     mine: false,
     notes: "Customer will collect after lunch.",
     flags: ["Customer prefers phone"],
-  },
-  {
+  }),
+  mk({
     id: 3,
-    code: "",
     customer: "Lena Brooks",
-    mobile: "",
-    email: "",
     pet: "Otis",
     breed: "Cockapoo",
     service: "Full style",
     stylist: "Priya",
     date: TODAY,
     start: toMin("14:00"),
-    minutes: 120,
     index: 5,
-    tell: 120,
     status: "Confirmed",
     source: "Online",
     mine: false,
     notes: "Usual short body, longer ears.",
-  },
-  {
+  }),
+  mk({
     id: 4,
-    code: "",
     customer: "Hana Sato",
-    mobile: "",
-    email: "",
     pet: "Miso",
     breed: "Shih Tzu",
     service: "Full style",
     stylist: "Maya",
     date: DAYS[1]!,
     start: toMin("10:30"),
-    minutes: 135,
-    index: 3,
-    tell: 120,
+    index: 2,
     status: "Confirmed",
     source: "Online",
     mine: false,
     notes: "Daily note: coat needed extra preparation last visit.",
     flags: ["Sensitive to blow dryer"],
+  }),
+  {
+    ...mk({
+      id: MY_SEED_ID,
+      customer: CUSTOMER.name,
+      pet: "Biscuit",
+      breed: "Labrador",
+      service: "Bath & tidy",
+      stylist: "Tom",
+      date: TODAY,
+      start: toMin("10:00"),
+      index: 4,
+      status: "Confirmed",
+      source: "Online",
+      mine: true,
+      notes: "Booked last week online.",
+    }),
+    code: "BSC4T7",
+    mobile: CUSTOMER.mobile,
+    email: CUSTOMER.email,
+    inCalendar: true,
   },
 ];
 const WD = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
@@ -157,9 +165,24 @@ const dayLabel = (d: string) => {
   return d === TODAY ? `Today, ${s}` : d === DAYS[1] ? `Tomorrow, ${s}` : s;
 };
 const dur = (m: number) => (m >= 60 ? `${Math.floor(m / 60)}h${m % 60 ? ` ${m % 60}m` : ""}` : `${m} min`);
-const about = (m: number) => (m >= 60 ? `about ${m / 60 === 1 ? "1 hour" : `${m / 60} hours`}` : `about ${m} minutes`);
+const about = (m: number) => {
+  const h = Math.floor(m / 60),
+    r = m % 60;
+  if (!h) return `about ${r} minutes`;
+  return `about ${h} hour${h > 1 ? "s" : ""}${r ? ` ${r} minutes` : ""}`;
+};
+const signed = (m: number) => (m === 0 ? "±0 min" : `${m > 0 ? "+" : "−"}${dur(Math.abs(m))}`);
 const newCode = () =>
   Array.from({ length: 6 }, () => "ABCDEFGHJKMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 31)]).join("");
+
+export const AUTOMATIONS: { kind: Automation; title: string; when: string }[] = [
+  { kind: "tomorrow", title: "Appointment tomorrow", when: "Day before, 17:00" },
+  { kind: "today", title: "Today reminder", when: "Morning of the visit, 07:30" },
+  { kind: "2h", title: "In 2 hours we expect you", when: "2 hours before start" },
+  { kind: "late", title: "Running late — give us a call", when: "5 minutes after start, not checked in" },
+  { kind: "noshow", title: "You didn’t show up (no-show fee)", when: "15 minutes after start, not checked in" },
+  { kind: "advance", title: "Pay in advance for fast check-out", when: "With confirmation and reminders" },
+];
 
 function DemoRoute() {
   const hydrated = useHydrated();
@@ -196,6 +219,15 @@ function MobileDemo() {
   );
 }
 
+const emptyForm = {
+  petName: "Luna",
+  breed: "Cockapoo",
+  service: "Full style",
+  stylist: "Any available",
+  notes: "",
+  contact: "Messages" as Channel,
+};
+
 function DemoPage() {
   const size = useServerFn(sizeDemoAppointment);
   const [appts, setAppts] = useState(seed),
@@ -205,25 +237,56 @@ function DemoPage() {
     [adminTab, setAdminTab] = useState("Today"),
     [panel, setPanel] = useState<AdminPanel>(null);
   const [phoneView, setPhoneView] = useState<PhoneView>("home"),
-    [phoneApp, setPhoneApp] = useState<"browser" | "messages" | "email" | "phone">("browser"),
+    [phoneApp, setPhoneApp] = useState<PhoneApp>("browser"),
     [phoneAppt, setPhoneAppt] = useState<number>(),
-    [sizes, setSizes] = useState<Record<string, Size> | null>(null),
+    [rawSizes, setRawSizes] = useState<Record<string, Size> | null>(null),
+    [shift, setShift] = useState(0),
     [busy, setBusy] = useState(false),
     [errors, setErrors] = useState<Record<string, string>>({}),
-    [codeInput, setCodeInput] = useState("");
+    [codeInput, setCodeInput] = useState(""),
+    [checkout, setCheckout] = useState<Checkout>(),
+    [unread, setUnread] = useState<Record<Channel, number>>({ Messages: 0, Email: 0 }),
+    [notif, setNotif] = useState<Msg>(),
+    [runId, setRunId] = useState(0);
   const [pending, setPending] = useState<{ date: string; option: { stylist: string; start: number; size: Size } }>();
-  const [form, setForm] = useState({
-    petName: "Luna",
-    breed: "Cockapoo",
-    service: "Full style",
-    stylist: "Any available",
-    notes: "",
-  });
-  const send = (next: Omit<Msg, "id">[]) =>
-    setMessages((all) => [...all, ...next.map((x, i) => ({ ...x, id: Date.now() + i }))]);
-  const addLog = (text: string) => setLog((all) => [`${toTime(NOW)} · ${text}`, ...all]);
-  const live = appts.filter((a) => a.status === "Confirmed"),
-    current = phoneAppt ? appts.find((a) => a.id === phoneAppt) : undefined;
+  const [form, setForm] = useState(emptyForm);
+  const prefer = useRef<Channel>("Messages");
+  prefer.current = form.contact;
+  const notifTimer = useRef<number | undefined>(undefined);
+  const apptsRef = useRef(appts);
+  apptsRef.current = appts;
+
+  const current = phoneAppt ? appts.find((a) => a.id === phoneAppt) : undefined;
+  const sizingService = phoneView === "reschedule" && current ? current.service : form.service;
+  const sizes = useMemo(() => {
+    if (!rawSizes) return null;
+    return Object.fromEntries(
+      Object.entries(rawSizes).map(([s, z]) => {
+        const x = allocate(sizingService, z.index + shift);
+        return [s, { minutes: x.minutes, index: x.index, tellClient: x.tell }];
+      }),
+    ) as Record<string, Size>;
+  }, [rawSizes, shift, sizingService]);
+
+  const send = (next: Omit<Msg, "id">[]) => {
+    const stamped = next.map((x, i) => ({ ...x, id: Date.now() + Math.random() + i }));
+    setMessages((all) => [...all, ...stamped]);
+    const fromShop = stamped.filter((m) => m.from === "shop");
+    if (fromShop.length) {
+      setUnread((u) => {
+        const n = { ...u };
+        fromShop.forEach((m) => (n[m.channel] += 1));
+        return n;
+      });
+      setNotif(fromShop[fromShop.length - 1]);
+      window.clearTimeout(notifTimer.current);
+      notifTimer.current = window.setTimeout(() => setNotif(undefined), 3500);
+    }
+  };
+  const notify = (m: Omit<Msg, "id" | "channel" | "from">, channel: Channel = prefer.current) =>
+    send([{ ...m, channel, from: "shop" }]);
+  const addLog = (text: string, time = toTime(NOW)) => setLog((all) => [`${time} · ${text}`, ...all]);
+  const live = appts.filter((a) => a.status === "Confirmed");
   const busyFor = (except?: number): Busy[] =>
     live
       .filter((a) => a.id !== except)
@@ -242,6 +305,77 @@ function DemoPage() {
       }
       return { date, opts: opts.sort((a, b) => a.start - b.start).slice(0, 6) };
     });
+
+  function automate(kind: Automation, a: Appt, time = toTime(NOW)) {
+    const when = `${dayLabel(a.date)} at ${toTime(a.start)}`;
+    const price = PRICE_GBP[a.service] ?? 40;
+    const msgs: Record<Automation, { subject: string; text: string; actions: LinkAction[] }> = {
+      confirm: {
+        subject: `Booking confirmed · ${a.pet}`,
+        text: `${a.pet} is booked for ${when} with ${a.stylist} — ${a.service}, ${about(a.tell)}.\nConfirmation: ${a.code}\nAdd it to your calendar, or pay £${price} now for fast check-out.`,
+        actions: ["ics", "pay-advance", "reschedule", "cancel"],
+      },
+      tomorrow: {
+        subject: `Reminder: ${a.pet}'s appointment is tomorrow`,
+        text: `Reminder: ${a.pet}'s ${a.service} is tomorrow at ${toTime(a.start)} with ${a.stylist}. Please allow ${about(a.tell)}.`,
+        actions: ["ics", "pay-advance", "reschedule", "cancel"],
+      },
+      today: {
+        subject: `Today: ${a.pet} at ${toTime(a.start)}`,
+        text: `Good morning! ${a.pet}'s ${a.service} is today at ${toTime(a.start)} with ${a.stylist}.`,
+        actions: ["pay-advance", "reschedule"],
+      },
+      "2h": {
+        subject: `In 2 hours we expect you`,
+        text: `In 2 hours we expect you and ${a.pet} at ${toTime(a.start)}. See you soon!`,
+        actions: ["call", "reschedule"],
+      },
+      late: {
+        subject: `Running late?`,
+        text: `You're running late — ${a.pet} was due at ${toTime(a.start)}. Give us a call on ${SHOP_PHONE} and we'll hold your slot for 15 minutes. A £${LATE_FEE_GBP} late fee applies.`,
+        actions: ["call", "pay-late"],
+      },
+      noshow: {
+        subject: `You missed ${a.pet}'s appointment`,
+        text: `You didn't show up to ${a.pet}'s ${toTime(a.start)} appointment, so the slot has been released. A £${NO_SHOW_FEE_GBP} no-show fee applies under our no-show policy.`,
+        actions: ["pay-noshow", "rebook"],
+      },
+      advance: {
+        subject: `Pay in advance · ${a.pet}`,
+        text: `Skip the queue at collection: pay £${price} now for ${a.pet}'s ${a.service} and just pick up.`,
+        actions: ["pay-advance"],
+      },
+    };
+    const m = msgs[kind];
+    notify({ ...m, time, apptId: a.id });
+    if (kind === "noshow") {
+      setAppts((all) => all.map((x) => (x.id === a.id ? { ...x, status: "No-show" } : x)));
+      addLog(`No-show confirmed for ${a.pet}. ${dur(a.minutes)} released; no-show fee link sent by ${prefer.current}.`, time);
+    } else if (kind !== "confirm") {
+      addLog(`Automation “${m.subject}” sent to ${a.customer} by ${prefer.current}.`, time);
+    }
+  }
+
+  // Real-time automations as soon as the demo opens.
+  useEffect(() => {
+    const me = seed.find((a) => a.id === MY_SEED_ID)!;
+    const steps: [number, Automation, string][] = [
+      [700, "tomorrow", "Thu 17:00"],
+      [1400, "today", "07:30"],
+      [2100, "2h", "08:00"],
+      [6000, "late", "10:05"],
+      [14000, "noshow", "10:15"],
+    ];
+    const timers = steps.map(([ms, kind, t]) =>
+      window.setTimeout(() => {
+        const a = apptsRef.current.find((x) => x.id === me.id);
+        if (a && a.status === "Confirmed") automate(kind, a, t);
+      }, ms),
+    );
+    return () => timers.forEach(window.clearTimeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runId]);
+
   async function prepareTimes(reschedule?: Appt) {
     const valid = validateDemoEditable({
       petName: reschedule?.pet ?? form.petName,
@@ -257,7 +391,8 @@ function DemoPage() {
       const z = await size({
         data: { service: reschedule?.service ?? form.service, breed: reschedule?.breed ?? form.breed, newClient: true },
       });
-      setSizes(z as Record<string, Size>);
+      setRawSizes(z as Record<string, Size>);
+      setShift(0);
       setPhoneView(reschedule ? "reschedule" : "times");
     } finally {
       setBusy(false);
@@ -270,7 +405,8 @@ function DemoPage() {
       return;
     }
     const z = await size({ data: { service: form.service, breed: form.breed, newClient: true } });
-    setSizes(z as Record<string, Size>);
+    setRawSizes(z as Record<string, Size>);
+    setShift(0);
   }
   function createBooking(
     o: { stylist: string; start: number; size: Size },
@@ -278,10 +414,10 @@ function DemoPage() {
     source: Appt["source"] = "Online",
   ) {
     const id = Date.now(),
-      code = newCode(),
+      z = allocate(form.service, o.size.index),
       a: Appt = {
         id,
-        code,
+        code: newCode(),
         customer: CUSTOMER.name,
         mobile: CUSTOMER.mobile,
         email: CUSTOMER.email,
@@ -291,9 +427,10 @@ function DemoPage() {
         stylist: o.stylist,
         date,
         start: o.start,
-        minutes: o.size.minutes,
-        index: o.size.index,
-        tell: o.size.tellClient,
+        standard: z.standard,
+        minutes: z.minutes,
+        index: z.index,
+        tell: z.tell,
         status: "Confirmed",
         source,
         mine: true,
@@ -309,21 +446,9 @@ function DemoPage() {
     setDay(date);
     setPhoneAppt(id);
     addLog(
-      `${source} booking added: ${a.pet}, ${a.service} with ${a.stylist}. ${dur(a.minutes)} protected in the diary.`,
+      `${source} booking added: ${a.pet}, ${a.service} with ${a.stylist}. ${dur(a.minutes)} protected (Index ${a.index}); customer told ${about(a.tell)}.`,
     );
-    send([
-      {
-        channel: "WhatsApp",
-        apptId: id,
-        text: `${a.pet} is booked for ${dayLabel(date)} at ${toTime(o.start)} with ${a.stylist}. Confirmation: ${code}`,
-        actions: ["reschedule", "cancel"],
-      },
-      {
-        channel: "Email",
-        apptId: id,
-        text: `Booking confirmed\n${a.pet} · ${a.service}\n${dayLabel(date)}, ${toTime(o.start)}\nConfirmation: ${code}`,
-      },
-    ]);
+    automate("confirm", a);
     if (source === "Phone") {
       setPanel({ kind: "appointment", id });
       return;
@@ -332,30 +457,17 @@ function DemoPage() {
     window.setTimeout(() => setPhoneView("done"), 1100);
   }
   function changeAppointment(a: Appt, o: { stylist: string; start: number; size: Size }, date: string) {
-    setAppts((all) =>
-      all.map((x) =>
-        x.id === a.id
-          ? {
-              ...x,
-              date,
-              start: o.start,
-              stylist: o.stylist,
-              minutes: o.size.minutes,
-              index: o.size.index,
-              tell: o.size.tellClient,
-            }
-          : x,
-      ),
-    );
+    const z = allocate(a.service, o.size.index);
+    const moved = { ...a, date, start: o.start, stylist: o.stylist, minutes: z.minutes, index: z.index, tell: z.tell };
+    setAppts((all) => all.map((x) => (x.id === a.id ? moved : x)));
     addLog(`${a.pet} moved to ${dayLabel(date)} at ${toTime(o.start)}. Calendar entry updated.`);
-    send([
-      {
-        channel: "WhatsApp",
-        apptId: a.id,
-        text: `${a.pet}'s new time is ${dayLabel(date)} at ${toTime(o.start)} with ${o.stylist}.`,
-        actions: ["reschedule", "cancel"],
-      },
-    ]);
+    notify({
+      subject: `New time for ${a.pet}`,
+      time: toTime(NOW),
+      apptId: a.id,
+      text: `${a.pet}'s new time is ${dayLabel(date)} at ${toTime(o.start)} with ${o.stylist}. Update your calendar with the new event.`,
+      actions: ["ics", "reschedule", "cancel"],
+    });
     setDay(date);
     setPhoneView("done");
   }
@@ -364,28 +476,41 @@ function DemoPage() {
     addLog(
       `${staff ? "Staff" : "Customer"} cancelled ${a.pet}. ${dur(a.minutes)} released and calendar entry removed.`,
     );
-    send([
-      { channel: "WhatsApp", apptId: a.id, text: `${a.pet}'s ${a.service} has been cancelled.`, actions: ["rebook"] },
-    ]);
+    notify({
+      subject: `Cancelled · ${a.pet}`,
+      time: toTime(NOW),
+      apptId: a.id,
+      text: `${a.pet}'s ${a.service} has been cancelled.`,
+      actions: ["rebook"],
+    });
     setPanel(null);
   }
   function noShow(a: Appt) {
-    setAppts((all) => all.map((x) => (x.id === a.id ? { ...x, status: "No-show" } : x)));
-    addLog(`No-show confirmed for ${a.pet}. Appointment released and follow-up queued.`);
+    automate("noshow", a);
     setPanel(null);
+  }
+  function adjustIndex(a: Appt, delta: number) {
+    const next = clampIndex(a.index + delta);
+    if (next === a.index) return;
+    const z = allocate(a.service, next);
+    setAppts((all) =>
+      all.map((x) => (x.id === a.id ? { ...x, index: z.index, minutes: z.minutes, tell: z.tell } : x)),
+    );
+    addLog(
+      `${a.pet} Index ${a.index}→${z.index} (demo): diary ${dur(a.minutes)}→${dur(z.minutes)}; customer told ${about(z.tell)}.`,
+    );
   }
   function staffReschedule(a: Appt) {
     const start = a.start + 30;
     setAppts((all) => all.map((x) => (x.id === a.id ? { ...x, start } : x)));
     addLog(`${a.pet} moved to ${toTime(start)} by staff. Calendar and customer message updated.`);
-    send([
-      {
-        channel: "WhatsApp",
-        apptId: a.id,
-        text: `${a.pet}'s appointment has moved to ${toTime(start)} with ${a.stylist}.`,
-        actions: ["reschedule", "cancel"],
-      },
-    ]);
+    notify({
+      subject: `New time for ${a.pet}`,
+      time: toTime(NOW),
+      apptId: a.id,
+      text: `${a.pet}'s appointment has moved to ${toTime(start)} with ${a.stylist}.`,
+      actions: ["ics", "reschedule", "cancel"],
+    });
   }
   async function simulateCalendar() {
     const z = (await size({ data: { service: "Full style", breed: "Siberian Husky", newClient: false } })) as Record<
@@ -394,9 +519,10 @@ function DemoPage() {
     >;
     for (const date of [DAYS[1]!, DAYS[2]!])
       for (const stylist of STYLISTS) {
-        const s = z[stylist],
-          start = s && freeStarts(stylist, date, s.minutes, busyFor())[0];
-        if (s && start != null) {
+        const s = z[stylist];
+        const x = s && allocate("Full style", s.index);
+        const start = x && freeStarts(stylist, date, x.minutes, busyFor())[0];
+        if (x && start != null) {
           const a: Appt = {
             id: Date.now(),
             code: "",
@@ -409,9 +535,10 @@ function DemoPage() {
             stylist,
             date,
             start,
-            minutes: s.minutes,
-            index: s.index,
-            tell: s.tellClient,
+            standard: x.standard,
+            minutes: x.minutes,
+            index: x.index,
+            tell: x.tell,
             status: "Confirmed",
             source: "Google Calendar",
             calendarMinutes: 60,
@@ -421,11 +548,39 @@ function DemoPage() {
           setAppts((all) => [...all, a]);
           setDay(date);
           addLog(
-            `Calendar booking interpreted and resized from 60 min to ${dur(s.minutes)} before protecting the next appointment.`,
+            `Calendar booking interpreted and resized from 60 min to ${dur(x.minutes)} before protecting the next appointment.`,
           );
           return;
         }
       }
+  }
+  function customerSays(text: string, channel: Channel) {
+    send([{ channel, from: "me", time: toTime(NOW), text, subject: channel === "Email" ? "Re: booking" : undefined }]);
+    addLog(`New ${channel === "Email" ? "email" : "message"} from ${CUSTOMER.name}: “${text}”`);
+    window.setTimeout(
+      () =>
+        send([
+          {
+            channel,
+            from: "shop",
+            time: toTime(NOW),
+            subject: channel === "Email" ? "Re: booking" : undefined,
+            text: `Thanks ${CUSTOMER.name.split(" ")[0]}! The front desk has your message and will reply shortly. You can also call us on ${SHOP_PHONE}.`,
+          },
+        ]),
+      1300,
+    );
+  }
+  function onPaid(c: Checkout) {
+    const a = appts.find((x) => x.id === c.apptId);
+    setAppts((all) => all.map((x) => (x.id === c.apptId ? { ...x, paid: [...(x.paid ?? []), c.label] } : x)));
+    addLog(`Payment received: £${c.amount.toFixed(2)} — ${c.label}${a ? ` (${a.pet})` : ""}.`);
+    notify({
+      subject: "Payment receipt",
+      time: toTime(NOW),
+      apptId: c.apptId,
+      text: `Receipt #${newCode()}\n£${c.amount.toFixed(2)} · ${c.label}${c.kind === "pay-advance" ? "\nFast check-out is on — just collect." : ""}`,
+    });
   }
   const recs = useMemo(
     () => appts.filter((a) => a.status === "Confirmed" && (a.index <= 2 || Boolean(a.calendarMinutes))),
@@ -433,8 +588,29 @@ function DemoPage() {
   );
   const hours = Array.from({ length: 10 }, (_, i) => 9 + i),
     pct = (m: number) => `${((m - 540) / 540) * 100}%`;
-  const selectAction = (act: "reschedule" | "cancel" | "rebook", id?: number) => {
+  const openApp = (app: PhoneApp) => {
+    setPhoneApp(app);
+    setPhoneView(app === "browser" ? "browser" : "app");
+    if (app === "messages") setUnread((u) => ({ ...u, Messages: 0 }));
+    if (app === "email") setUnread((u) => ({ ...u, Email: 0 }));
+  };
+  const selectAction = (act: LinkAction, id?: number) => {
     const a = appts.find((x) => x.id === id);
+    if (act === "call") return openApp("phone");
+    if (act === "ics" && a) {
+      setAppts((all) => all.map((x) => (x.id === a.id ? { ...x, inCalendar: true } : x)));
+      addLog(`${CUSTOMER.name} added ${a.pet}'s appointment to their calendar.`);
+      return openApp("calendar");
+    }
+    if ((act === "pay-late" || act === "pay-noshow" || act === "pay-advance") && a) {
+      const amount = act === "pay-late" ? LATE_FEE_GBP : act === "pay-noshow" ? NO_SHOW_FEE_GBP : (PRICE_GBP[a.service] ?? 40);
+      const label =
+        act === "pay-late" ? "Late arrival fee" : act === "pay-noshow" ? "No-show fee" : `${a.service} — paid in advance`;
+      setCheckout({ kind: act, apptId: a.id, amount, label });
+      setPhoneApp("browser");
+      setPhoneView("checkout");
+      return;
+    }
     setPhoneApp("browser");
     if (act === "rebook" || !a) {
       setPhoneView("browser");
@@ -443,19 +619,26 @@ function DemoPage() {
     setPhoneAppt(a.id);
     setCodeInput("");
     setPhoneView(act === "cancel" ? "cancel" : "reschedule");
-    setSizes(null);
+    setRawSizes(null);
   };
   const reset = () => {
     setAppts(seed);
     setMessages([]);
+    setUnread({ Messages: 0, Email: 0 });
+    setNotif(undefined);
     setLog(["10:15 · Demo reset."]);
     setDay(TODAY);
     setPanel(null);
     setPhoneView("home");
     setPhoneAppt(undefined);
-    setSizes(null);
-    setForm({ petName: "Luna", breed: "Cockapoo", service: "Full style", stylist: "Any available", notes: "" });
+    setRawSizes(null);
+    setShift(0);
+    setCheckout(undefined);
+    setForm(emptyForm);
+    setRunId((n) => n + 1);
   };
+  const target =
+    [...appts].reverse().find((a) => a.mine && a.status === "Confirmed") ?? appts.find((a) => a.id === MY_SEED_ID)!;
   return (
     <div className="dm">
       <header className="dm-top">
@@ -477,7 +660,7 @@ function DemoPage() {
       <div className="dm-stage">
         <section className="dm-admin" aria-label="Staff dashboard">
           <nav className="dm-admin-tabs">
-            {["Today", "Bookings", "Customers & pets", "Staff rota"].map((t) => (
+            {["Today", "Bookings", "Automations", "Customers & pets", "Staff rota"].map((t) => (
               <Button key={t} data-on={adminTab === t} onClick={() => setAdminTab(t)}>
                 {t}
               </Button>
@@ -494,6 +677,13 @@ function DemoPage() {
             />
           ) : adminTab === "Staff rota" ? (
             <RotaPanel />
+          ) : adminTab === "Automations" ? (
+            <AutomationsPanel
+              target={target}
+              messages={messages}
+              channel={form.contact}
+              run={(k) => automate(k, target)}
+            />
           ) : (
             <>
               <div className="dm-daybar">
@@ -509,7 +699,7 @@ function DemoPage() {
                     <button key={a.id} onClick={() => setPanel({ kind: "appointment", id: a.id })}>
                       <b>{a.calendarMinutes ? "Calendar duration checked" : `Index ${a.index} · extra care`}</b>
                       <span>
-                        {a.pet}: {dur(a.minutes)} protected. Open to see why.
+                        {a.pet}: {dur(a.minutes)} protected ({signed(a.minutes - a.standard)} buffer). Open to see why.
                       </span>
                     </button>
                   ))}
@@ -558,6 +748,7 @@ function DemoPage() {
                               {a.calendarMinutes && (
                                 <i className="raw" style={{ width: `${(a.calendarMinutes / a.minutes) * 100}%` }} />
                               )}
+                              <i className="tell" style={{ width: `${(Math.min(a.tell, a.minutes) / a.minutes) * 100}%` }} />
                               {toTime(a.start)} {a.pet}
                             </button>
                           ))}
@@ -592,7 +783,9 @@ function DemoPage() {
                       </span>
                       <span>
                         {a.stylist}
-                        <small>{dur(a.minutes)} allocated</small>
+                        <small>
+                          {dur(a.minutes)} allocated · told {dur(a.tell)}
+                        </small>
                       </span>
                       <i>Index {a.index}</i>
                       <em data-s={a.status}>{a.status}</em>
@@ -611,6 +804,8 @@ function DemoPage() {
               panel={panel}
               appts={appts}
               sizes={sizes}
+              shift={shift}
+              setShift={setShift}
               form={form}
               setForm={setForm}
               prepareTimes={prepareAdminTimes}
@@ -619,16 +814,24 @@ function DemoPage() {
               cancel={cancel}
               noShow={noShow}
               reschedule={staffReschedule}
+              adjustIndex={adjustIndex}
+              sendLate={(a) => automate("late", a)}
               createBooking={createBooking}
             />
           )}
         </section>
         <PhoneShell
           app={phoneApp}
-          setApp={setPhoneApp}
+          openApp={openApp}
           view={phoneView}
           setView={setPhoneView}
           messages={messages}
+          unread={unread}
+          notif={notif}
+          appts={appts}
+          checkout={checkout}
+          onPaid={onPaid}
+          customerSays={customerSays}
           form={form}
           setForm={setForm}
           errors={errors}
@@ -656,6 +859,71 @@ function DemoPage() {
   );
 }
 
+function AutomationsPanel({
+  target,
+  messages,
+  channel,
+  run,
+}: {
+  target: Appt;
+  messages: Msg[];
+  channel: Channel;
+  run: (k: Automation) => void;
+}) {
+  const inbound = messages.filter((m) => m.from === "me");
+  return (
+    <div className="dm-simple dm-auto">
+      <h2>Automated messages</h2>
+      <p>
+        Sent by the customer’s preferred contact method (<b>{channel}</b>) with calendar, payment and fee links.
+        Target: <b>{target.pet}</b> · {dayLabel(target.date)} {toTime(target.start)} · {target.status}
+      </p>
+      <div className="dm-auto-list">
+        {AUTOMATIONS.map((x) => {
+          const sent = messages.some((m) => m.from === "shop" && m.apptId === target.id && m.subject?.startsWith(subjectKey(x.kind)));
+          return (
+            <div key={x.kind}>
+              <BellRing size={16} />
+              <span>
+                <b>{x.title}</b>
+                <small>{x.when}</small>
+              </span>
+              {sent && <em>Sent</em>}
+              <Button
+                variant="ghost"
+                disabled={target.status !== "Confirmed" && x.kind !== "noshow"}
+                onClick={() => run(x.kind)}
+              >
+                Send now
+              </Button>
+            </div>
+          );
+        })}
+      </div>
+      <h3>Customer conversation</h3>
+      {inbound.length === 0 ? (
+        <p className="dm-muted">No customer replies yet — try messaging the shop from the phone.</p>
+      ) : (
+        inbound.map((m) => (
+          <p key={m.id} className="dm-note-card">
+            <b>{m.channel}</b> · {m.time} — {m.text}
+          </p>
+        ))
+      )}
+    </div>
+  );
+}
+const subjectKey = (k: Automation) =>
+  ({
+    confirm: "Booking confirmed",
+    tomorrow: "Reminder:",
+    today: "Today:",
+    "2h": "In 2 hours",
+    late: "Running late",
+    noshow: "You missed",
+    advance: "Pay in advance",
+  })[k];
+
 function SimplePanel({ title, body }: { title: string; body: string }) {
   return (
     <div className="dm-simple">
@@ -681,10 +949,67 @@ function RotaPanel() {
     </div>
   );
 }
+function IndexBreakdown({
+  standard,
+  minutes,
+  tell,
+  service,
+}: {
+  standard: number;
+  minutes: number;
+  tell: number;
+  service: string;
+}) {
+  return (
+    <div className="dm-breakdown">
+      <div>
+        <span>Standard {service.toLowerCase()}</span>
+        <b>{dur(standard)}</b>
+      </div>
+      <div>
+        <span>Risk buffer from Index</span>
+        <b>{signed(minutes - standard)}</b>
+      </div>
+      <div data-strong>
+        <span>Allocated (staff diary)</span>
+        <b>{dur(minutes)}</b>
+      </div>
+      <div>
+        <span>Told to customer</span>
+        <b>
+          {about(tell)} <small>({offsetLabel(tell - minutes)})</small>
+        </b>
+      </div>
+    </div>
+  );
+}
+function IndexStepper({
+  index,
+  onStep,
+  disabled,
+}: {
+  index: number;
+  onStep: (d: number) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="dm-stepper">
+      <Button variant="ghost" disabled={disabled || index <= 1} onClick={() => onStep(-1)}>
+        Index −1 · higher risk
+      </Button>
+      <Button variant="ghost" disabled={disabled || index >= 5} onClick={() => onStep(1)}>
+        Index +1 · lower risk
+      </Button>
+      <small>Demo only — lower Index widens the operational margin.</small>
+    </div>
+  );
+}
 function AdminDrawer({
   panel,
   appts,
   sizes,
+  shift,
+  setShift,
   form,
   setForm,
   prepareTimes,
@@ -693,11 +1018,15 @@ function AdminDrawer({
   cancel,
   noShow,
   reschedule,
+  adjustIndex,
+  sendLate,
   createBooking,
 }: {
   panel: AdminPanel;
   appts: Appt[];
   sizes: Record<string, Size> | null;
+  shift: number;
+  setShift: (n: number) => void;
   form: any;
   setForm: (x: any) => void;
   prepareTimes: () => Promise<void>;
@@ -709,6 +1038,8 @@ function AdminDrawer({
   cancel: (a: Appt, staff?: boolean) => void;
   noShow: (a: Appt) => void;
   reschedule: (a: Appt) => void;
+  adjustIndex: (a: Appt, d: number) => void;
+  sendLate: (a: Appt) => void;
   createBooking: (o: { stylist: string; start: number; size: Size }, d: string, s?: Appt["source"]) => void;
 }) {
   const a = panel?.kind === "appointment" ? appts.find((x) => x.id === panel.id) : undefined;
@@ -747,14 +1078,23 @@ function AdminDrawer({
           <div className="dm-index">
             <span>Index {a.index}</span>
             <b>{dur(a.minutes)} allocated</b>
-            <p>
-              Historical data indicates an increase in standard time with an Index of +1. The customer is recommended “
-              {about(a.tell)}”.
-            </p>
+            <IndexBreakdown standard={a.standard} minutes={a.minutes} tell={a.tell} service={a.service} />
+            <IndexStepper
+              index={a.index}
+              disabled={a.status !== "Confirmed"}
+              onStep={(d) => adjustIndex(a, d)}
+            />
             {a.flags?.length ? (
               <div className="dm-behaviour-flags">
                 {a.flags.map((flag) => (
                   <span key={flag}>{flag}</span>
+                ))}
+              </div>
+            ) : null}
+            {a.paid?.length ? (
+              <div className="dm-behaviour-flags">
+                {a.paid.map((p) => (
+                  <span key={p}>Paid · {p}</span>
                 ))}
               </div>
             ) : null}
@@ -765,11 +1105,14 @@ function AdminDrawer({
             <Button disabled={a.status !== "Confirmed"} onClick={() => reschedule(a)}>
               Move 30 min later
             </Button>
+            <Button disabled={a.status !== "Confirmed" || a.date !== TODAY} onClick={() => sendLate(a)}>
+              Send “running late”
+            </Button>
             <Button disabled={a.status !== "Confirmed"} onClick={() => cancel(a, true)}>
               Cancel booking
             </Button>
             <Button disabled={a.status !== "Confirmed" || a.date !== TODAY} onClick={() => noShow(a)}>
-              No-show
+              No-show + fee link
             </Button>
           </div>
         </>
@@ -779,6 +1122,8 @@ function AdminDrawer({
           form={form}
           setForm={setForm}
           sizes={sizes}
+          shift={shift}
+          setShift={setShift}
           prepareTimes={prepareTimes}
           slotsFor={slotsFor}
           createBooking={createBooking}
@@ -787,11 +1132,27 @@ function AdminDrawer({
     </aside>
   );
 }
+function ContactChoice({ form, setForm }: { form: any; setForm: (x: any) => void }) {
+  return (
+    <div className="dm-field">
+      <span>Send updates by</span>
+      <div className="dm-seg">
+        {(["Messages", "Email"] as const).map((c) => (
+          <button key={c} type="button" data-on={form.contact === c} onClick={() => setForm({ ...form, contact: c })}>
+            {c}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 function StaffBooking({
   fromCall,
   form,
   setForm,
   sizes,
+  shift,
+  setShift,
   prepareTimes,
   slotsFor,
   createBooking,
@@ -800,6 +1161,8 @@ function StaffBooking({
   form: any;
   setForm: (x: any) => void;
   sizes: Record<string, Size> | null;
+  shift: number;
+  setShift: (n: number) => void;
   prepareTimes: () => Promise<void>;
   slotsFor: (x: Record<string, Size>) => { date: string; opts: { stylist: string; start: number; size: Size }[] }[];
   createBooking: (o: { stylist: string; start: number; size: Size }, d: string, s?: Appt["source"]) => void;
@@ -869,6 +1232,7 @@ function StaffBooking({
         <span>Notes</span>
         <textarea value={form.notes} maxLength={300} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
       </label>
+      <ContactChoice form={form} setForm={setForm} />
       <Button className="dm-cta" onClick={() => prepareTimes()}>
         Show recommendations
       </Button>
@@ -877,12 +1241,22 @@ function StaffBooking({
           <div className="dm-allocation">
             <div className="dm-allocation-head">
               <b>Allocated time</b>
-              <span>Recommended {dur(allocation.minutes)} × (Index 2)</span>
+              <span>
+                Index {allocation.index}
+                {shift ? ` (adjusted ${shift > 0 ? "+" : ""}${shift})` : ""}
+              </span>
             </div>
             <div className="dm-allocation-value">
               <strong>{dur(allocation.minutes)}</strong>
               <span>blocks the diary and the bay</span>
             </div>
+            <IndexBreakdown
+              standard={allocate(form.service, allocation.index).standard}
+              minutes={allocation.minutes}
+              tell={allocation.tellClient}
+              service={form.service}
+            />
+            <IndexStepper index={allocation.index} onStep={(d) => setShift(shift + d)} />
             <div className="dm-customer-time">
               Tell the customer: <b>{about(allocation.tellClient)}</b>
             </div>
@@ -985,10 +1359,16 @@ function StaffBooking({
 
 function PhoneShell({
   app,
-  setApp,
+  openApp,
   view,
   setView,
   messages,
+  unread,
+  notif,
+  appts,
+  checkout,
+  onPaid,
+  customerSays,
   form,
   setForm,
   errors,
@@ -1009,10 +1389,16 @@ function PhoneShell({
 }: any) {
   const apps = [
     { id: "phone", label: "Phone", icon: Phone },
-    { id: "messages", label: "Messages", icon: MessageCircle },
-    { id: "email", label: "Email", icon: Mail },
-    { id: "browser", label: "Book online", icon: CalendarDays },
+    { id: "messages", label: "Messages", icon: MessageCircle, badge: unread.Messages },
+    { id: "email", label: "Mail", icon: Mail, badge: unread.Email },
+    { id: "browser", label: "Browser", icon: Globe },
+    { id: "calendar", label: "Calendar", icon: CalendarDays },
   ];
+  const inBrowser = view !== "home" && view !== "app";
+  const url =
+    view === "checkout"
+      ? "checkout.pay.test/c/byappointmentonly"
+      : `byappointmentonly.test/${view === "cancel" ? "manage" : view === "reschedule" ? "change" : "book"}`;
   return (
     <aside className="dm-phone" aria-label="Customer phone">
       <div className="dm-screen">
@@ -1020,48 +1406,77 @@ function PhoneShell({
           <b>10:15</b>
           <span>5G ▮▮▮</span>
         </div>
+        {notif && (
+          <button
+            className="dm-notif"
+            onClick={() => openApp(notif.channel === "Email" ? "email" : "messages")}
+          >
+            <i data-app={notif.channel === "Email" ? "email" : "messages"}>
+              {notif.channel === "Email" ? <Mail size={14} /> : <MessageCircle size={14} />}
+            </i>
+            <span>
+              <b>{notif.channel === "Email" ? notif.subject : "By Appointment Only"}</b>
+              <small>{notif.text.split("\n")[0]}</small>
+            </span>
+          </button>
+        )}
         {view === "home" ? (
           <div className="dm-home">
             <div className="dm-home-date">Friday 25</div>
             <div className="dm-appgrid">
-              {apps.map(({ id, label, icon: Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => {
-                    setApp(id);
-                    setView(id === "browser" ? "browser" : "app");
-                  }}
-                >
+              {apps.map(({ id, label, icon: Icon, badge }) => (
+                <button key={id} onClick={() => openApp(id)}>
                   <i data-app={id}>
                     <Icon />
+                    {badge ? <em>{badge}</em> : null}
                   </i>
                   <span>{label}</span>
                 </button>
               ))}
             </div>
+            <p className="dm-home-hint">
+              This phone is the customer. Messages, Mail, Calendar and payments update live.
+            </p>
           </div>
         ) : null}
         {view !== "home" && (
           <PhoneHeader
             title={
-              app === "browser"
-                ? `${form.service} · ${form.stylist}`
+              inBrowser
+                ? "Browser"
                 : app === "messages"
                   ? "Messages"
                   : app === "email"
                     ? "Mail"
-                    : "Phone"
+                    : app === "calendar"
+                      ? "Calendar"
+                      : app === "browser"
+                        ? "Browser"
+                        : "Phone"
             }
             onBack={() => setView("home")}
           />
         )}
+        {inBrowser && <BrowserBar url={url} />}
         <div className="dm-phone-body">
           {view === "app" && app === "phone" ? (
-            <PhoneApp onCall={onCall} />
+            <DialerApp onCall={onCall} />
           ) : view === "app" && app === "messages" ? (
-            <MessageApp list={messages.filter((m: Msg) => m.channel !== "Email")} onAction={selectAction} />
+            <MessagesApp
+              list={messages.filter((m: Msg) => m.channel === "Messages")}
+              onAction={selectAction}
+              onSend={(t) => customerSays(t, "Messages")}
+            />
           ) : view === "app" && app === "email" ? (
-            <MessageApp list={messages.filter((m: Msg) => m.channel === "Email")} onAction={selectAction} email />
+            <MailApp
+              list={messages.filter((m: Msg) => m.channel === "Email")}
+              onAction={selectAction}
+              onSend={(t) => customerSays(t, "Email")}
+            />
+          ) : view === "app" && app === "calendar" ? (
+            <CalendarApp events={appts.filter((a: Appt) => a.mine && a.inCalendar)} dayLabel={dayLabel} />
+          ) : view === "checkout" && checkout ? (
+            <CheckoutApp key={checkout.apptId + checkout.kind} checkout={checkout} email={CUSTOMER.email} onPaid={onPaid} />
           ) : view === "browser" ? (
             <BookingStart form={form} setForm={setForm} errors={errors} busy={busy} prepareTimes={prepareTimes} />
           ) : view === "times" || view === "reschedule" ? (
@@ -1087,7 +1502,7 @@ function PhoneShell({
               <p>Securing your time…</p>
             </div>
           ) : view === "done" && current ? (
-            <Done a={current} setView={setView} />
+            <Done a={current} setView={setView} contact={form.contact} />
           ) : view === "cancel" && current ? (
             <Cancel a={current} codeInput={codeInput} setCodeInput={setCodeInput} cancel={cancel} setView={setView} />
           ) : null}
@@ -1105,55 +1520,6 @@ function PhoneHeader({ title, onBack }: { title: string; onBack: () => void }) {
       </button>
       <b>{title}</b>
       <span />
-    </div>
-  );
-}
-function PhoneApp({ onCall }: { onCall: () => void }) {
-  return (
-    <div className="dm-native">
-      <span>By Appointment Only</span>
-      <h2>020 7946 0123</h2>
-      <p>Hypothetical demo number</p>
-      <button className="dm-call" onClick={onCall}>
-        <Phone />
-        Call
-      </button>
-      <small>Calling opens a matching phone-booking recommendation for staff.</small>
-    </div>
-  );
-}
-function MessageApp({
-  list,
-  onAction,
-  email = false,
-}: {
-  list: Msg[];
-  onAction: (a: any, id?: number) => void;
-  email?: boolean;
-}) {
-  return (
-    <div className={email ? "dm-mail" : "dm-msgs"}>
-      {list.length ? (
-        list.map((m) => (
-          <article key={m.id}>
-            <small>{email ? "By Appointment Only · Booking update" : `${m.channel} · By Appointment Only`}</small>
-            <p>{m.text}</p>
-            {m.actions && (
-              <div>
-                {m.actions.map((a) => (
-                  <button key={a} onClick={() => onAction(a, m.apptId)}>
-                    {a === "reschedule" ? "Change time" : a === "cancel" ? "Cancel" : "Book again"}
-                  </button>
-                ))}
-              </div>
-            )}
-          </article>
-        ))
-      ) : (
-        <div className="dm-empty">
-          {email ? "Booking emails appear here." : "WhatsApp and SMS updates appear here."}
-        </div>
-      )}
     </div>
   );
 }
@@ -1202,6 +1568,7 @@ function BookingStart({ form, setForm, errors, busy, prepareTimes }: any) {
         <textarea value={form.notes} maxLength={300} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
         {errors.notes && <em>{errors.notes}</em>}
       </label>
+      <ContactChoice form={form} setForm={setForm} />
       <button className="dm-cta" disabled={busy} onClick={() => prepareTimes()}>
         {busy ? "Checking…" : "Show times"}
       </button>
@@ -1307,7 +1674,7 @@ function BookingReview({ form, pending, createBooking }: any) {
     </div>
   );
 }
-function Done({ a, setView }: { a: Appt; setView: (v: PhoneView) => void }) {
+function Done({ a, setView, contact }: { a: Appt; setView: (v: PhoneView) => void; contact: Channel }) {
   return (
     <div className="dm-done">
       <i>✓</i>
@@ -1332,7 +1699,7 @@ function Done({ a, setView }: { a: Appt; setView: (v: PhoneView) => void }) {
           <b>{a.stylist}</b>
         </div>
       </div>
-      <p>Your confirmation is in Messages and Mail.</p>
+      <p>Your confirmation, calendar link and pay-in-advance link are in {contact === "Email" ? "Mail" : "Messages"}.</p>
       <button className="dm-cta" onClick={() => setView("home")}>
         Done
       </button>
