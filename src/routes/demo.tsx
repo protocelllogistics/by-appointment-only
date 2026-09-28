@@ -335,7 +335,7 @@ function DemoPage() {
     notifTimer.current = window.setTimeout(() => setNotif(undefined), 3500);
     addLog(`${a?.stylist ?? "Staff"} called ${CUSTOMER.name} (prefers phone): “${subj}”${a?.flags?.length ? ", pet flags mentioned" : ""}.`, m.time);
     if (links.length)
-      send([{ channel: "Messages", from: "shop", time: m.time, apptId: m.apptId, subject: subj, text: `As mentioned on the phone, here are your links.`, actions: links }]);
+      send([{ channel: "Messages", from: "shop", time: m.time, ...(m.apptId != null ? { apptId: m.apptId } : {}), subject: subj, text: `As mentioned on the phone, here are your links.`, actions: links }]);
   }
   const addLog = (text: string, time = toTime(NOW)) => setLog((all) => [`${time} · ${text}`, ...all]);
   const live = appts.filter(isActive);

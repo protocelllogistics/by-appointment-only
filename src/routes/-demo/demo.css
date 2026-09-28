@@ -52,3 +52,8 @@
 .dm-quick{display:flex;gap:6px;overflow-x:auto;padding:8px 10px;border-top:1px solid var(--line)}
 .dm-quick button{flex:none;border:1px solid var(--teal);background:var(--paper);color:var(--teal-dark);border-radius:999px;padding:7px 12px;font-size:12.5px;white-space:nowrap}
 .dm a.dm-ics{font-family:"Figtree",system-ui,sans-serif;font-weight:500}
+.dm-calls{width:100%;text-align:left;display:flex;flex-direction:column;gap:6px;margin-top:8px;max-height:320px;overflow:auto}
+.dm-calls>b{font-size:12px;opacity:.8}
+.dm-calls details{background:var(--paper);color:var(--ink);border-radius:12px;padding:8px 10px}
+.dm-calls summary{cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px}.dm-calls summary small{margin-left:auto;font-weight:400;color:var(--muted)}
+.dm-calls p{margin:6px 0 0;font-size:12.5px;font-style:italic}.dm-calls p em{font-style:normal;font-weight:700;margin-right:4px;color:var(--teal-dark)}.dm-calls p[data-who=me] em{color:var(--coral)}
