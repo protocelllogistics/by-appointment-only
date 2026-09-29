@@ -5,6 +5,7 @@ import { BellRing, LogOut, CalendarDays, CalendarPlus, Globe, Mail, MessageCircl
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Handheld } from "./-dashboard/handheld";
+import { BookingClash } from "./-demo/booking-clash";
 import { usePhoneViewport } from "@/lib/use-phone-viewport";
 import { sizeDemoAppointment } from "@/lib/demo.functions";
 import { validateDemoEditable } from "@/lib/demo-validation";
@@ -255,6 +256,7 @@ const deliver = (c: Channel | "Phone"): Channel => (c === "Email" ? "Email" : "M
 
 function DemoPage({ mobile = false }: { mobile?: boolean }) {
   const [mTab, setMTab] = useState<"app" | "phone">("app");
+  const [desktopMode, setDesktopMode] = useState<"dashboard" | "clash">("dashboard");
   const size = useServerFn(sizeDemoAppointment);
   const [appts, setAppts] = useState(seed),
     [messages, setMessages] = useState<Msg[]>(() => [pastConfirmation()]),
@@ -1029,6 +1031,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     setRawSizes(null);
   };
   const reset = () => {
+    setDesktopMode("dashboard");
     setAppts(seed);
     setMessages([pastConfirmation()]);
     setGuide(undefined);
@@ -1061,12 +1064,23 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
         </div>
         <span className="sp" />
         <span className="dm-pill">Fri 25 Sep · {toTime(clock)}</span>
-        <Button className="dm-pill" onClick={() => runScenario("late")}>
-          Simulate late arrival
-        </Button>
-        <Button className="dm-pill" onClick={() => runScenario("noshow")}>
-          Simulate no-show
-        </Button>
+        {!mobile && <div className="dm-scenario-menu">
+          <small>Booking clashes</small>
+          <Button className="dm-pill" data-active={desktopMode === "clash"} onClick={() => setDesktopMode("clash")}>
+            Two clients, one slot
+          </Button>
+        </div>}
+        <div className="dm-scenario-menu">
+          <small>Live day scenarios</small>
+          <span>
+            <Button className="dm-pill" onClick={() => { setDesktopMode("dashboard"); runScenario("late"); }}>
+              Simulate late arrival
+            </Button>
+            <Button className="dm-pill" onClick={() => { setDesktopMode("dashboard"); runScenario("noshow"); }}>
+              Simulate no-show
+            </Button>
+          </span>
+        </div>
         <Button className="dm-pill" onClick={simulateCalendar}>
           <CalendarDays size={15} />
           Add calendar booking
@@ -1110,7 +1124,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
             <Handheld />
           </section>
         )}
-        <section className="dm-admin" aria-label="Staff dashboard">
+        {!mobile && desktopMode === "clash" ? <BookingClash onClose={() => setDesktopMode("dashboard")} /> : <section className="dm-admin" aria-label="Staff dashboard">
           <nav className="dm-admin-tabs">
             {["Today", "Bookings", "Automations", "Customers & pets", "Staff rota"].map((t) => (
               <Button key={t} data-on={adminTab === t} onClick={() => setAdminTab(t)}>
@@ -1329,8 +1343,8 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
               createBooking={createBooking}
             />
           )}
-        </section>
-        <PhoneShell
+        </section>}
+        {desktopMode !== "clash" && <PhoneShell
           app={phoneApp}
           openApp={openApp}
           view={phoneView}
@@ -1372,7 +1386,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
             setAdminTab("Bookings");
             addLog(`Incoming call from ${CUSTOMER.name}. Phone-booking recommendations opened for staff.`);
           }}
-        />
+        />}
       </div>
       <div className="dm-disclaimer">
         <p>
