@@ -857,8 +857,16 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     const recovered: Omit<RecoveredTask, "id">[] = [
       { time: toTime(a.start), minutes: NO_SHOW_AFTER, stylist: a.stylist, kind: "Task", text: "Grace period: call customer, update notes" },
     ];
+    // 50/50: the customer turns up after the no-show and the system re-accommodates
+    // them dynamically — otherwise the released slot is offered to a walk-in.
+    const lateShowBack = Math.random() < 0.5;
     const walk = allocate("Nail trim", 4);
-    if (free >= walk.minutes + 10) {
+    if (lateShowBack) {
+      if (free > 0)
+        recovered.push({ time: toTime(a.start + NO_SHOW_AFTER), minutes: free, stylist: a.stylist, kind: "Task", text: "Inventory count and supplier reorder" });
+      addLog(`Slot released — the system is holding ${a.stylist}'s recovered time as flexible tasks while it waits to see if ${a.pet} still turns up.`, t);
+      window.setTimeout(() => simulateLateShow(), 9000);
+    } else if (free >= walk.minutes + 10) {
       const start = a.start + NO_SHOW_AFTER;
       setAppts((all) => [
         ...all,
@@ -1058,9 +1066,6 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
         </Button>
         <Button className="dm-pill" onClick={() => runScenario("noshow")}>
           Simulate no-show
-        </Button>
-        <Button className="dm-pill" onClick={simulateLateShow}>
-          Simulate late show after no-show
         </Button>
         <Button className="dm-pill" onClick={simulateCalendar}>
           <CalendarDays size={15} />
