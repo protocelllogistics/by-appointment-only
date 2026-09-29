@@ -107,7 +107,7 @@ function mk(
   return { code: "", mobile: "", email: "", ...a, standard: z.standard, minutes: z.minutes, tell: z.tell };
 }
 const MY_SEED_ID = 5;
-type Recovery = { id: number; stylist: string; start?: number; applying: boolean };
+type Recovery = { id: number; stylist: string; start?: number; applying: boolean; accepted?: boolean };
 type RecoveredTask = { id: number; time: string; minutes: number; stylist: string; kind: "Task" | "Walk-in"; text: string };
 const seed: Appt[] = [
   mk({
@@ -754,7 +754,8 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     const stylist = order.find((s) => fits(s) != null);
     const t = toTime(arrive);
     const apply = () => {
-      setRecovery(null);
+      // The recommendation stays on the appointment as a historical data point.
+      setRecovery((r) => (r && r.id === a.id ? { ...r, applying: false, accepted: true } : r));
       if (stylist) {
         const start = fits(stylist)!;
         setAppts((all) =>
@@ -789,13 +790,12 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
       { who: "note", text: `Returning missed call · ${SHOP_PHONE} · ${t}` },
       { who: "me", text: `Hi, it's ${first} — I've just seen your missed call. I'm so sorry, I completely forgot about ${a.pet}'s appointment. I didn't check my calendar this morning.` },
       { who: "me", text: "Is there any way we could still recover the appointment today?" },
-      { who: "shop", text: "Don't worry at all, these things happen. Let me check what we can do for you today…" },
-      { who: "note", text: "On hold · checking the day" },
     ], false);
     const rest: CallLog["lines"] = [
+      { who: "shop", text: "Don't worry at all, these things happen. Let me check what we can do for you today…" },
       st != null
-        ? { who: "shop", text: `Thanks for holding, ${first}. Good news — you can still have ${a.pet}'s ${a.service.toLowerCase()} today. ${stylist} can take ${a.pet} at ${toTime(st)}. We'll waive the no-show fee and just apply the £${LATE_FEE_GBP} late fee — I'll text you the link.` }
-        : { who: "shop", text: `Thanks for holding, ${first}. Today's fully committed now, but I've held the next available slot for ${a.pet} and we'll waive the no-show fee. I'll text you the details.` },
+        ? { who: "shop", text: `Good news — you can still have ${a.pet}'s ${a.service.toLowerCase()} today. ${stylist} can take ${a.pet} at ${toTime(st)}. We'll waive the no-show fee and just apply the £${LATE_FEE_GBP} late fee — I'll text you the link.` }
+        : { who: "shop", text: `Today's fully committed now, but I've held the next available slot for ${a.pet} and we'll waive the no-show fee. I'll text you the details.` },
       { who: "me", text: "That's so kind, thank you — I really appreciate it." },
       { who: "shop", text: `Not at all, ${first}. Thank you for choosing By Appointment Only — we look forward to welcoming you and ${a.pet}.` },
       { who: "note", text: "Call ended" },
@@ -807,7 +807,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
       addLog(`${a.customer} returned the missed call. System recommendation for ${a.pet}: loyal client → offer to still arrange the appointment today; waive no-show fee, apply late fee.`, t);
     }, 2500);
     window.setTimeout(() => {
-      setCalls((all) => all.map((c) => (c.id === callId ? { ...c, lines: [...c.lines.filter((l) => l.text !== "On hold · checking the day"), ...rest] } : c)));
+      setCalls((all) => all.map((c) => (c.id === callId ? { ...c, lines: [...c.lines, ...rest] } : c)));
       setRecovery((r) => (r ? { ...r, applying: true } : r));
     }, 9500);
     window.setTimeout(apply, 11500);
@@ -1629,7 +1629,7 @@ function AdminDrawer({
                 <li>Apply the £{LATE_FEE_GBP} late fee</li>
                 <li>Thank them for choosing BAO</li>
               </ul>
-              <small>{recovery.applying ? "Accepted by Tom · applying…" : "Customer on hold · awaiting staff decision"}</small>
+              <small>{recovery.accepted ? `Accepted by Tom · recorded ${toTime(clock)}` : recovery.applying ? "Accepted by Tom · applying…" : "Customer on call · awaiting staff decision"}</small>
             </div>
           )}
           <h3>Appointment notes</h3>
