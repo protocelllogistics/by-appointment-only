@@ -384,12 +384,6 @@ function HomePage() {
             </div>
             <div className="flow" id="flow" role="dialog" aria-modal="true" aria-label="Booking">
               <div className="flow-top">
-                <button className="iconbtn" id="back" aria-label="Back">
-                  <Icon>
-                    <path d="m12 19-7-7 7-7" />
-                    <path d="M19 12H5" />
-                  </Icon>
-                </button>
                 <div className="ctx" id="ctx"></div>
                 <button className="iconbtn" id="close" aria-label="Close">
                   <Icon>
