@@ -266,15 +266,6 @@ export function initHero(signal: AbortSignal) {
         f && f.focus({ preventScroll: true });
       }, 80);
   }
-  const BACK = {
-    times: "taps",
-    details: "times",
-    reserved: "details",
-    expired: "times",
-    clash: "times",
-    done: "taps",
-    checking: "details",
-  };
   $("close").onclick = () => {
     go("taps");
     closeTaps();
