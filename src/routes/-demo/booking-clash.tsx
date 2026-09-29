@@ -114,7 +114,7 @@ export function BookingClash({ onClose }: { onClose: () => void }) {
             <button type="button" className="c4-btn c4-ghost" style={{ fontSize: 15, minHeight: 44, padding: "0 18px" }} onClick={reset}>Replay</button>
           </div>
           <div style={{ display: "flex", gap: 32, alignItems: "flex-start" }}>
-            <Phone {...common} interactive order={0} label="You" initial="J" tint="var(--color-accent-200)" owner="Jo Adeyemi" pet="Luna" breed="Cockapoo" phone="07700 900418" out={a} alts={altsA} onAlt={pickAlt} final={fa} disc={!!aFinal} />
+            <Phone {...common} interactive order={0} label="You" initial="J" tint="var(--color-accent-200)" owner="Jo Adeyemi" pet="Luna" breed="Poodle" phone="07700 900418" out={a} alts={altsA} onAlt={pickAlt} final={fa} disc={!!aFinal} />
             <div style={{ order: 1, width: 300, alignSelf: "center", display: "flex", flexDirection: "column", gap: 12 }}>
               <div style={{ fontSize: 12, letterSpacing: ".1em", textTransform: "uppercase", fontWeight: 700, color: "var(--color-accent-700)" }}>What the system sees</div>
               {log.map(([t, text, k]) => (
