@@ -16,6 +16,7 @@ import { Route as CookiesPolicyRouteImport } from './routes/cookies-policy'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as NoShowPolicyRouteImport } from './routes/no-show-policy'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsAndConditionsRouteImport } from './routes/terms-and-conditions'
 import { Route as WhyBaowowRouteImport } from './routes/why-baowow'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -55,6 +56,11 @@ const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
   path: '/privacy-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsAndConditionsRoute = TermsAndConditionsRouteImport.update({
   id: '/terms-and-conditions',
   path: '/terms-and-conditions',
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/demo': typeof DemoRoute
   '/no-show-policy': typeof NoShowPolicyRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/why-baowow': typeof WhyBaowowRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByTo {
   '/demo': typeof DemoRoute
   '/no-show-policy': typeof NoShowPolicyRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/why-baowow': typeof WhyBaowowRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/demo': typeof DemoRoute
   '/no-show-policy': typeof NoShowPolicyRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/why-baowow': typeof WhyBaowowRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/demo'
     | '/no-show-policy'
     | '/privacy-policy'
+    | '/sitemap.xml'
     | '/terms-and-conditions'
     | '/why-baowow'
     | '/dashboard'
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
     | '/demo'
     | '/no-show-policy'
     | '/privacy-policy'
+    | '/sitemap.xml'
     | '/terms-and-conditions'
     | '/why-baowow'
     | '/dashboard'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '/demo'
     | '/no-show-policy'
     | '/privacy-policy'
+    | '/sitemap.xml'
     | '/terms-and-conditions'
     | '/why-baowow'
     | '/_authenticated/dashboard'
@@ -162,6 +174,7 @@ export interface RootRouteChildren {
   DemoRoute: typeof DemoRoute
   NoShowPolicyRoute: typeof NoShowPolicyRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsAndConditionsRoute: typeof TermsAndConditionsRoute
   WhyBaowowRoute: typeof WhyBaowowRoute
   StaffSplatRoute: typeof StaffSplatRoute
@@ -218,6 +231,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms-and-conditions': {
       id: '/terms-and-conditions'
       path: '/terms-and-conditions'
@@ -268,6 +288,7 @@ const rootRouteChildren: RootRouteChildren = {
   DemoRoute: DemoRoute,
   NoShowPolicyRoute: NoShowPolicyRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsAndConditionsRoute: TermsAndConditionsRoute,
   WhyBaowowRoute: WhyBaowowRoute,
   StaffSplatRoute: StaffSplatRoute,
