@@ -457,6 +457,7 @@ export function initHero(signal: AbortSignal) {
     }
     if (e.target.closest("#confirm")) {
       S.discounted = false;
+      S.payFor = "";
       return confirm();
     }
     const a = e.target.closest("[data-alt]");
