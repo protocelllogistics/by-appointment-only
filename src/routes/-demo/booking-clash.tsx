@@ -34,7 +34,7 @@ function clashAlts(p: Pick, any: boolean) {
   const i = p.i ?? 0, t = p.time, w = p.who, out: { time: string; di: number; who: string }[] = [];
   const ok = (who: string, di: number, time: string) => { const wd = OPEN[di]!.getDay(); return WORKS[who]!.includes(wd) && (wd !== 6 || time < "14:00"); };
   if (any) { const o = Object.keys(WORKS).find((x) => x !== w && ok(x, i, t)); if (o) out.push({ time: t, di: i, who: o }); }
-  const own = [...new Set([...(SLOTS[w] ?? []).map((x) => x[0]), ...SLOTS.Any!.filter((x) => x[1] === w).map((x) => x[0])])]
+  const own = [...new Set([...(SLOTS[w] ?? []).map((x) => x[0]), ...SLOTS["Any"]!.filter((x) => x[1] === w).map((x) => x[0])])]
     .filter((x) => x !== t && ok(w, i, x)).sort((a, b) => Math.abs(toMin(a) - toMin(t)) - Math.abs(toMin(b) - toMin(t)));
   if (own[0]) out.push({ time: own[0], di: i, who: w });
   for (let di = i + 1; di < OPEN.length; di++) { if (ok(w, di, t)) { out.push({ time: t, di, who: w }); break; } }
