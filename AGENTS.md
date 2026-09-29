@@ -21,4 +21,4 @@
 - Supplied Dashboard HTML/images are exact visual and interaction specifications; do not approximate or omit their structure.
 - Keep the desktop shell navigation-only and canonical seed calculations in shared math accepting empty inputs; this prevents drift and supports staged seeding.
 - Google Calendar sync lives in src/lib/calendar-sync.server.ts and pushes only appointments created after a sync cursor; why: avoids re-routing historical bookings.
-- /demo and public booking save nothing; auto-generate gender-neutral fictional contact details, leave only filtered pet name/notes editable, and expose only server-sized Index 1–5.
+- /demo and public booking save nothing; use fictional details and server-sized Index 1–5; clash mode is native, ephemeral, mirrored, and only “You” is interactive.

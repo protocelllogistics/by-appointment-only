@@ -27,4 +27,4 @@
 - [x] Auto-generate fictional gender-neutral customer identities across public, demo and staff-created bookings; only filtered pet name and notes stay editable.
 - [x] Replace the embedded phone terminal with one native, borderless handheld UI shared by mobile Dashboard and mobile demo; keep its controls presentation-only for now.
 - [x] Switch the Dashboard and demo views immediately at phone-width boundaries, regardless of device identity.
-- [ ] Add the two-client booking clash scenario to the demo, with mirrored choices, first-confirmed-wins handling, live alternatives and customer retention.
+- [x] Add the two-client booking clash scenario to the demo, with mirrored choices, first-confirmed-wins handling, live alternatives and customer retention.
