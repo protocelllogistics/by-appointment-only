@@ -1,11 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import "./site-footer.css";
 
-const NO_FOOTER_PREFIXES = ["/dashboard", "/staff", "/auth", "/demo"];
+const NO_FOOTER_PREFIXES = ["/", "/dashboard", "/staff", "/auth", "/demo"];
 
-export function SiteFooter() {
+export function SiteFooter({ force = false }: { force?: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  if (NO_FOOTER_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
+  if (!force && NO_FOOTER_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
     return null;
   }
   return (
