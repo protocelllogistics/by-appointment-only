@@ -140,3 +140,13 @@
 /* Return-missed-call affordance: green like an answered call, not the red hang-up */
 .dm-call-cap{display:block;text-align:center;font-size:11.5px;color:var(--muted);margin:-4px auto 0}
 [data-missed="true"] .dm-transcript{max-height:340px}
+.dm-recents{display:flex;flex-direction:column;gap:2px;padding:10px 12px;color:var(--ink);background:var(--paper);min-height:100%;text-align:left}
+.dm-recents h3{margin:4px 0 8px;font-size:22px}
+.dm-recent{display:flex;align-items:center;gap:8px;padding:9px 2px;border-bottom:1px solid color-mix(in oklab,var(--ink) 10%,transparent)}
+.dm-recent-main{flex:1;display:flex;flex-direction:column;align-items:flex-start;background:none;border:0;padding:0;color:inherit;font:inherit;cursor:pointer;text-align:left}
+.dm-recent-main b{font-size:14px}.dm-recent-main small{font-size:11.5px;color:var(--muted)}
+.dm-recent[data-missed] .dm-recent-main b{color:var(--coral)}
+.dm-recent-time{font-size:11.5px;color:var(--muted)}
+.dm-recent-vm{font-size:11px;border:1px solid var(--teal-dark);color:var(--teal-dark);background:none;border-radius:999px;padding:3px 8px;cursor:pointer}
+.dm-recents-return{margin-top:14px;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:12px;border:0;background:var(--teal-dark);color:var(--paper);font:inherit;font-size:13px;cursor:pointer}
+.dm-vm-text{font-size:13.5px;font-style:italic;line-height:1.45;margin:10px 0}

@@ -79,6 +79,14 @@ export function MessagesApp({
   );
 }
 
+// Demo-only inbox filler: the phone has ordinary email from other senders.
+const FILLER_MAIL = [
+  { id: -1, from: "Parcel Tracking", time: "Yesterday", subject: "Your parcel has been delivered", text: "Your parcel was left in your safe place at 14:12. Thanks for shopping with us." },
+  { id: -2, from: "City Library", time: "Yesterday", subject: "Items due back soon", text: "Two items on your account are due back on Friday. Renew online to keep them longer." },
+  { id: -3, from: "Weekend Market", time: "Sunday", subject: "This week's stalls", text: "Fresh bread, local honey and a new coffee cart this Saturday from 9am." },
+  { id: -4, from: "Energy Account", time: "Friday", subject: "Your monthly statement is ready", text: "Your latest statement is available to view in your account." },
+];
+
 export function MailApp({
   list,
   onAction,
@@ -107,15 +115,32 @@ export function MailApp({
         )}
       </div>
     );
+  const filler = FILLER_MAIL.find((x) => x.id === open);
+  if (filler)
+    return (
+      <div className="dm-mail-open">
+        <button className="dm-mail-back" onClick={() => setOpen(null)}>‹ Inbox</button>
+        <h3>{filler.subject}</h3>
+        <small>{filler.from} · {filler.time}</small>
+        <p>{filler.text}</p>
+      </div>
+    );
   return (
     <div className="dm-inbox">
-      {list.length === 0 && <div className="dm-empty">Inbox is empty.</div>}
       {[...list].reverse().map((x) => (
         <button key={x.id} onClick={() => setOpen(x.id)}>
           <b>{x.from === "me" ? "You" : "By Appointment Only"}</b>
           <small>{x.time}</small>
           <span>{x.subject ?? x.text.split("\n")[0]}</span>
           <em>{x.text.replace(/\n/g, " ").slice(0, 70)}…</em>
+        </button>
+      ))}
+      {FILLER_MAIL.map((x) => (
+        <button key={x.id} onClick={() => setOpen(x.id)} data-filler="true">
+          <b>{x.from}</b>
+          <small>{x.time}</small>
+          <span>{x.subject}</span>
+          <em>{x.text.slice(0, 70)}…</em>
         </button>
       ))}
     </div>
@@ -347,65 +372,86 @@ export function DialerApp({
   onReturn?: () => void;
 }) {
   if (live) return <LiveCall call={live} onEnd={() => { onEndLive?.(); }} onReturn={onReturn} />;
-  return <Dialer onCall={onCall} calls={calls} />;
+  return <Dialer onCall={onCall} calls={calls} onReturn={onReturn} />;
 }
 
-function Dialer({ onCall, calls = [] }: { onCall: () => void; calls?: CallLog[] }) {
+// Demo-only recents so the Phone app looks like a real, lived-in phone.
+const FILLER_CALLS = [
+  { name: "Alex (mobile)", time: "Yesterday", dir: "Outgoing" },
+  { name: "Dentist", time: "Yesterday", dir: "Incoming" },
+  { name: "Jordan", time: "Sunday", dir: "Missed" },
+  { name: "Parcel delivery", time: "Saturday", dir: "Incoming" },
+  { name: "Mum", time: "Friday", dir: "Outgoing" },
+];
+
+function Dialer({ onCall, calls = [], onReturn }: { onCall: () => void; calls?: CallLog[]; onReturn?: (() => void) | undefined }) {
   const [inCall, setInCall] = useState(false);
   const [secs, setSecs] = useState(0);
+  const [vm, setVm] = useState<CallLog | null>(null);
   useEffect(() => {
     if (!inCall) return;
     const t = window.setInterval(() => setSecs((s) => s + 1), 1000);
     return () => window.clearInterval(t);
   }, [inCall]);
-  return (
-    <div className="dm-native" data-call={inCall}>
-      <span>By Appointment Only</span>
-      <h2>{SHOP_PHONE}</h2>
-      <p>{inCall ? `Connected · ${Math.floor(secs / 60)}:${pad(secs % 60)}` : "Hypothetical demo number"}</p>
-      {inCall ? (
+  const call = () => {
+    setSecs(0);
+    setInCall(true);
+    onCall();
+  };
+  if (inCall)
+    return (
+      <div className="dm-native" data-call="true">
+        <span>By Appointment Only</span>
+        <h2>{SHOP_PHONE}</h2>
+        <p>{`Connected · ${Math.floor(secs / 60)}:${pad(secs % 60)}`}</p>
         <button className="dm-call dm-hangup" onClick={() => setInCall(false)} aria-label="End call">
           <PhoneOff />
         </button>
-      ) : (
-        <button
-          className="dm-call"
-          onClick={() => {
-            setSecs(0);
-            setInCall(true);
-            onCall();
-          }}
-        >
-          <Phone />
-          Call
-        </button>
-      )}
-      <small>
-        {inCall
-          ? "The staff screen now shows this caller’s booking recommendations."
-          : "Calling opens a matching phone-booking recommendation for staff."}
-      </small>
-      {!inCall && calls.length > 0 && (
-        <div className="dm-calls">
-          <b>Recent calls from the shop</b>
-          {[...calls].reverse().map((c) => (
-            <details key={c.id}>
-              <summary>
-                <Phone size={13} /> {c.subject} <small>{c.time}</small>
-              </summary>
-              {c.lines.map((l, i) =>
-                l.who === "note" ? (
-                  <small key={i} className="dm-tx-note">{l.text}</small>
-                ) : (
-                  <p key={i} data-who={l.who}>
-                    <em>{l.who === "shop" ? "BAO" : "You"}</em> “{l.text}”
-                  </p>
-                ),
-              )}
-            </details>
-          ))}
+      </div>
+    );
+  if (vm)
+    return (
+      <div className="dm-recents">
+        <button className="dm-mail-back" onClick={() => setVm(null)}>‹ Recents</button>
+        <h3>Voicemail</h3>
+        <small>By Appointment Only · {vm.time}</small>
+        {vm.lines.filter((l) => l.who === "shop").map((l, i) => (
+          <p key={i} className="dm-vm-text">“{l.text}”</p>
+        ))}
+        {vm.missed && onReturn && (
+          <button className="dm-recents-return" onClick={() => { setVm(null); onReturn(); }}>
+            <PhoneCall size={15} /> Call back
+          </button>
+        )}
+      </div>
+    );
+  return (
+    <div className="dm-recents">
+      <h3>Recents</h3>
+      {[...calls].reverse().map((c) => (
+        <div key={c.id} className="dm-recent" data-missed={c.missed ? "true" : undefined}>
+          <button className="dm-recent-main" onClick={() => (c.missed ? onReturn?.() : call())} aria-label={c.missed ? "Return missed call" : "Call By Appointment Only"}>
+            <b>By Appointment Only</b>
+            <small>{c.missed ? "Missed · voicemail" : c.incoming === false ? "Outgoing" : "Incoming"}</small>
+          </button>
+          <span className="dm-recent-time">{c.time}</span>
+          {c.missed && (
+            <button className="dm-recent-vm" onClick={() => setVm(c)}>Voicemail</button>
+          )}
         </div>
-      )}
+      ))}
+      {FILLER_CALLS.map((f) => (
+        <div key={f.name} className="dm-recent" data-missed={f.dir === "Missed" ? "true" : undefined} data-filler="true">
+          <div className="dm-recent-main">
+            <b>{f.name}</b>
+            <small>{f.dir}</small>
+          </div>
+          <span className="dm-recent-time">{f.time}</span>
+        </div>
+      ))}
+      <button className="dm-recents-return" onClick={call}>
+        <Phone size={15} /> Call By Appointment Only · {SHOP_PHONE}
+      </button>
     </div>
   );
 }
