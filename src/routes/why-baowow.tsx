@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import pitchDeck from "@/assets/BAOWOW-Pitch-Deck.pdf.asset.json";
+import pitchDeck from "@/assets/PitchDeck_Final-2.pdf.asset.json";
 
 import homeCss from "./-home/home.css?url";
 
