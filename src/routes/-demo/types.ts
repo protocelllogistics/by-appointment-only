@@ -54,5 +54,5 @@ export type Msg = {
   call?: boolean;
   calendar?: boolean;
 };
-export type CallLog = { id: number; time: string; subject: string; lines: { who: "shop" | "me"; text: string }[] };
+export type CallLog = { id: number; time: string; subject: string; lines: { who: "shop" | "me" | "note"; text: string }[]; incoming?: boolean };
 export type Checkout = { kind: "pay-late" | "pay-noshow" | "pay-advance"; apptId: number; amount: number; label: string; thenDone?: boolean };
