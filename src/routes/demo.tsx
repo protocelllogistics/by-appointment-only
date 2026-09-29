@@ -402,6 +402,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     setPhoneApp("phone");
     setPhoneView("app");
     if (mobile) setMTab("phone");
+    return call.id;
   }
   const live = appts.filter(isActive);
   const shown = appts.filter((a) => isActive(a) || a.status === "Done" || a.status === "Checked out");
@@ -782,27 +783,34 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     recoveringRef.current = a.id;
     const st = stylist ? fits(stylist)! : undefined;
     const first = CUSTOMER.name.split(" ")[0];
-    liveCallTo(`Returning missed call · By Appointment Only`, t, [
+    // Phase 1: Tom pauses the call to check the day. The system surfaces its
+    // recommendation in the dashboard before he answers — an informed decision.
+    const callId = liveCallTo(`Returning missed call · By Appointment Only`, t, [
       { who: "note", text: `Returning missed call · ${SHOP_PHONE} · ${t}` },
       { who: "me", text: `Hi, it's ${first} — I've just seen your missed call. I'm so sorry, I completely forgot about ${a.pet}'s appointment. I didn't check my calendar this morning.` },
       { who: "me", text: "Is there any way we could still recover the appointment today?" },
-      { who: "shop", text: "Don't worry at all, these things happen. Let me just check the day for you…" },
+      { who: "shop", text: "Don't worry at all, these things happen. Let me check what we can do for you today…" },
+      { who: "note", text: "On hold · checking the day" },
+    ], false);
+    const rest: CallLog["lines"] = [
       st != null
-        ? { who: "shop", text: `Good news — yes, we can still do ${a.pet}'s ${a.service.toLowerCase()}. ${stylist} can take ${a.pet} at ${toTime(st)}. We'll waive the no-show fee and just apply the £${LATE_FEE_GBP} late fee — I'll text you the link.` }
-        : { who: "shop", text: `Today's fully committed now, but I've held the next safe slot for ${a.pet} and we'll waive the no-show fee. I'll text you the details.` },
+        ? { who: "shop", text: `Thanks for holding, ${first}. Good news — you can still have ${a.pet}'s ${a.service.toLowerCase()} today. ${stylist} can take ${a.pet} at ${toTime(st)}. We'll waive the no-show fee and just apply the £${LATE_FEE_GBP} late fee — I'll text you the link.` }
+        : { who: "shop", text: `Thanks for holding, ${first}. Today's fully committed now, but I've held the next available slot for ${a.pet} and we'll waive the no-show fee. I'll text you the details.` },
       { who: "me", text: "That's so kind, thank you — I really appreciate it." },
       { who: "shop", text: `Not at all, ${first}. Thank you for choosing By Appointment Only — we look forward to welcoming you and ${a.pet}.` },
       { who: "note", text: "Call ended" },
-    ], false);
-    // Staff side: the stylist opens the no-show booking while on the call; the
-    // system surfaces its recommendation, then the recovery is applied.
+    ];
+    // Staff side: Tom opens the no-show booking while the customer holds.
     setPanel({ kind: "appointment", id: a.id });
     window.setTimeout(() => {
       setRecovery({ id: a.id, stylist: stylist ?? a.stylist, ...(st != null ? { start: st } : {}), applying: false });
-      addLog(`${a.customer} returned the missed call. System recommendation for ${a.pet}: loyal client, released time still held as tasks → recover today.`, t);
-    }, 4500);
-    window.setTimeout(() => setRecovery((r) => (r ? { ...r, applying: true } : r)), 7500);
-    window.setTimeout(apply, 8800);
+      addLog(`${a.customer} returned the missed call. System recommendation for ${a.pet}: loyal client → offer to still arrange the appointment today; waive no-show fee, apply late fee.`, t);
+    }, 2500);
+    window.setTimeout(() => {
+      setCalls((all) => all.map((c) => (c.id === callId ? { ...c, lines: [...c.lines.filter((l) => l.text !== "On hold · checking the day"), ...rest] } : c)));
+      setRecovery((r) => (r ? { ...r, applying: true } : r));
+    }, 9500);
+    window.setTimeout(apply, 11500);
   }
   const dueOut = (a: Appt) => a.start + (a.lateBy ?? 0) + a.minutes;
   function checkIn(a: Appt) {
@@ -1276,6 +1284,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
               clock={clock}
               dueOut={dueOut}
               log={log}
+              recovery={recovery}
               createBooking={createBooking}
             />
           )}
@@ -1526,8 +1535,10 @@ function AdminDrawer({
   clock,
   dueOut,
   log,
+  recovery,
   createBooking,
 }: {
+  recovery?: Recovery | null;
   clock: number;
   dueOut: (a: Appt) => number;
   panel: AdminPanel;
@@ -1604,6 +1615,23 @@ function AdminDrawer({
               </div>
             ) : null}
           </div>
+          {recovery && recovery.id === a.id && (
+            <div className="dm-recovery-rec" role="status">
+              <span className="dm-kick">System recommendation</span>
+              <b>Loyal client — offer to still arrange today's appointment</b>
+              <p>
+                {recovery.start != null
+                  ? `${recovery.stylist} can take ${a.pet} at ${toTime(recovery.start)}. Released time stays covered by tasks.`
+                  : `No safe slot left today — hold the next available slot for ${a.pet}.`}
+              </p>
+              <ul>
+                <li>Waive the no-show fee</li>
+                <li>Apply the £{LATE_FEE_GBP} late fee</li>
+                <li>Thank them for choosing BAO</li>
+              </ul>
+              <small>{recovery.applying ? "Accepted by Tom · applying…" : "Customer on hold · awaiting staff decision"}</small>
+            </div>
+          )}
           <h3>Appointment notes</h3>
           <p className="dm-note-card">{a.notes}</p>
           <div className="dm-actions">
