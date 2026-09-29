@@ -9,8 +9,8 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- Keep shared site-wide consent UI in the root route so it appears consistently on every page.
-- Keep booking selection UI reusable between the mobile sheet and desktop hero to prevent behaviour drift.
+- Keep shared consent UI in the root route and legal routes in one PolicyPage shell for consistent presentation.
+- Reuse booking selection UI across mobile and desktop to prevent drift.
 - Front page lives in src/routes/index.tsx (markup as JSX, selection chips server-rendered) with its CSS/behaviour in src/routes/-home/; booking stays in-page and must show a loading state until real availability resolves — user requirement: no false fully-booked flash before "Book in 1 minute".
 
 - Staff back office is `/dashboard`: widths up to 767px receive only the native stylist handheld UI, while wider widths receive the full Dashboard, switching live on resize regardless of device identity; open only in pre-production, role-protect before launch.
