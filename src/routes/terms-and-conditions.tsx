@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
+import { PolicyPage } from "@/components/policy-page";
+
 export const Route = createFileRoute("/terms-and-conditions")({
   head: () => ({
     meta: [
@@ -121,23 +123,20 @@ const SECTIONS: Section[] = [
 
 function TermsPage() {
   return (
-    <div className="wk-root why-page">
-      <div className="public-sections why-page-wrap">
-        <div className="public-inner">
-          <section className="public-section why-section" aria-labelledby="terms-title">
-            <Link to="/" className="why-home-link">
-              ← Back to By Appointment Only
-            </Link>
-
-            <h2 id="terms-title">Terms &amp; Conditions</h2>
-            <p className="why-lead">
+    <PolicyPage
+      title="Terms & Conditions"
+      updated={LAST_UPDATED}
+      introduction={
+        <p>
               By Appointment Only is a prototype design created for the #lovablechallenge. The business and characters
               are fictional, booking tools are demonstrations only, and no user data is ever collected or stored.
               Everything you enter stays in your browser.
-            </p>
-            <p className="terms-updated">Last updated: {LAST_UPDATED}</p>
-
-            <nav className="terms-toc" aria-label="Contents">
+        </p>
+      }
+    >
+      <div className="policy-layout">
+        <nav className="policy-toc" aria-label="Contents">
+          <p>On this page</p>
               <ol>
                 {SECTIONS.map((s) => (
                   <li key={s.id}>
@@ -145,30 +144,28 @@ function TermsPage() {
                   </li>
                 ))}
               </ol>
-            </nav>
+        </nav>
 
-            <div className="terms-body">
+        <article className="policy-body">
               {SECTIONS.map((s) => (
-                <section className="terms-section" id={s.id} key={s.id} aria-labelledby={`${s.id}-h`}>
+            <section className="policy-section" id={s.id} key={s.id} aria-labelledby={`${s.id}-h`}>
                   <h3 id={`${s.id}-h`}>{s.title}</h3>
                   {s.paragraphs.map((p, i) => (
                     <p key={i}>{p}</p>
                   ))}
                 </section>
               ))}
-            </div>
+        </article>
+      </div>
 
-            <div className="why-cta">
+      <div className="policy-actions">
               <a className="access-link" href={`mailto:${CONTACT}`}>
                 Request Product Access
               </a>
               <Link className="access-link" to="/demo">
                 View Demo
               </Link>
-            </div>
-          </section>
-        </div>
       </div>
-    </div>
+    </PolicyPage>
   );
 }

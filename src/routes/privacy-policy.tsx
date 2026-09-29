@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { PolicyPage } from "@/components/policy-page";
+
 export const Route = createFileRoute("/privacy-policy")({
   head: () => ({ meta: [
     { title: "Privacy Policy — By Appointment Only" },
@@ -11,5 +13,5 @@ export const Route = createFileRoute("/privacy-policy")({
     { name: "twitter:card", content: "summary_large_image" },
     { name: "robots", content: "noindex, nofollow" },
   ], links: [{ rel: "canonical", href: "https://baowow.xyz/privacy-policy" }] }),
-  component: () => null,
+  component: () => <PolicyPage title="Privacy Policy" />,
 });
