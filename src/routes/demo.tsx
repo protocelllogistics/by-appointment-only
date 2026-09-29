@@ -903,7 +903,15 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     addLog(`${dur(recovered.reduce((n, t) => n + t.minutes, 0))} of ${a.stylist}'s released time converted to tasks.`, t);
     addTasks(recovered);
     // The customer returns the missed call a little later and asks to recover.
-    if (a.mine) window.setTimeout(() => simulateLateShow(), 16000);
+    if (a.mine) returnTimerRef.current = window.setTimeout(() => simulateLateShow(), 16000);
+  }
+  // Tapping the return-call icon on the missed call jumps straight into the
+  // call-back instead of waiting for the customer to ring back on their own.
+  function returnMissedCall() {
+    if (returnTimerRef.current) window.clearTimeout(returnTimerRef.current);
+    returnTimerRef.current = undefined;
+    setLiveCall(undefined);
+    simulateLateShow(true);
   }
   function runScenario(kind: "late" | "noshow") {
     const mine = apptsRef.current.find((x) => x.mine && x.date === TODAY && x.status === "Confirmed" && !x.lateBy);
