@@ -449,9 +449,16 @@ function HomePage() {
                   <button
                     type="button"
                     className="btn btn-ghost service-book"
-                    onClick={() =>
-                      document.dispatchEvent(new CustomEvent("bao:book", { detail: { service: selectedService } }))
-                    }
+                    onClick={() => {
+                      // Snap (no scroll animation) to the top booking area with times already open.
+                      const track = document.querySelector<HTMLElement>(".pager-track");
+                      track?.classList.add("snap");
+                      panelRef.current = 0;
+                      setPanel(0);
+                      window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+                      document.dispatchEvent(new CustomEvent("bao:book", { detail: { service: selectedService } }));
+                      window.setTimeout(() => track?.classList.remove("snap"), 60);
+                    }}
                   >
                     Book {selectedService} now · £{PRICE_GBP_PUBLIC[selectedService]} →
                   </button>
