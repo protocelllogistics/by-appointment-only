@@ -1701,6 +1701,9 @@ function StaffBooking({
     .sort((a, b) => (a.date + a.option.start).localeCompare(b.date + b.option.start));
   const mayaFirst = flat.filter((r) => r.option.stylist === PREF).slice(0, 2);
   const recommended = sizes ? [...mayaFirst, ...flat.filter((r) => r.option.stylist !== PREF)].slice(0, 4) : [];
+  const recommendedByDate = [...new Set(recommended.map(({ date }) => date))]
+    .sort()
+    .map((date) => ({ date, options: recommended.filter((item) => item.date === date).map(({ option }) => option) }));
   const allocation = recommended[0]?.option.size;
   const prefApplied = Boolean(prefMaya && baseMaya && mayaFirst.length && prefMaya.minutes < baseMaya.minutes);
   const daysWithTimes = new Set(allSlots.map((g) => g.date));
@@ -1789,18 +1792,25 @@ function StaffBooking({
           </div>
           <h3>Next times · preferred stylist first</h3>
           <div className="dm-admin-slots">
-            {recommended.map(({ date, option }) => (
-              <Button
-                key={date + option.stylist + option.start}
-                variant="ghost"
-                onClick={() => createBooking(option, date, "Phone")}
-              >
-                <b>{toTime(option.start)}</b>
-                <span>
-                  {dayLabel(date).split(", ")[0]} · {option.stylist}
-                  {option.stylist === PREF ? ` · preferred · ${dur(option.size.minutes)}` : ` · ${dur(option.size.minutes)}`}
-                </span>
-              </Button>
+            {recommendedByDate.map(({ date, options }) => (
+              <section className="dm-admin-slot-day" key={date}>
+                <h4>{dayLabel(date)}</h4>
+                <div>
+                  {options.map((option) => (
+                    <Button
+                      key={date + option.stylist + option.start}
+                      variant="ghost"
+                      onClick={() => createBooking(option, date, "Phone")}
+                    >
+                      <b>{toTime(option.start)}</b>
+                      <span>
+                        {option.stylist}
+                        {option.stylist === PREF ? ` · preferred · ${dur(option.size.minutes)}` : ` · ${dur(option.size.minutes)}`}
+                      </span>
+                    </Button>
+                  ))}
+                </div>
+              </section>
             ))}
           </div>
           <Button
