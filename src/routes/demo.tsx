@@ -1023,9 +1023,8 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
         <span className="sp" />
         <span className="dm-pill">Fri 25 Sep · {toTime(clock)}</span>
         {!mobile && <div className="dm-scenario-menu">
-          <small>Booking clashes</small>
           <Button className="dm-pill" data-active={desktopMode === "clash"} onClick={() => setDesktopMode("clash")}>
-            Two clients, one slot
+            Booking Clashes
           </Button>
         </div>}
         <div className="dm-scenario-menu">
