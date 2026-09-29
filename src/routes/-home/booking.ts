@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { demoPublicSlots } from "@/lib/demo-rota";
+import { demoPublicSlots, londonNow, CLOSE_MIN } from "@/lib/demo-rota";
 import { validateDemoEditable } from "@/lib/demo-validation";
 import { createFictionalContact } from "@/lib/fictional-contact";
 import { NO_SHOW_FEE_GBP } from "@/lib/demo-allocation";
@@ -219,7 +219,11 @@ export function initHero(signal: AbortSignal) {
     if (S.step === "times" || S.step === "clash") render();
     try {
       const minutes = { "Full style": 120, "Bath & tidy": 60, "Nail trim": 30, "Puppy intro": 45 }[S.service] || 60;
+      // Only times still genuinely bookable in UK time: 30 min lead today, finishing by 17:30 close.
+      const now = londonNow();
       liveSlots = demoPublicSlots(isoDay(OPEN[0]), 18, minutes, S.stylist === "Any available" ? null : S.stylist)
+        .filter((row) => row.slot_date > now.date || (row.slot_date === now.date && toMin(row.starts_at.slice(0, 5)) >= now.minutes + 30))
+        .filter((row) => toMin(row.starts_at.slice(0, 5)) + minutes <= CLOSE_MIN)
         .filter((row) => S.when === "Earliest" || (S.when === "Morning" ? row.starts_at < "12:00:00" : row.starts_at >= "12:00:00"));
     } catch { liveSlots = []; availabilityError = "We couldn't load available times. Please try again."; }
     availabilityLoading = false;
