@@ -10,7 +10,7 @@ import { usePhoneViewport } from "@/lib/use-phone-viewport";
 import { sizeDemoAppointment } from "@/lib/demo.functions";
 import { validateDemoEditable } from "@/lib/demo-validation";
 import { createFictionalContact } from "@/lib/fictional-contact";
-import { DEMO_ROTA, STYLISTS, addDays, freeStarts, isoWeekday, toMin, toTime, type Busy } from "@/lib/demo-rota";
+import { CLOSE_MIN, DEMO_ROTA, STYLISTS, addDays, freeStarts, isoWeekday, londonNow, toMin, toTime, type Busy } from "@/lib/demo-rota";
 import {
   LATE_FEE_GBP,
   NO_SHOW_FEE_GBP,
@@ -52,8 +52,10 @@ export const Route = createFileRoute("/demo")({
   component: DemoRoute,
 });
 
-const TODAY = "2026-09-25",
-  NOW = toMin("10:15"),
+// The demo day is the real UK day and time (clamped to opening hours).
+const LIVE = londonNow();
+const TODAY = LIVE.date,
+  NOW = Math.max(toMin("09:00"), Math.min(LIVE.minutes, CLOSE_MIN)),
   DAYS = [TODAY, addDays(TODAY, 1), addDays(TODAY, 3)];
 const SERVICES = ["Full style", "Bath & tidy", "Nail trim", "Puppy intro"];
 const BREEDS = ["Cockapoo", "Poodle", "Spaniel", "Shih Tzu", "Siberian Husky", "Labrador"];
@@ -93,7 +95,7 @@ function pastConfirmation(): Msg {
     time: "Tue 09:12",
     apptId: a.id,
     subject: `Booking confirmed · ${a.pet}`,
-    text: `${a.pet} is booked for Fri 25 Sep at ${toTime(a.start)} with ${a.stylist} — ${a.service}, ${about(a.tell)}.\nConfirmation: ${a.code}`,
+    text: `${a.pet} is booked for ${dayLabel(a.date).replace("Today, ", "")} at ${toTime(a.start)} with ${a.stylist} — ${a.service}, ${about(a.tell)}.\nConfirmation: ${a.code}`,
     actions: ["ics", "pay-advance", "reschedule", "cancel"],
   };
 }
@@ -262,7 +264,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     [messages, setMessages] = useState<Msg[]>(() => [pastConfirmation()]),
     [guide, setGuide] = useState<{ title: string; body: string; time: string }>(),
     [clock, setClock] = useState(NOW),
-    [log, setLog] = useState(["10:15 · Diary opened. Calendar is up to date."]),
+    [log, setLog] = useState([`${toTime(NOW)} · Diary opened. Calendar is up to date.`]),
     [day, setDay] = useState(TODAY),
     [adminTab, setAdminTab] = useState("Today"),
     [panel, setPanel] = useState<AdminPanel>(null);
@@ -405,7 +407,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
         if (form.stylist !== "Any available" && form.stylist !== stylist) continue;
         const z = map[stylist];
         if (!z) continue;
-        freeStarts(stylist, date, z.minutes, busyFor(except), 15, date === TODAY ? NOW + 30 : 0)
+        freeStarts(stylist, date, z.minutes, busyFor(except), 15, date === TODAY ? clock + 30 : 0)
           .filter((t) => t % 45 === 0)
           .slice(0, 3)
           .forEach((start) => opts.push({ stylist, start, size: z }));
@@ -494,7 +496,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     setClock(NOW);
     let id: number | undefined;
     const start = window.setTimeout(() => {
-      id = window.setInterval(() => setClock((c) => Math.min(c + 1, toMin("18:00"))), SIM_MIN_MS);
+      id = window.setInterval(() => setClock((c) => Math.min(c + 1, CLOSE_MIN)), SIM_MIN_MS);
     }, INTRO_MS);
     return () => {
       window.clearTimeout(start);
@@ -855,47 +857,30 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     }
     else addLog(`No-show fee link (£${NO_SHOW_FEE_GBP}) sent to ${a.customer} by SMS.`, t);
     addLog(`${a.pet} did not arrive. Index ${a.index}→${z.index}; next booking will need a deposit and ${dur(z.minutes)}.`, t);
-    let free = a.minutes - NO_SHOW_AFTER;
+    // A no-show always converts the released time into useful work inside the
+    // stylist's rostered hours — never beyond their shift or the 17:30 close.
+    const sh = DEMO_ROTA[a.stylist]?.[isoWeekday(a.date)];
+    const shiftEnd = Math.min(sh ? toMin(sh.end) : CLOSE_MIN, CLOSE_MIN);
+    let at = a.start + NO_SHOW_AFTER;
+    let free = Math.max(0, Math.min(a.start + a.minutes, shiftEnd) - at);
     const recovered: Omit<RecoveredTask, "id">[] = [
-      { time: toTime(a.start), minutes: NO_SHOW_AFTER, stylist: a.stylist, kind: "Task", text: "Grace period: call customer, update notes" },
+      { time: toTime(a.start), minutes: NO_SHOW_AFTER, stylist: a.stylist, kind: "Task", text: "Contact attempt logged, notes updated" },
     ];
-    // 50/50: the customer turns up after the no-show and the system re-accommodates
-    // them dynamically — otherwise the released slot is offered to a walk-in.
-    const lateShowBack = Math.random() < 0.5;
-    const walk = allocate("Nail trim", 4);
-    if (lateShowBack) {
-      if (free > 0)
-        recovered.push({ time: toTime(a.start + NO_SHOW_AFTER), minutes: free, stylist: a.stylist, kind: "Task", text: "Inventory count and supplier reorder" });
-      addLog(`Slot released — the system is holding ${a.stylist}'s recovered time as flexible tasks while it waits to see if ${a.pet} still turns up.`, t);
-      window.setTimeout(() => simulateLateShow(), 9000);
-    } else if (free >= walk.minutes + 10) {
-      const start = a.start + NO_SHOW_AFTER;
-      setAppts((all) => [
-        ...all,
-        mk({
-          id: Date.now(),
-          customer: "Walk-in customer",
-          pet: ["Rolo", "Nala", "Juno", "Pip"][scenarioTurn.current % 4]!,
-          breed: "Jack Russell",
-          service: "Nail trim",
-          stylist: a.stylist,
-          date: a.date,
-          start,
-          index: 4,
-          status: "Confirmed",
-          source: "Walk-in",
-          mine: false,
-          notes: `Walk-in captured in ${a.pet}'s released slot.`,
-        }),
-      ]);
-      recovered.push({ time: toTime(start), minutes: walk.minutes, stylist: a.stylist, kind: "Walk-in", text: `Walk-in nail trim booked (£${PRICE_GBP["Nail trim"] ?? 15})` });
-      addLog(`Walk-in captured at ${toTime(start)} with ${a.stylist} in the released slot.`, toTime(start));
-      free -= walk.minutes;
-      if (free > 0)
-        recovered.push({ time: toTime(start + walk.minutes), minutes: free, stylist: a.stylist, kind: "Task", text: "Inventory count: clippers, blades and shampoo" });
-    } else if (free > 0) {
-      recovered.push({ time: toTime(a.start + NO_SHOW_AFTER), minutes: free, stylist: a.stylist, kind: "Task", text: "Inventory count and supplier reorder" });
+    const pool = [
+      { minutes: 20, text: "Inventory count: clippers, blades and shampoo" },
+      { minutes: 15, text: "Deep clean and reset grooming station" },
+      { minutes: 20, text: "Supplier reorder for low stock" },
+      { minutes: 15, text: "Follow-up calls for tomorrow's first-time clients" },
+      { minutes: 30, text: "Sharpen and service blades" },
+    ];
+    for (const t of pool) {
+      if (free < 10) break;
+      const m = Math.min(t.minutes, free);
+      recovered.push({ time: toTime(at), minutes: m, stylist: a.stylist, kind: "Task", text: t.text });
+      at += m;
+      free -= m;
     }
+    addLog(`${dur(recovered.reduce((n, t) => n + t.minutes, 0))} of ${a.stylist}'s released time converted to tasks.`, t);
     addTasks(recovered);
   }
   function runScenario(kind: "late" | "noshow") {
@@ -917,6 +902,11 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
       text: `${a.pet}'s appointment has moved to ${toTime(start)} with ${a.stylist}.`,
       actions: ["ics", "reschedule", "cancel"],
     });
+  }
+  function staffReply(text: string) {
+    const last = [...messages].reverse().find((m) => m.from === "me");
+    const channel = last?.channel ?? deliver(form.contact);
+    send([{ channel, from: "shop", time: toTime(clock), text, subject: channel === "Email" ? "Re: booking" : undefined }]);
   }
   function customerSays(text: string, channel: Channel) {
     customerEngaged(channel === "Email" ? "emailed" : "messaged");
@@ -1021,7 +1011,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
           <small>Public workflow prototype · nothing is saved</small>
         </div>
         <span className="sp" />
-        <span className="dm-pill">Fri 25 Sep · {toTime(clock)}</span>
+        <span className="dm-pill">{dayLabel(TODAY).replace("Today, ", "")} · {toTime(clock)}</span>
         {!mobile && <div className="dm-scenario-menu">
           <Button className="dm-pill" data-active={desktopMode === "clash"} onClick={() => setDesktopMode("clash")}>
             Booking Clashes
@@ -1078,7 +1068,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
         )}
         {!mobile && desktopMode === "clash" ? <BookingClash onClose={() => setDesktopMode("dashboard")} /> : <section className="dm-admin" aria-label="Staff dashboard">
           <nav className="dm-admin-tabs">
-            {["Today", "Bookings", "Automations", "Customers & pets", "Staff rota"].map((t) => (
+            {["Today", "Automations", "Staff rota"].map((t) => (
               <Button key={t} data-on={adminTab === t} onClick={() => setAdminTab(t)}>
                 {t}
               </Button>
@@ -1088,20 +1078,10 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
               + New booking
             </Button>
           </nav>
-          {adminTab === "Customers & pets" ? (
-            <SimplePanel
-              title="Customers & pets"
-              body="Open a customer to see their pets, upcoming visits and daily notes. This prototype follows the same appointment state without loading historical records."
-            />
-          ) : adminTab === "Staff rota" ? (
+          {adminTab === "Staff rota" ? (
             <RotaPanel />
           ) : adminTab === "Automations" ? (
-            <AutomationsPanel
-              target={target}
-              messages={messages}
-              channel={deliver(form.contact)}
-              run={(k) => automate(k, target)}
-            />
+            <AutomationsPanel target={target} messages={messages} channel={deliver(form.contact)} />
           ) : (
             <div className="dm-today">
             <div className="dm-today-main">
@@ -1121,6 +1101,23 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
                         {a.pet}: {dur(a.minutes)} protected ({signed(a.minutes - a.standard)} buffer). Open to see why.
                       </span>
                     </button>
+                  ))}
+                </div>
+              )}
+              {tasks.length > 0 && (
+                <div className="dm-recovered">
+                  <b>
+                    {dur(tasks.reduce((n, t) => n + t.minutes, 0))} converted to tasks
+                  </b>
+                  {tasks.map((t) => (
+                    <div key={t.id} data-kind={t.kind}>
+                      <span>{t.time}</span>
+                      <em>{t.kind}</em>
+                      <p>
+                        {t.stylist}: {t.text}
+                      </p>
+                      <small>{dur(t.minutes)}</small>
+                    </div>
                   ))}
                 </div>
               )}
@@ -1212,67 +1209,9 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
                   ))}
               </div>
             </div>
-            <aside className="dm-rail" aria-label="Customer messages and system activity">
-              <section className="dm-rail-card">
-                <h3>Messages</h3>
-                <small>Every text, email and call with {CUSTOMER.name}, sent by the system.</small>
-                <div className="dm-rail-thread">
-                  {[
-                    ...messages.map((m) => ({ id: m.id, kind: "msg" as const, m })),
-                    ...calls.map((c) => ({ id: c.id, kind: "call" as const, c })),
-                  ]
-                    .sort((x, y) => x.id - y.id)
-                    .map((it) =>
-                      it.kind === "msg" ? (
-                        <div key={it.id} className="dm-rail-msg" data-from={it.m.from}>
-                          <span>
-                            {it.m.from === "shop" ? `Shop → ${it.m.channel === "Email" ? "Email" : "Text"}` : "Customer"} · {it.m.time}
-                          </span>
-                          {it.m.subject && <b>{it.m.subject}</b>}
-                          <p>{it.m.text}</p>
-                        </div>
-                      ) : (
-                        <div key={it.id} className="dm-rail-msg" data-from="call">
-                          <span>Call · {it.c.time}{liveCall === it.c.id ? " · live" : ""}</span>
-                          <b>{it.c.subject}</b>
-                          {it.c.lines
-                            .filter((l) => l.who !== "note")
-                            .map((l, i) => (
-                              <p key={i}>
-                                <em>{l.who === "shop" ? "Shop" : "Customer"}:</em> “{l.text}”
-                              </p>
-                            ))}
-                        </div>
-                      ),
-                    )}
-                </div>
-              </section>
-              {tasks.length > 0 && (
-                <div className="dm-recovered dm-rail-card">
-                  <b>
-                    {dur(tasks.reduce((n, t) => n + t.minutes, 0))} converted to tasks
-                  </b>
-                  {tasks.map((t) => (
-                    <div key={t.id} data-kind={t.kind}>
-                      <span>{t.time}</span>
-                      <em>{t.kind}</em>
-                      <p>
-                        {t.stylist}: {t.text}
-                      </p>
-                      <small>{dur(t.minutes)}</small>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <section className="dm-rail-card dm-log">
-                <h3>System log</h3>
-                {log.map((x, i) => (
-                  <div key={i}>{x}</div>
-                ))}
-              </section>
-            </aside>
             </div>
           )}
+          <MessagesFab messages={messages} calls={calls} onReply={(text) => staffReply(text)} />
           {panel && (
             <AdminDrawer
               panel={panel}
@@ -1335,7 +1274,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
           onCall={() => {
             if (awaiting.current) return customerEngaged("called");
             setPanel({ kind: "new", fromCall: true });
-            setAdminTab("Bookings");
+            setAdminTab("Today");
             addLog(`Incoming call from ${CUSTOMER.name}. Phone-booking recommendations opened for staff.`);
           }}
         />}
@@ -1363,19 +1302,16 @@ function AutomationsPanel({
   target,
   messages,
   channel,
-  run,
 }: {
   target: Appt;
   messages: Msg[];
   channel: Channel;
-  run: (k: Automation) => void;
 }) {
-  const inbound = messages.filter((m) => m.from === "me");
   return (
     <div className="dm-simple dm-auto">
       <h2>Automated messages</h2>
       <p>
-        Sent by the customer’s preferred contact method (<b>{channel}</b>) with calendar, payment and fee links.
+        Fully automatic. Sent by the customer’s preferred contact method (<b>{channel}</b>) with calendar, payment and fee links.
         Target: <b>{target.pet}</b> · {dayLabel(target.date)} {toTime(target.start)} · {target.status}
       </p>
       <div className="dm-auto-list">
@@ -1388,28 +1324,11 @@ function AutomationsPanel({
                 <b>{x.title}</b>
                 <small>{x.when}</small>
               </span>
-              {sent && <em>Sent</em>}
-              <Button
-                variant="ghost"
-                disabled={target.status !== "Confirmed" && x.kind !== "noshow"}
-                onClick={() => run(x.kind)}
-              >
-                Send now
-              </Button>
+              <em>{sent ? "Sent automatically" : "Automatic"}</em>
             </div>
           );
         })}
       </div>
-      <h3>Customer conversation</h3>
-      {inbound.length === 0 ? (
-        <p className="dm-muted">No customer replies yet — try messaging the shop from the phone.</p>
-      ) : (
-        inbound.map((m) => (
-          <p key={m.id} className="dm-note-card">
-            <b>{m.channel}</b> · {m.time} — {m.text}
-          </p>
-        ))
-      )}
     </div>
   );
 }
@@ -1425,6 +1344,63 @@ const subjectKey = (k: Automation) =>
     advance: "Pay in advance",
   })[k];
 
+const STAFF_REPLIES = [
+  "Thanks for letting us know, see you soon!",
+  "No problem, we've noted that on the booking.",
+  "We'll give you a quick call to sort this.",
+];
+function MessagesFab({ messages, calls, onReply }: { messages: Msg[]; calls: CallLog[]; onReply: (t: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const inbound = messages.filter((m) => m.from === "me").length;
+  const items = [
+    ...messages.map((m) => ({ id: m.id, kind: "msg" as const, m })),
+    ...calls.map((c) => ({ id: c.id, kind: "call" as const, c })),
+  ].sort((x, y) => x.id - y.id);
+  return (
+    <>
+      <button className="dm-fab" aria-label="Messages" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        <MessageCircle size={20} />
+        {inbound > 0 && !open && <i>1</i>}
+      </button>
+      {open && (
+        <section className="dm-inbox-panel" aria-label="Messages">
+          <header>
+            <b>Messages · {CUSTOMER.name}</b>
+            <button aria-label="Close messages" onClick={() => setOpen(false)}>×</button>
+          </header>
+          <div className="dm-inbox-thread">
+            {items.length === 0 && <p className="dm-muted">No messages yet.</p>}
+            {items.map((it) =>
+              it.kind === "msg" ? (
+                <div key={it.id} className="dm-ib" data-from={it.m.from}>
+                  <small>{it.m.from === "shop" ? "BAO" : it.m.channel === "Email" ? "Customer · Email" : "Customer"} · {it.m.time}</small>
+                  <p>{it.m.subject && it.m.from === "shop" ? <b>{it.m.subject}</b> : null}{it.m.subject && it.m.from === "shop" ? " " : ""}{it.m.text.split("\n")[0]}</p>
+                </div>
+              ) : (
+                <div key={it.id} className="dm-ib" data-from="note">
+                  <small>Staff note · {it.c.time}</small>
+                  <p>{callNote(it.c)}</p>
+                </div>
+              ),
+            )}
+          </div>
+          <div className="dm-inbox-replies">
+            {STAFF_REPLIES.map((r) => (
+              <button key={r} onClick={() => onReply(r)}>{r}</button>
+            ))}
+          </div>
+        </section>
+      )}
+    </>
+  );
+}
+function callNote(c: CallLog) {
+  const text = c.lines.map((l) => l.text).join(" ").toLowerCase();
+  if (text.includes("voicemail") || text.includes("no answer")) return "Called, no answer. Voicemail left, text follow-up sent.";
+  if (text.includes("late")) return "Spoke to customer: running late, arrival time noted.";
+  if (text.includes("book")) return "Phone contact: booking request, options offered.";
+  return `Phone contact: ${c.subject}.`;
+}
 function SimplePanel({ title, body }: { title: string; body: string }) {
   return (
     <div className="dm-simple">
