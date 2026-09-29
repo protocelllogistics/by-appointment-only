@@ -197,10 +197,16 @@ const seed: Appt[] = [
 ];
 const WD = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
   MO = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const FULL_WD = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+  FULL_MO = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const dayLabel = (d: string) => {
   const x = new Date(`${d}T12:00:00Z`),
     s = `${WD[x.getUTCDay()]} ${x.getUTCDate()} ${MO[x.getUTCMonth()]}`;
   return d === TODAY ? `Today, ${s}` : d === DAYS[1] ? `Tomorrow, ${s}` : s;
+};
+const kickerLabel = (d: string) => {
+  const x = new Date(`${d}T12:00:00Z`);
+  return `${FULL_WD[x.getUTCDay()]} ${x.getUTCDate()} ${FULL_MO[x.getUTCMonth()]}`;
 };
 const dur = (m: number) => (m >= 60 ? `${Math.floor(m / 60)}h${m % 60 ? ` ${m % 60}m` : ""}` : `${m} min`);
 const about = (m: number) => {
@@ -1046,7 +1052,6 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
           <small>Public workflow prototype · nothing is saved</small>
         </div>
         <span className="sp" />
-        <span className="dm-pill">{dayLabel(TODAY).replace("Today, ", "")} · {toTime(clock)}</span>
         {!mobile && <div className="dm-scenario-menu">
           <Button className="dm-pill" data-active={desktopMode === "clash"} onClick={() => setDesktopMode("clash")}>
             Booking Clashes
