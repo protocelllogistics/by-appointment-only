@@ -4,6 +4,7 @@ import pitchDeck from "@/assets/PitchDeck_Final-2.pdf.asset.json";
 import homeCss from "./-home/home.css?url";
 
 export const Route = createFileRoute("/why-baowow")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "Why BAOWOW? — By Appointment Only" },
