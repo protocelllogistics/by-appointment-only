@@ -11,6 +11,7 @@ import samPhoto from "@/assets/Sam.jpeg.asset.json";
 import priyaPhoto from "@/assets/Priya.jpeg.asset.json";
 import teamPhoto from "@/assets/Team.jpeg.asset.json";
 import teamSalonPhoto from "@/assets/team-salon.jpeg.asset.json";
+import { SiteFooter } from "@/components/site-footer";
 
 const SERVICES = ["Full style", "Bath & tidy", "Nail trim", "Puppy intro"] as const;
 type TeamFact = { icon: "scissors" | "paw" | "sparkles" | "grad"; label: string };
@@ -621,6 +622,7 @@ function HomePage() {
               </div>
             </div>
           </div>
+          <SiteFooter force />
         </section>
       </div>
 
