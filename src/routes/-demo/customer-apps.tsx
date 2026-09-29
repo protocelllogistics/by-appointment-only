@@ -346,7 +346,7 @@ export function DialerApp({
   onEndLive?: () => void;
   onReturn?: () => void;
 }) {
-  if (live) return <LiveCall call={live} onEnd={() => onEndLive?.()} onReturn={onReturn} />;
+  if (live) return <LiveCall call={live} onEnd={() => { onEndLive?.(); }} onReturn={onReturn} />;
   return <Dialer onCall={onCall} calls={calls} />;
 }
 

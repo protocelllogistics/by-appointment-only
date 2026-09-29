@@ -738,7 +738,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
   }
   // Customer turns up after the system already released the slot.
   const recoveringRef = useRef<number | null>(null);
-  const returnTimerRef = useRef<number>();
+  const returnTimerRef = useRef<number | undefined>(undefined);
   function simulateLateShow(fromCall = false) {
     const a = [...apptsRef.current].reverse().find((x) => x.date === TODAY && x.status === "No-show");
     if (!a) return addLog("No no-show to recover yet — simulate a no-show first.");
