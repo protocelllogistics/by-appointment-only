@@ -132,7 +132,7 @@ textarea.input{border-radius:22px;padding:12px 18px;resize:none;min-height:72px}
   .wk-root{overflow-x:hidden}
   .hero{display:grid;grid-template-columns:53.44vw minmax(0,1fr);min-height:max(100dvh,820px);padding:0;box-sizing:border-box;background:var(--color-accent-2-100);background-clip:padding-box;border:10px solid var(--color-accent-2-100);border-radius:38px}
   .wk-root.pager{background:var(--color-accent-2-100)}
-  .hero-left{max-width:none;margin:0;display:flex;flex-direction:column;padding:54px 0 40px 8vw;min-width:0}
+  .hero-left{max-width:none;margin:0;display:flex;flex-direction:column;--hero-inset:clamp(96px,calc(4vw + 7vw),240px);padding:54px 32px 40px var(--hero-inset);min-width:0}
   .brand{font-size:32px;gap:16px}.brand i{width:46px;height:46px}.brand i::after{width:16px;height:16px}
   .hero h1{font-size:138px;margin-top:110px}
   .hero .sub{font-size:24px;line-height:1.75;margin-top:34px;max-width:38ch}
@@ -142,7 +142,7 @@ textarea.input{border-radius:22px;padding:12px 18px;resize:none;min-height:72px}
   .hero .why-link:hover{color:var(--color-accent-2-700)}
   .photo{display:none}
   .spacer{flex:1;min-height:30px}
-  .whiskers{display:block;width:min(960px,50vw);height:253px;margin-left:-8vw;overflow:visible}
+  .whiskers{display:block;width:min(960px,50vw);height:253px;margin-left:calc(-1 * var(--hero-inset));overflow:visible}
   .hero-access{margin-top:44px}
   .addr{margin-top:44px;font-size:20px;gap:12px;line-height:26px}.addr .icon{width:21px;height:21px}
   .bar{display:none}
