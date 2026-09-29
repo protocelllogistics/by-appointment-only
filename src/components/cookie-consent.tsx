@@ -20,7 +20,6 @@ export function CookieConsent() {
 
   return (
     <aside className="cookie-banner" aria-label="Cookie consent">
-      <div className="cookie-paw" aria-hidden="true"><i /><i /><i /><span /></div>
       <p>We use essential cookies to make this site work. With your consent, we also use optional cookies to understand how the site is used. You can accept optional cookies or reject non-essential cookies.</p>
       <div className="cookie-actions">
         <Button type="button" variant="outline" onClick={() => choose("rejected")}>Reject non-essential</Button>
