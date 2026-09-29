@@ -257,7 +257,7 @@ function LiveCall({
 }: {
   call: CallLog;
   onEnd: () => void;
-  onReturn?: () => void;
+  onReturn?: (() => void) | undefined;
 }) {
   const [shown, setShown] = useState(1);
   const [secs, setSecs] = useState(0);
