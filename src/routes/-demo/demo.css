@@ -108,3 +108,9 @@
 .dm-transcript p em{display:block;font-style:normal;font-size:10px;opacity:.7;text-transform:uppercase;letter-spacing:.05em}
 .dm-tx-note{display:block;text-align:center;opacity:.65;font-size:11px}
 @media (max-width:1180px){.dm-today{grid-template-columns:1fr}.dm-rail{max-height:none}}
+/* Slim, muted scrollbar for the right-side appointment drawer */
+.dm-drawer{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--ink) 18%,transparent) transparent}
+.dm-drawer::-webkit-scrollbar{width:4px}
+.dm-drawer::-webkit-scrollbar-track{background:transparent}
+.dm-drawer::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--ink) 18%,transparent);border-radius:999px}
+.dm-drawer::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--ink) 30%,transparent)}
