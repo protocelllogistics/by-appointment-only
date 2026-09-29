@@ -74,11 +74,12 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    id: "second-chances",
-    title: "7. Second chances",
+    id: "inclusivity",
+    title: "7. Our inclusivity approach",
     paragraphs: [
-      "We know people forget. If you miss an appointment and call us back, we will do everything we can to fit you in later the same day or soon after. In that case we waive the £25 no-show fee and only apply the £10 late fee.",
-      "We would much rather see you than charge you.",
+      "People arrive late, miss appointments or cancel for many reasons: caring responsibilities, health conditions and disabilities, unpredictable work shifts, transport disruptions, differences in memory, attention and executive function, anxiety, and situations we will never know about.",
+      "This policy is written to work for all of those people, not against them. The system applies the same rules to every client in the same situation, without judgement, and it adapts automatically to what actually happens rather than what was planned.",
+      "If an appointment is missed, reaching out is always enough to reopen the conversation. We will look for a way to fit you in, and where a fee can be waived, it will be waived — the goal is to keep clients, not to punish them.",
     ],
   },
   {
