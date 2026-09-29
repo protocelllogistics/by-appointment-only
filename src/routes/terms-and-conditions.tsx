@@ -46,18 +46,16 @@ const SECTIONS: Section[] = [
     title: "3. Fictional business and characters",
     paragraphs: [
       "The pet styling business shown on this site, its name, location, team, clients, pets, appointments, history and all other people and events are fictional. Any resemblance to real businesses, people or animals is coincidental.",
+      "The address shown on this site, 16 Paws Street, Barking, Greater London, is a fictional location.",
       "PROTOCELL IO does not provide, and does not commit to providing, pet grooming, pet styling or any other pet care services.",
     ],
   },
   {
-    id: "data",
-    title: "4. Your data",
+    id: "demo-content",
+    title: "4. Demonstration content",
     paragraphs: [
-      "The site does not collect, transmit, store or access any personal data you enter. Anything you type into the demonstration — names, phone numbers, email addresses, pet details or bookings — stays in your own browser.",
-      "Demonstration data is kept only in your browser's local storage on your device. It is never sent to PROTOCELL IO or to any database. Clearing your browser data, or using a private window, removes it.",
-      "Please do not enter real personal information. Use made-up details when trying the demonstration.",
-      "Like any website, the hosting infrastructure that serves these pages may process standard technical information (such as IP addresses) needed to deliver them. PROTOCELL IO does not use this information to identify or track visitors.",
-      "If you choose to email us, we will use your email address and message only to respond to you and to manage access requests.",
+      "The demonstration is pre-filled with fictional content by default, so that no personal data can be entered. The only field that can be changed is a pet name.",
+      "Nothing you do in the demonstration is saved or transmitted. It is cleared when your session ends, when you close your browser, or when you clear your browsing history.",
     ],
   },
   {
@@ -128,43 +126,43 @@ function TermsPage() {
       updated={LAST_UPDATED}
       introduction={
         <p>
-              By Appointment Only is a prototype design created for the #lovablechallenge. The business and characters
-              are fictional, booking tools are demonstrations only, and no user data is ever collected or stored.
-              Everything you enter stays in your browser.
+          By Appointment Only is a prototype design created for the #lovablechallenge. The business and characters are
+          fictional, booking tools are demonstrations only, and the demonstration is pre-filled with fictional content
+          so that no personal data can be entered.
         </p>
       }
     >
       <div className="policy-layout">
         <nav className="policy-toc" aria-label="Contents">
           <p>On this page</p>
-              <ol>
-                {SECTIONS.map((s) => (
-                  <li key={s.id}>
-                    <a href={`#${s.id}`}>{s.title.replace(/^\d+\.\s*/, "")}</a>
-                  </li>
-                ))}
-              </ol>
+          <ol>
+            {SECTIONS.map((s) => (
+              <li key={s.id}>
+                <a href={`#${s.id}`}>{s.title.replace(/^\d+\.\s*/, "")}</a>
+              </li>
+            ))}
+          </ol>
         </nav>
 
         <article className="policy-body">
-              {SECTIONS.map((s) => (
+          {SECTIONS.map((s) => (
             <section className="policy-section" id={s.id} key={s.id} aria-labelledby={`${s.id}-h`}>
-                  <h3 id={`${s.id}-h`}>{s.title}</h3>
-                  {s.paragraphs.map((p, i) => (
-                    <p key={i}>{p}</p>
-                  ))}
-                </section>
+              <h3 id={`${s.id}-h`}>{s.title}</h3>
+              {s.paragraphs.map((p, i) => (
+                <p key={i}>{p}</p>
               ))}
+            </section>
+          ))}
         </article>
       </div>
 
       <div className="policy-actions">
-              <a className="access-link" href={`mailto:${CONTACT}`}>
-                Request Product Access
-              </a>
-              <Link className="access-link" to="/demo">
-                View Demo
-              </Link>
+        <a className="access-link" href={`mailto:${CONTACT}`}>
+          Request Product Access
+        </a>
+        <Link className="access-link" to="/demo">
+          View Demo
+        </Link>
       </div>
     </PolicyPage>
   );
