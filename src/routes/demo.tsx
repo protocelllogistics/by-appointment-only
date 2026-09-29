@@ -857,47 +857,30 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     }
     else addLog(`No-show fee link (£${NO_SHOW_FEE_GBP}) sent to ${a.customer} by SMS.`, t);
     addLog(`${a.pet} did not arrive. Index ${a.index}→${z.index}; next booking will need a deposit and ${dur(z.minutes)}.`, t);
-    let free = a.minutes - NO_SHOW_AFTER;
+    // A no-show always converts the released time into useful work inside the
+    // stylist's rostered hours — never beyond their shift or the 17:30 close.
+    const sh = DEMO_ROTA[a.stylist]?.[isoWeekday(a.date)];
+    const shiftEnd = Math.min(sh ? toMin(sh.end) : CLOSE_MIN, CLOSE_MIN);
+    let at = a.start + NO_SHOW_AFTER;
+    let free = Math.max(0, Math.min(a.start + a.minutes, shiftEnd) - at);
     const recovered: Omit<RecoveredTask, "id">[] = [
-      { time: toTime(a.start), minutes: NO_SHOW_AFTER, stylist: a.stylist, kind: "Task", text: "Grace period: call customer, update notes" },
+      { time: toTime(a.start), minutes: NO_SHOW_AFTER, stylist: a.stylist, kind: "Task", text: "Contact attempt logged, notes updated" },
     ];
-    // 50/50: the customer turns up after the no-show and the system re-accommodates
-    // them dynamically — otherwise the released slot is offered to a walk-in.
-    const lateShowBack = Math.random() < 0.5;
-    const walk = allocate("Nail trim", 4);
-    if (lateShowBack) {
-      if (free > 0)
-        recovered.push({ time: toTime(a.start + NO_SHOW_AFTER), minutes: free, stylist: a.stylist, kind: "Task", text: "Inventory count and supplier reorder" });
-      addLog(`Slot released — the system is holding ${a.stylist}'s recovered time as flexible tasks while it waits to see if ${a.pet} still turns up.`, t);
-      window.setTimeout(() => simulateLateShow(), 9000);
-    } else if (free >= walk.minutes + 10) {
-      const start = a.start + NO_SHOW_AFTER;
-      setAppts((all) => [
-        ...all,
-        mk({
-          id: Date.now(),
-          customer: "Walk-in customer",
-          pet: ["Rolo", "Nala", "Juno", "Pip"][scenarioTurn.current % 4]!,
-          breed: "Jack Russell",
-          service: "Nail trim",
-          stylist: a.stylist,
-          date: a.date,
-          start,
-          index: 4,
-          status: "Confirmed",
-          source: "Walk-in",
-          mine: false,
-          notes: `Walk-in captured in ${a.pet}'s released slot.`,
-        }),
-      ]);
-      recovered.push({ time: toTime(start), minutes: walk.minutes, stylist: a.stylist, kind: "Walk-in", text: `Walk-in nail trim booked (£${PRICE_GBP["Nail trim"] ?? 15})` });
-      addLog(`Walk-in captured at ${toTime(start)} with ${a.stylist} in the released slot.`, toTime(start));
-      free -= walk.minutes;
-      if (free > 0)
-        recovered.push({ time: toTime(start + walk.minutes), minutes: free, stylist: a.stylist, kind: "Task", text: "Inventory count: clippers, blades and shampoo" });
-    } else if (free > 0) {
-      recovered.push({ time: toTime(a.start + NO_SHOW_AFTER), minutes: free, stylist: a.stylist, kind: "Task", text: "Inventory count and supplier reorder" });
+    const pool = [
+      { minutes: 20, text: "Inventory count: clippers, blades and shampoo" },
+      { minutes: 15, text: "Deep clean and reset grooming station" },
+      { minutes: 20, text: "Supplier reorder for low stock" },
+      { minutes: 15, text: "Follow-up calls for tomorrow's first-time clients" },
+      { minutes: 30, text: "Sharpen and service blades" },
+    ];
+    for (const t of pool) {
+      if (free < 10) break;
+      const m = Math.min(t.minutes, free);
+      recovered.push({ time: toTime(at), minutes: m, stylist: a.stylist, kind: "Task", text: t.text });
+      at += m;
+      free -= m;
     }
+    addLog(`${dur(recovered.reduce((n, t) => n + t.minutes, 0))} of ${a.stylist}'s released time converted to tasks.`, t);
     addTasks(recovered);
   }
   function runScenario(kind: "late" | "noshow") {
@@ -921,7 +904,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     });
   }
   function staffReply(text: string) {
-    const last = [...messagesRef.current].reverse().find((m) => m.from === "me");
+    const last = [...messages].reverse().find((m) => m.from === "me");
     const channel = last?.channel ?? deliver(form.contact);
     send([{ channel, from: "shop", time: toTime(clock), text, subject: channel === "Email" ? "Re: booking" : undefined }]);
   }
@@ -1324,7 +1307,6 @@ function AutomationsPanel({
   messages: Msg[];
   channel: Channel;
 }) {
-  const inbound = messages.filter((m) => m.from === "me");
   return (
     <div className="dm-simple dm-auto">
       <h2>Automated messages</h2>
