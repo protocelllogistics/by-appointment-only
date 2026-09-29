@@ -793,7 +793,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     // system surfaces its recommendation, then the recovery is applied.
     setPanel({ kind: "appointment", id: a.id });
     window.setTimeout(() => {
-      setRecovery({ id: a.id, stylist: stylist ?? a.stylist, start: st, applying: false });
+      setRecovery({ id: a.id, stylist: stylist ?? a.stylist, ...(st != null ? { start: st } : {}), applying: false });
       addLog(`${a.customer} returned the missed call. System recommendation for ${a.pet}: loyal client, released time still held as tasks → recover today.`, t);
     }, 4500);
     window.setTimeout(() => setRecovery((r) => (r ? { ...r, applying: true } : r)), 7500);
