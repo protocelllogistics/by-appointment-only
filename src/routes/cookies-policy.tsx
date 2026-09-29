@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { PolicyPage } from "@/components/policy-page";
+
 export const Route = createFileRoute("/cookies-policy")({
   head: () => ({ meta: [
     { title: "Cookies Policy — By Appointment Only" },
@@ -10,5 +12,5 @@ export const Route = createFileRoute("/cookies-policy")({
     { property: "og:url", content: "https://baowow.xyz/cookies-policy" },
     { name: "twitter:card", content: "summary_large_image" },
   ], links: [{ rel: "canonical", href: "https://baowow.xyz/cookies-policy" }] }),
-  component: () => null,
+  component: () => <PolicyPage title="Cookies Policy" />,
 });

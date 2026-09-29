@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { PolicyPage } from "@/components/policy-page";
+
 export const Route = createFileRoute("/no-show-policy")({
   head: () => ({ meta: [
     { title: "No-Show Policy — By Appointment Only" },
@@ -10,5 +12,5 @@ export const Route = createFileRoute("/no-show-policy")({
     { property: "og:url", content: "https://baowow.xyz/no-show-policy" },
     { name: "twitter:card", content: "summary_large_image" },
   ], links: [{ rel: "canonical", href: "https://baowow.xyz/no-show-policy" }] }),
-  component: () => null,
+  component: () => <PolicyPage title="No-Show Policy" />,
 });
