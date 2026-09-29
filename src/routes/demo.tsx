@@ -1284,6 +1284,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
               clock={clock}
               dueOut={dueOut}
               log={log}
+              recovery={recovery}
               createBooking={createBooking}
             />
           )}
@@ -1534,8 +1535,10 @@ function AdminDrawer({
   clock,
   dueOut,
   log,
+  recovery,
   createBooking,
 }: {
+  recovery?: Recovery | null;
   clock: number;
   dueOut: (a: Appt) => number;
   panel: AdminPanel;
@@ -1612,6 +1615,23 @@ function AdminDrawer({
               </div>
             ) : null}
           </div>
+          {recovery && recovery.id === a.id && (
+            <div className="dm-recovery-rec" role="status">
+              <span className="dm-kick">System recommendation</span>
+              <b>Loyal client — offer to still arrange today's appointment</b>
+              <p>
+                {recovery.start != null
+                  ? `${recovery.stylist} can take ${a.pet} at ${toTime(recovery.start)}. Released time stays covered by tasks.`
+                  : `No safe slot left today — hold the next available slot for ${a.pet}.`}
+              </p>
+              <ul>
+                <li>Waive the no-show fee</li>
+                <li>Apply the £{LATE_FEE_GBP} late fee</li>
+                <li>Thank them for choosing BAO</li>
+              </ul>
+              <small>{recovery.applying ? "Accepted by Tom · applying…" : "Customer on hold · awaiting staff decision"}</small>
+            </div>
+          )}
           <h3>Appointment notes</h3>
           <p className="dm-note-card">{a.notes}</p>
           <div className="dm-actions">
