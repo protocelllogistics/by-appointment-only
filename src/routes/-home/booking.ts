@@ -3,7 +3,7 @@ import { demoPublicSlots } from "@/lib/demo-rota";
 import { validateDemoEditable } from "@/lib/demo-validation";
 import { createFictionalContact } from "@/lib/fictional-contact";
 import { NO_SHOW_FEE_GBP } from "@/lib/demo-allocation";
-import { CARDHOLDERS, TEST_CARDS, cycle, NOTE_PRESETS, PRICE_GBP_PUBLIC, hexCode, icsHref, toggleNote } from "@/lib/demo-presets";
+import { TEST_CARDS, cycle, NOTE_PRESETS, PRICE_GBP_PUBLIC, hexCode, icsHref, toggleNote } from "@/lib/demo-presets";
 
 // Behaviour follows the supplied mockup, backed by live availability.
 export function initHero(signal: AbortSignal) {
@@ -498,7 +498,7 @@ export function initHero(signal: AbortSignal) {
     S.code = hexCode();
     S.paid = false;
     if (S.prepay) {
-      S.card = { name: cycle(CARDHOLDERS), number: cycle(TEST_CARDS) };
+      S.card = { name: S.owner, number: cycle(TEST_CARDS) };
       window.setTimeout(() => go("pay"), 1100);
       return;
     }

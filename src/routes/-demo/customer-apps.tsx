@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CalendarPlus, CreditCard, Download, Lock, Phone, PhoneOff } from "lucide-react";
 import { toTime } from "@/lib/demo-rota";
-import { CARDHOLDERS, REPLY_PRESETS, TEST_CARDS, cycle } from "@/lib/demo-presets";
+import { REPLY_PRESETS, TEST_CARDS, cycle } from "@/lib/demo-presets";
 import type { CallLog } from "./types";
 import type { Appt, Checkout, LinkAction, Msg } from "./types";
 
@@ -183,14 +183,16 @@ export function CalendarApp({ events, dayLabel }: { events: Appt[]; dayLabel: (d
 export function CheckoutApp({
   checkout,
   email,
+  name,
   onPaid,
 }: {
   checkout: Checkout;
   email: string;
+  name: string;
   onPaid: (c: Checkout) => void;
 }) {
   const [state, setState] = useState<"form" | "paying" | "paid">("form");
-  const [card] = useState(() => ({ name: cycle(CARDHOLDERS), number: cycle(TEST_CARDS) }));
+  const [card] = useState(() => ({ name, number: cycle(TEST_CARDS) }));
   return (
     <div className="dm-checkout">
       {state === "paid" ? (

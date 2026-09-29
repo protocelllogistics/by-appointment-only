@@ -13,5 +13,18 @@ export const Route = createFileRoute("/privacy-policy")({
     { name: "twitter:card", content: "summary_large_image" },
     { name: "robots", content: "noindex, nofollow" },
   ], links: [{ rel: "canonical", href: "https://baowow.xyz/privacy-policy" }] }),
-  component: () => <PolicyPage title="Privacy Policy" />,
+  component: () => (
+    <PolicyPage title="Privacy Policy">
+      <article className="policy-body">
+        <section className="policy-section" id="simulated-payments" aria-labelledby="simulated-payments-h">
+          <h3 id="simulated-payments-h">Simulated payments</h3>
+          <p>
+            Every simulated checkout in the booking form and demonstration is pre-filled with the name of the
+            automatically generated fictional booker and fictional test card details. No real customer, card or payment
+            details are entered, collected or stored at any point.
+          </p>
+        </section>
+      </article>
+    </PolicyPage>
+  ),
 });
