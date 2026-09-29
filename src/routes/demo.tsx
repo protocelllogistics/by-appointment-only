@@ -1028,7 +1028,6 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
           </Button>
         </div>}
         <div className="dm-scenario-menu">
-          <small>Live day scenarios</small>
           <span>
             <Button className="dm-pill" onClick={() => { setDesktopMode("dashboard"); runScenario("late"); }}>
               Simulate late arrival
