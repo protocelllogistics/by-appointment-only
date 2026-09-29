@@ -918,48 +918,6 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
       actions: ["ics", "reschedule", "cancel"],
     });
   }
-  async function simulateCalendar() {
-    const z = (await size({ data: { service: "Full style", breed: "Siberian Husky", newClient: false } })) as Record<
-      string,
-      Size
-    >;
-    for (const date of [DAYS[1]!, DAYS[2]!])
-      for (const stylist of STYLISTS) {
-        const s = z[stylist];
-        const x = s && allocate("Full style", s.index);
-        const start = x && freeStarts(stylist, date, x.minutes, busyFor())[0];
-        if (x && start != null) {
-          const a: Appt = {
-            id: Date.now(),
-            code: "",
-            customer: "Dev Patel",
-            mobile: "",
-            email: "",
-            pet: "Nova",
-            breed: "Siberian Husky",
-            service: "Full style",
-            stylist,
-            date,
-            start,
-            standard: x.standard,
-            minutes: x.minutes,
-            index: x.index,
-            tell: x.tell,
-            status: "Confirmed",
-            source: "Google Calendar",
-            calendarMinutes: 60,
-            mine: false,
-            notes: "Calendar note: first full style with the salon.",
-          };
-          setAppts((all) => [...all, a]);
-          setDay(date);
-          addLog(
-            `Calendar booking interpreted and resized from 60 min to ${dur(x.minutes)} before protecting the next appointment.`,
-          );
-          return;
-        }
-      }
-  }
   function customerSays(text: string, channel: Channel) {
     customerEngaged(channel === "Email" ? "emailed" : "messaged");
     send([{ channel, from: "me", time: toTime(NOW), text, subject: channel === "Email" ? "Re: booking" : undefined }]);
@@ -1081,10 +1039,6 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
             </Button>
           </span>
         </div>
-        <Button className="dm-pill" onClick={simulateCalendar}>
-          <CalendarDays size={15} />
-          Add calendar booking
-        </Button>
         <Dialog>
           <DialogTrigger asChild>
             <Button className="dm-pill"><Play size={15} aria-hidden="true" /> Walkthrough video</Button>
