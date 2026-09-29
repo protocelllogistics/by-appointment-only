@@ -85,3 +85,26 @@
 .dm-prepay{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid var(--color-neutral-300,#ddd);border-radius:12px;cursor:pointer}
 .dm-prepay input{margin-top:3px;accent-color:var(--color-accent-700,#c4502f)}
 .dm-prepay span{display:flex;flex-direction:column;gap:2px}.dm-prepay small{opacity:.75;font-size:12px}
+.dm-today{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:14px;align-items:start}
+.dm-today-main{min-width:0}
+.dm-rail{display:flex;flex-direction:column;gap:10px;margin-top:13px;max-height:660px;overflow:auto}
+.dm-rail-card{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:11px 12px}
+.dm-rail-card h3{font-family:"Figtree",sans-serif;font-weight:700;font-size:14px}
+.dm-rail-card>small{display:block;color:var(--muted);font-size:11px;margin:2px 0 8px}
+.dm-rail-thread{display:flex;flex-direction:column;gap:7px;max-height:330px;overflow:auto}
+.dm-rail-msg{border-radius:10px;padding:7px 9px;background:var(--teal-soft);font-size:12px}
+.dm-rail-msg[data-from=me]{background:var(--bg);margin-left:18px}
+.dm-rail-msg[data-from=call]{background:var(--coral-soft)}
+.dm-rail-msg span{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.dm-rail-msg b{display:block;font-size:12px}
+.dm-rail-msg p{margin:3px 0 0;white-space:pre-line}
+.dm-rail-msg em{font-style:normal;font-weight:700}
+.dm-rail .dm-recovered{margin:0}
+.dm-rail .dm-log{margin:0;max-height:220px;border-top:1px solid var(--line)}
+.dm-live{justify-content:flex-start}
+.dm-transcript{display:flex;flex-direction:column;gap:8px;width:100%;flex:1;overflow:auto;text-align:left;margin:10px 0;max-height:360px}
+.dm-transcript p{margin:0;padding:8px 10px;border-radius:12px;background:color-mix(in srgb,currentColor 12%,transparent);font-size:13px}
+.dm-transcript p[data-who=me]{margin-left:22px}
+.dm-transcript p em{display:block;font-style:normal;font-size:10px;opacity:.7;text-transform:uppercase;letter-spacing:.05em}
+.dm-tx-note{display:block;text-align:center;opacity:.65;font-size:11px}
+@media (max-width:1180px){.dm-today{grid-template-columns:1fr}.dm-rail{max-height:none}}
