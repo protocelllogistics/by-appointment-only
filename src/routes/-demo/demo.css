@@ -87,11 +87,11 @@
 .dm-prepay span{display:flex;flex-direction:column;gap:2px}.dm-prepay small{opacity:.75;font-size:12px}
 .dm-today{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:14px;align-items:start}
 .dm-today-main{min-width:0}
-.dm-rail{display:flex;flex-direction:column;gap:10px;margin-top:13px;max-height:660px;overflow:auto}
+.dm-rail{display:flex;flex-direction:column;gap:10px;margin-top:13px}
 .dm-rail-card{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:11px 12px}
 .dm-rail-card h3{font-family:"Figtree",sans-serif;font-weight:700;font-size:14px}
 .dm-rail-card>small{display:block;color:var(--muted);font-size:11px;margin:2px 0 8px}
-.dm-rail-thread{display:flex;flex-direction:column;gap:7px;max-height:330px;overflow:auto}
+.dm-rail-thread{display:flex;flex-direction:column;gap:7px}
 .dm-rail-msg{border-radius:10px;padding:7px 9px;background:var(--teal-soft);font-size:12px}
 .dm-rail-msg[data-from=me]{background:var(--bg);margin-left:18px}
 .dm-rail-msg[data-from=call]{background:var(--coral-soft)}
