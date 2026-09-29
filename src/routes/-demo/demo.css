@@ -136,3 +136,7 @@
 .dm-recovery{margin-top:14px}
 .dm-recovery small{opacity:.7}
 .dm-actions [data-auto="true"]{outline:2px solid var(--primary);outline-offset:2px}
+
+/* Return-missed-call affordance: green like an answered call, not the red hang-up */
+.dm-call-cap{display:block;text-align:center;font-size:11.5px;color:var(--muted);margin:-4px auto 0}
+[data-missed="true"] .dm-transcript{max-height:340px}
