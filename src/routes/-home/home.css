@@ -148,7 +148,7 @@ textarea.input{border-radius:22px;padding:12px 18px;resize:none;min-height:72px}
   .bar{display:none}
   .hero-right{position:relative}
   .scrim{display:none}
-  .taps{position:absolute;left:0;top:clamp(70px,7.3vh,94px);right:auto;bottom:auto;width:min(53.44vw,calc(100dvh - 200px));height:min(53.44vw,calc(100dvh - 200px));max-width:none;margin:0;border-radius:50%;transform:none;transition:none;padding:0 6vw 0 7.7vw;justify-content:center;gap:28px;max-height:none}
+  .taps{position:absolute;left:auto;right:calc(-6.88vw - 20px);top:clamp(70px,7.3vh,94px);bottom:auto;width:min(53.44vw,calc(100dvh - 200px));height:min(53.44vw,calc(100dvh - 200px));max-width:none;margin:0;border-radius:50%;transform:none;transition:none;padding:0 6vw 0 7.7vw;justify-content:center;gap:28px;max-height:none}
   .taps h2{font-size:52px}.taps .handle{display:none}.taps .groups{overflow:visible;gap:34px}
   .glabel{font-size:17px;margin-bottom:13px}.chips{gap:10px}
   .chip{font-size:19px;padding:10px 24px;min-height:58px}
@@ -187,7 +187,7 @@ textarea.input{border-radius:22px;padding:12px 18px;resize:none;min-height:72px}
   .hero .team{font-size:16px;min-height:48px;padding:0 24px}
   .hero .why-link{font-size:16px}
   .addr{font-size:15px;margin-top:26px;gap:8px}.addr .icon{width:16px;height:16px}
-  .taps{left:-40px;top:60px;width:min(800px,calc(100dvh - 200px));height:min(800px,calc(100dvh - 200px));padding:0 105px 0 115px;gap:18px}
+  .taps{left:auto;right:calc(-6.88vw - 20px);top:60px;width:min(800px,calc(100dvh - 200px));height:min(800px,calc(100dvh - 200px));padding:0 105px 0 115px;gap:18px}
   .taps h2{font-size:40px}.taps .groups{gap:17px}
   .glabel{font-size:14px;margin-bottom:8px}.chips{gap:6px}
   .chip{font-size:15px;padding:8px 15px;min-height:44px}
