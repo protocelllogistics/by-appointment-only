@@ -1803,10 +1803,7 @@ function StaffBooking({
                       onClick={() => createBooking(option, date, "Phone")}
                     >
                       <b>{toTime(option.start)}</b>
-                      <span>
-                        {option.stylist}
-                        {option.stylist === PREF ? ` · preferred · ${dur(option.size.minutes)}` : ` · ${dur(option.size.minutes)}`}
-                      </span>
+                      <span>{option.stylist}</span>
                     </Button>
                   ))}
                 </div>
