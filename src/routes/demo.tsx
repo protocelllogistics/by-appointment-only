@@ -1301,7 +1301,6 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
               </section>
             </aside>
             </div>
-            </>
           )}
           {panel && (
             <AdminDrawer
