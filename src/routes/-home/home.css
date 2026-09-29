@@ -291,3 +291,12 @@ html.book-modal body::after{content:"";position:fixed;inset:0;z-index:85;backgro
 .co-merchant{display:flex;gap:12px;align-items:center;padding-bottom:6px}.co-merchant i{font-style:normal;width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:var(--color-accent-2-200);font-weight:700}
 .co-merchant div{display:flex;flex-direction:column}.co-merchant b{font-size:26px}.co-merchant small,.co-merchant span{color:var(--color-neutral-700);font-size:13px}
 .pager-track.snap{transition:none!important}
+/* shorter desktop windows: the bubble caps to fit above the hero bottom, so ease the interior */
+@media (min-width:1024px) and (max-height:1010px){
+  .taps{padding:0 5vw 0 6vw;gap:20px}
+  .taps h2{font-size:44px}
+  .taps .groups{gap:22px}
+  .glabel{font-size:15px;margin-bottom:9px}
+  .chip{font-size:17px;padding:8px 20px;min-height:50px}
+  .taps .go{min-height:58px;padding:0 34px;font-size:19px;margin-top:6px}
+}
