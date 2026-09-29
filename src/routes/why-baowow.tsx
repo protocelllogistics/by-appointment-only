@@ -95,13 +95,28 @@ function WhyBaowowPage() {
 
             <div className="why-resources">
               <div>
-                <h3>Pitch presentation</h3>
+                <h3>Live pitch</h3>
                 <p>Watch the live pitch.</p>
                 <div className="aspect-video w-full overflow-hidden rounded-md border">
                   <iframe
                     className="h-full w-full"
                     src="https://www.youtube.com/embed/egjSteBcTco"
                     title="BAOWOW live pitch"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+              <div>
+                <h3>Product walkthrough</h3>
+                <p>Watch the full walkthrough of the product in use.</p>
+                <div className="aspect-video w-full overflow-hidden rounded-md border">
+                  <iframe
+                    className="h-full w-full"
+                    src="https://www.youtube.com/embed/AO68FWT0XMk"
+                    title="BAOWOW product walkthrough"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     referrerPolicy="strict-origin-when-cross-origin"
                     allowFullScreen
