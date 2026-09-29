@@ -248,7 +248,67 @@ export function CheckoutApp({
   );
 }
 
-export function DialerApp({ onCall, calls = [] }: { onCall: () => void; calls?: CallLog[] }) {
+function LiveCall({ call, onEnd }: { call: CallLog; onEnd: () => void }) {
+  const [shown, setShown] = useState(1);
+  const [secs, setSecs] = useState(0);
+  const endRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    setShown(1);
+    setSecs(0);
+  }, [call.id]);
+  useEffect(() => {
+    if (shown >= call.lines.length) return;
+    const t = window.setTimeout(() => setShown((n) => n + 1), 2200);
+    return () => window.clearTimeout(t);
+  }, [shown, call.lines.length]);
+  useEffect(() => {
+    const t = window.setInterval(() => setSecs((s) => s + 1), 1000);
+    return () => window.clearInterval(t);
+  }, [call.id]);
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ block: "nearest" });
+  }, [shown]);
+  const finished = shown >= call.lines.length;
+  return (
+    <div className="dm-native dm-live" data-call="true">
+      <span>{call.incoming ? "Incoming call" : "Calling"}</span>
+      <h2>By Appointment Only</h2>
+      <p>{finished ? "Call ended" : `${Math.floor(secs / 60)}:${pad(secs % 60)} · Live transcription`}</p>
+      <div className="dm-transcript" aria-live="polite">
+        {call.lines.slice(0, shown).map((l, i) =>
+          l.who === "note" ? (
+            <small key={i} className="dm-tx-note">{l.text}</small>
+          ) : (
+            <p key={i} data-who={l.who}>
+              <em>{l.who === "shop" ? "Shop" : "You"}</em>“{l.text}”
+            </p>
+          ),
+        )}
+        <div ref={endRef} />
+      </div>
+      <button className="dm-call dm-hangup" onClick={onEnd} aria-label={finished ? "Close" : "End call"}>
+        <PhoneOff />
+      </button>
+    </div>
+  );
+}
+
+export function DialerApp({
+  onCall,
+  calls = [],
+  live,
+  onEndLive,
+}: {
+  onCall: () => void;
+  calls?: CallLog[];
+  live?: CallLog;
+  onEndLive?: () => void;
+}) {
+  if (live) return <LiveCall call={live} onEnd={() => onEndLive?.()} />;
+  return <Dialer onCall={onCall} calls={calls} />;
+}
+
+function Dialer({ onCall, calls = [] }: { onCall: () => void; calls?: CallLog[] }) {
   const [inCall, setInCall] = useState(false);
   const [secs, setSecs] = useState(0);
   useEffect(() => {
@@ -291,11 +351,15 @@ export function DialerApp({ onCall, calls = [] }: { onCall: () => void; calls?: 
               <summary>
                 <Phone size={13} /> {c.subject} <small>{c.time}</small>
               </summary>
-              {c.lines.map((l, i) => (
-                <p key={i} data-who={l.who}>
-                  <em>{l.who === "shop" ? "Shop" : "You"}</em> “{l.text}”
-                </p>
-              ))}
+              {c.lines.map((l, i) =>
+                l.who === "note" ? (
+                  <small key={i} className="dm-tx-note">{l.text}</small>
+                ) : (
+                  <p key={i} data-who={l.who}>
+                    <em>{l.who === "shop" ? "Shop" : "You"}</em> “{l.text}”
+                  </p>
+                ),
+              )}
             </details>
           ))}
         </div>

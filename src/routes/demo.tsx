@@ -1298,6 +1298,8 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
           clock={clock}
           onAlert={(how: "messages" | "phone") => { setGuide(undefined); openApp(how); }}
           calls={calls}
+          liveCall={calls.find((c) => c.id === liveCall)}
+          endCall={() => setLiveCall(undefined)}
           appts={appts}
           checkout={checkout}
           onPaid={onPaid}
@@ -1844,6 +1846,8 @@ function PhoneShell({
   clock,
   onAlert,
   calls,
+  liveCall,
+  endCall,
   appts,
   checkout,
   onPaid,
@@ -1956,7 +1960,7 @@ function PhoneShell({
         {inBrowser && <BrowserBar url={url} />}
         <div className="dm-phone-body">
           {view === "app" && app === "phone" ? (
-            <DialerApp onCall={onCall} calls={calls} />
+            <DialerApp onCall={onCall} calls={calls} live={liveCall} onEndLive={endCall} />
           ) : view === "app" && app === "messages" ? (
             <MessagesApp
               list={messages.filter((m: Msg) => m.channel === "Messages")}
