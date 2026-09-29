@@ -737,6 +737,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     ]);
   }
   // Customer turns up after the system already released the slot.
+  const recoveringRef = useRef<number | null>(null);
   function simulateLateShow(fromCall = false) {
     const a = [...apptsRef.current].reverse().find((x) => x.date === TODAY && x.status === "No-show");
     if (!a) return addLog("No no-show to recover yet — simulate a no-show first.");
@@ -775,6 +776,8 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
       }
     };
     if (!(a.mine && fromCall)) return apply();
+    if (recoveringRef.current === a.id) return;
+    recoveringRef.current = a.id;
     const st = stylist ? fits(stylist)! : undefined;
     const first = CUSTOMER.name.split(" ")[0];
     liveCallTo(`Returning missed call · By Appointment Only`, t, [
@@ -1291,6 +1294,8 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
           setPending={setPending}
           onCall={() => {
             if (awaiting.current) return customerEngaged("called");
+            // Returning the shop's missed no-show call goes to the no-show booking, not a new booking.
+            if (apptsRef.current.some((x) => x.mine && x.date === TODAY && x.status === "No-show")) return simulateLateShow(true);
             setPanel({ kind: "new", fromCall: true });
             setAdminTab("Today");
             addLog(`Incoming call from ${CUSTOMER.name}. Phone-booking recommendations opened for staff.`);
