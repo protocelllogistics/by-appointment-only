@@ -735,7 +735,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     ]);
   }
   // Customer turns up after the system already released the slot.
-  function simulateLateShow() {
+  function simulateLateShow(fromCall = false) {
     const a = [...apptsRef.current].reverse().find((x) => x.date === TODAY && x.status === "No-show");
     if (!a) return addLog("No no-show to recover yet — simulate a no-show first.");
     setDay(TODAY);
@@ -747,46 +747,55 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     const order = [a.stylist, ...STYLISTS.filter((s) => s !== a.stylist)];
     const stylist = order.find((s) => fits(s) != null);
     const t = toTime(arrive);
-    if (a.mine) {
-      const st = stylist ? fits(stylist)! : undefined;
-      const first = CUSTOMER.name.split(" ")[0];
-      liveCallTo(`Returning missed call · By Appointment Only`, t, [
-        { who: "note", text: `Returning missed call · ${SHOP_PHONE} · ${t}` },
-        { who: "me", text: `Hi, it's ${first} — I've just seen your missed call. I'm so sorry, I completely forgot about ${a.pet}'s appointment. I didn't check my calendar this morning.` },
-        { who: "me", text: "Is there any way we could still recover the appointment today?" },
-        { who: "shop", text: "Don't worry at all, these things happen. Let me just check the day for you…" },
-        { who: "note", text: `System flag: loyal regular client · released time held as flexible tasks for ${a.stylist} · recovery recommended` },
-        st != null
-          ? { who: "shop", text: `Good news — yes, we can still do ${a.pet}'s ${a.service.toLowerCase()}. ${stylist} can take ${a.pet} at ${toTime(st)}. We'll waive the no-show fee and just apply the £${LATE_FEE_GBP} late fee — I'll text you the link.` }
-          : { who: "shop", text: `Today's fully committed now, but I've held the next safe slot for ${a.pet} and we'll waive the no-show fee. I'll text you the details.` },
-        { who: "me", text: "That's so kind, thank you — I really appreciate it." },
-        { who: "shop", text: `Not at all, ${first}. Thank you for choosing By Appointment Only — we look forward to welcoming you and ${a.pet}.` },
-        { who: "note", text: "Call ended · short note logged to the booking" },
-      ], false);
-      addLog(`${a.customer} returned the missed call and asked to recover. Profile: loyal regular → system recommended recovery; no-show fee waived, late fee applied.`, t);
-    }
-    if (stylist) {
-      const start = fits(stylist)!;
-      setAppts((all) =>
-        all.map((x) =>
-          x.id === a.id ? { ...x, status: "In progress", start, stylist, lateBy: arrive - a.start, flags: [...(x.flags ?? []), "Arrived after no-show"] } : x,
-        ),
-      );
-      setTasks((all) => all.filter((k) => !(k.kind === "Task" && k.stylist === stylist && toMin(k.time) >= a.start)));
-      addLog(
-        `${a.pet} arrived ${arrive - a.start} min late, after the no-show. System found ${dur(a.minutes)} with ${stylist} at ${toTime(start)}${stylist !== a.stylist ? " (walk-in kept with " + a.stylist + ")" : ""}; flexible tasks pushed back. No-show fee swapped for £${LATE_FEE_GBP} late fee.`,
-        t,
-      );
-      if (a.mine) automate("latefee", a, t);
-    } else {
-      const next = STYLISTS.flatMap((s) =>
-        DAYS.flatMap((d) => freeStarts(s, d, a.minutes, busy, 15, d === TODAY ? arrive + 30 : 0).slice(0, 1).map((st) => ({ s, d, st }))),
-      ).sort((x, y) => x.d.localeCompare(y.d) || x.st - y.st)[0];
-      if (!next) return addLog(`${a.pet} arrived after the no-show; no capacity left — front desk to rebook.`, t);
-      const id = Date.now();
-      setAppts((all) => [...all, { ...a, id, status: "Confirmed", date: next.d, start: next.st, stylist: next.s, notes: `Rebooked after late arrival. ${a.notes}` }]);
-      addLog(`${a.pet} arrived after the no-show but today's bays are committed. Next safe slot offered automatically: ${dayLabel(next.d)} ${toTime(next.st)} with ${next.s}.`, t);
-    }
+    const apply = () => {
+      setRecovery(null);
+      if (stylist) {
+        const start = fits(stylist)!;
+        setAppts((all) =>
+          all.map((x) =>
+            x.id === a.id ? { ...x, status: "In progress", start, stylist, lateBy: arrive - a.start, flags: [...(x.flags ?? []), "Arrived after no-show"] } : x,
+          ),
+        );
+        setTasks((all) => all.filter((k) => !(k.kind === "Task" && k.stylist === stylist && toMin(k.time) >= a.start)));
+        addLog(
+          `${a.pet} arrived after no-show (${arrive - a.start} min after start). System fitted ${dur(a.minutes)} with ${stylist} at ${toTime(start)}; held tasks pushed back. No-show fee waived, £${LATE_FEE_GBP} late fee applied.`,
+          t,
+        );
+        if (a.mine) automate("latefee", a, t);
+      } else {
+        const next = STYLISTS.flatMap((s) =>
+          DAYS.flatMap((d) => freeStarts(s, d, a.minutes, busy, 15, d === TODAY ? arrive + 30 : 0).slice(0, 1).map((st) => ({ s, d, st }))),
+        ).sort((x, y) => x.d.localeCompare(y.d) || x.st - y.st)[0];
+        if (!next) return addLog(`${a.pet} arrived after the no-show; no capacity left — front desk to rebook.`, t);
+        const id = Date.now();
+        setAppts((all) => [...all, { ...a, id, status: "Confirmed", date: next.d, start: next.st, stylist: next.s, notes: `Rebooked after late arrival. ${a.notes}` }]);
+        addLog(`${a.pet} arrived after the no-show but today's bays are committed. Next safe slot offered automatically: ${dayLabel(next.d)} ${toTime(next.st)} with ${next.s}.`, t);
+      }
+    };
+    if (!(a.mine && fromCall)) return apply();
+    const st = stylist ? fits(stylist)! : undefined;
+    const first = CUSTOMER.name.split(" ")[0];
+    liveCallTo(`Returning missed call · By Appointment Only`, t, [
+      { who: "note", text: `Returning missed call · ${SHOP_PHONE} · ${t}` },
+      { who: "me", text: `Hi, it's ${first} — I've just seen your missed call. I'm so sorry, I completely forgot about ${a.pet}'s appointment. I didn't check my calendar this morning.` },
+      { who: "me", text: "Is there any way we could still recover the appointment today?" },
+      { who: "shop", text: "Don't worry at all, these things happen. Let me just check the day for you…" },
+      st != null
+        ? { who: "shop", text: `Good news — yes, we can still do ${a.pet}'s ${a.service.toLowerCase()}. ${stylist} can take ${a.pet} at ${toTime(st)}. We'll waive the no-show fee and just apply the £${LATE_FEE_GBP} late fee — I'll text you the link.` }
+        : { who: "shop", text: `Today's fully committed now, but I've held the next safe slot for ${a.pet} and we'll waive the no-show fee. I'll text you the details.` },
+      { who: "me", text: "That's so kind, thank you — I really appreciate it." },
+      { who: "shop", text: `Not at all, ${first}. Thank you for choosing By Appointment Only — we look forward to welcoming you and ${a.pet}.` },
+      { who: "note", text: "Call ended" },
+    ], false);
+    // Staff side: the stylist opens the no-show booking while on the call; the
+    // system surfaces its recommendation, then the recovery is applied.
+    setPanel({ kind: "appointment", id: a.id });
+    window.setTimeout(() => {
+      setRecovery({ id: a.id, stylist: stylist ?? a.stylist, start: st, applying: false });
+      addLog(`${a.customer} returned the missed call. System recommendation for ${a.pet}: loyal client, released time still held as tasks → recover today.`, t);
+    }, 4500);
+    window.setTimeout(() => setRecovery((r) => (r ? { ...r, applying: true } : r)), 7500);
+    window.setTimeout(apply, 8800);
   }
   const dueOut = (a: Appt) => a.start + (a.lateBy ?? 0) + a.minutes;
   function checkIn(a: Appt) {
