@@ -95,7 +95,7 @@ function pastConfirmation(): Msg {
     time: "Tue 09:12",
     apptId: a.id,
     subject: `Booking confirmed · ${a.pet}`,
-    text: `${a.pet} is booked for Fri 25 Sep at ${toTime(a.start)} with ${a.stylist} — ${a.service}, ${about(a.tell)}.\nConfirmation: ${a.code}`,
+    text: `${a.pet} is booked for ${dayLabel(a.date).replace("Today, ", "")} at ${toTime(a.start)} with ${a.stylist} — ${a.service}, ${about(a.tell)}.\nConfirmation: ${a.code}`,
     actions: ["ics", "pay-advance", "reschedule", "cancel"],
   };
 }
