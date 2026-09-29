@@ -1028,6 +1028,8 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     setRawSizes(null);
   };
   const reset = () => {
+    setRecovery(null);
+    recoveringRef.current = null;
     setDesktopMode("dashboard");
     setAppts(seed);
     setMessages([pastConfirmation()]);
