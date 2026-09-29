@@ -82,7 +82,7 @@ const LATE_GRACE = 15,
 const INTRO_MS = 12000,
   OVERRUN_BUFFER = 20,
   STILL_GOING_LEAD = 10,
-  SIM_MIN_MS = 1500,
+
   ENGAGE_WINDOW_MS = 30000;
 const isActive = (a: Appt) => ACTIVE.includes(a.status);
 
