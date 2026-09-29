@@ -1662,14 +1662,25 @@ function StaffBooking({
 }) {
   const [showCal, setShowCal] = useState(false);
   const [calDay, setCalDay] = useState<string | null>(null);
-  const allSlots = sizes ? slotsFor(sizes) : [];
-  const recommended = sizes
-    ? allSlots
-        .flatMap((group) => group.opts.map((option) => ({ date: group.date, option })))
-        .sort((a, b) => (a.date + a.option.start).localeCompare(b.date + b.option.start))
-        .slice(0, 4)
-    : [];
+  // Preferred stylist lowers risk: history with Maya lifts the Index by one,
+  // so her allocation can be shorter and closer to the time told to the customer.
+  const PREF = "Maya";
+  const baseMaya = sizes?.[PREF];
+  const prefMaya: Size | undefined = baseMaya
+    ? (() => {
+        const x = allocate(form.service, baseMaya.index + 1);
+        return { minutes: Math.max(x.minutes, baseMaya.tellClient), index: x.index, tellClient: baseMaya.tellClient };
+      })()
+    : undefined;
+  const adjSizes = sizes && prefMaya ? { ...sizes, [PREF]: prefMaya } : sizes;
+  const allSlots = adjSizes ? slotsFor(adjSizes) : [];
+  const flat = allSlots
+    .flatMap((group) => group.opts.map((option) => ({ date: group.date, option })))
+    .sort((a, b) => (a.date + a.option.start).localeCompare(b.date + b.option.start));
+  const mayaFirst = flat.filter((r) => r.option.stylist === PREF).slice(0, 2);
+  const recommended = sizes ? [...mayaFirst, ...flat.filter((r) => r.option.stylist !== PREF)].slice(0, 4) : [];
   const allocation = recommended[0]?.option.size;
+  const prefApplied = Boolean(prefMaya && baseMaya && mayaFirst.length && prefMaya.minutes < baseMaya.minutes);
   const daysWithTimes = new Set(allSlots.map((g) => g.date));
   const calDaySlots = calDay ? (allSlots.find((g) => g.date === calDay)?.opts ?? []) : [];
   return (
@@ -1742,13 +1753,19 @@ function StaffBooking({
             <div className="dm-stylist-match" aria-label="Recommended pet stylist">
               <b>Best stylist: Maya</b>
               <span>{form.petName || "This pet"} is comfortable with Maya — booked with her the last 3 visits</span>
+              {prefApplied && baseMaya && prefMaya && (
+                <span>
+                  Stylist prioritised over allocated time: with Maya the risk drops to Index {prefMaya.index} (from {baseMaya.index}), so{" "}
+                  {dur(prefMaya.minutes)} is enough instead of {dur(baseMaya.minutes)} — closer to the {about(prefMaya.tellClient)} told to the customer.
+                </span>
+              )}
             </div>
             <div className="dm-behaviour-flags" aria-label="Customer preferences and pet handling notes">
               <span>Customer prefers phone</span>
               <span>Pet sensitive to blow dryer</span>
             </div>
           </div>
-          <h3>Next times that fit {dur(allocation.minutes)}</h3>
+          <h3>Next times · preferred stylist first</h3>
           <div className="dm-admin-slots">
             {recommended.map(({ date, option }) => (
               <Button
@@ -1759,6 +1776,7 @@ function StaffBooking({
                 <b>{toTime(option.start)}</b>
                 <span>
                   {dayLabel(date).split(", ")[0]} · {option.stylist}
+                  {option.stylist === PREF ? ` · preferred · ${dur(option.size.minutes)}` : ` · ${dur(option.size.minutes)}`}
                 </span>
               </Button>
             ))}
