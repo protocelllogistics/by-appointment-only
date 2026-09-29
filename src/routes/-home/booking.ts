@@ -2,6 +2,7 @@
 import { demoPublicSlots } from "@/lib/demo-rota";
 import { validateDemoEditable } from "@/lib/demo-validation";
 import { createFictionalContact } from "@/lib/fictional-contact";
+import { NO_SHOW_FEE_GBP } from "@/lib/demo-allocation";
 import { CARDHOLDERS, TEST_CARDS, cycle, NOTE_PRESETS, PRICE_GBP_PUBLIC, hexCode, icsHref, toggleNote } from "@/lib/demo-presets";
 
 // Behaviour follows the supplied mockup, backed by live availability.
@@ -234,45 +235,21 @@ export function initHero(signal: AbortSignal) {
     loadAvailability();
   };
 
-  // "Book now" on a service: open booking in place with that service chosen — no scrolling.
-  let flowHome = null;
+  // "Book now" on a service: the page snaps to the top and booking opens in place, times shown.
   const onBookService = (e) => {
     const svc = e.detail?.service;
     if (!SERVICES.includes(svc)) return;
     S.service = svc;
     renderGroups();
-    if (desktop()) {
-      // The hero sits in a transformed pager, so lift the panel to <body> to float over the page.
-      if (!flowHome) {
-        const el = $("flow");
-        flowHome = document.createComment("flow");
-        el.replaceWith(flowHome);
-        document.body.appendChild(el);
-      }
-      $("flow").classList.add("modal");
-      document.documentElement.classList.add("book-modal");
-    }
     $("showTimes").click();
   };
   document.addEventListener("bao:book", onBookService, { signal });
-  signal.addEventListener("abort", () => {
-    if (flowHome) flowHome.replaceWith($("flow"));
-    document.documentElement.classList.remove("book-modal");
-  });
 
   /* ---------- Flow ---------- */
   function go(step) {
     S.step = step;
     S.breedOpen = false;
     const inFlow = step !== "taps";
-    if (!inFlow && flowHome) {
-      flowHome.replaceWith($("flow"));
-      flowHome = null;
-    }
-    if (!inFlow) {
-      $("flow").classList.remove("modal");
-      document.documentElement.classList.remove("book-modal");
-    }
     $("flow").classList.toggle("on", inFlow);
     $("taps").classList.toggle("hidden", inFlow && desktop());
     if (!desktop()) {
@@ -367,15 +344,16 @@ export function initHero(signal: AbortSignal) {
       <div class="field"><label id="l-contact">Send me updates by</label><div class="contact-seg" role="radiogroup" aria-labelledby="l-contact">${Object.keys(CONTACT_ICONS).map((c) => `<button type="button" role="radio" aria-checked="${S.contact === c}" aria-label="${c === "Messages" ? "Text message" : c}" title="${c === "Messages" ? "Text message" : c}" data-contact="${c}"><svg class="icon" viewBox="0 0 24 24">${CONTACT_ICONS[c]}</svg></button>`).join("")}</div></div>
       <label class="prepay"><input type="checkbox" id="prepay" ${S.prepay ? "checked" : ""}><span><b>Pay now for fast check-out · £${PRICE_GBP_PUBLIC[S.service]}</b><small>Skip paying at collection. Simulated checkout, no real transaction.</small></span></label>
       <button class="btn btn-primary btn-block" style="min-height:56px;font-size:17px;margin-top:4px" id="confirm">${S.prepay ? "Confirm and pay" : "Confirm booking"}</button>
-      <button class="btn btn-ghost" style="align-self:center;font-size:14px;margin-top:-6px" data-go="reserved">Not sure yet? Reserve this slot at no extra cost</button>`;
+      <button class="btn btn-ghost" style="align-self:center;font-size:14px;margin-top:-6px" id="reservepay">Not sure yet? Reserve this slot · £${NO_SHOW_FEE_GBP} refundable</button>`;
     } else if (S.step === "checking") {
       h = `<div class="center" style="align-items:center;text-align:center"><div class="pulse"></div><h2 style="font-size:24px">Fluffing the towels for ${esc(S.pet || "your pet")}…</h2><p class="muted" style="margin:-8px 0 0">Securing your time…</p></div>`;
     } else if (S.step === "pay") {
-      h = `<div class="center co"><div class="co-merchant"><i>BA</i><div><small>By Appointment Only</small><b>£${PRICE_GBP_PUBLIC[S.service]}.00</b><span>${esc(S.service)} — paid in advance</span></div></div>
+      const amt = S.payFor === "reserve" ? NO_SHOW_FEE_GBP : PRICE_GBP_PUBLIC[S.service];
+      h = `<div class="center co"><div class="co-merchant"><i>BA</i><div><small>By Appointment Only</small><b>£${amt}.00</b><span>${S.payFor === "reserve" ? "Refundable slot reservation" : esc(S.service) + " — paid in advance"}</span></div></div>
       <div class="field"><label>Email</label><input class="input" readonly value="${esc(S.email)}"></div>
       <div class="field"><label>Card information</label><input class="input" readonly value="${S.card.number}"><div class="grid2" style="margin-top:6px"><input class="input" readonly value="12 / 34"><input class="input" readonly value="123"></div></div>
       <div class="field"><label>Name on card</label><input class="input" readonly value="${esc(S.card.name)}"></div>
-      <button class="btn btn-primary btn-block" style="min-height:56px;font-size:17px" id="paynow"${S.paying ? " disabled" : ""}>${S.paying ? "Processing…" : `Pay £${PRICE_GBP_PUBLIC[S.service]}.00`}</button>
+      <button class="btn btn-primary btn-block" style="min-height:56px;font-size:17px" id="paynow"${S.paying ? " disabled" : ""}>${S.paying ? "Processing…" : `Pay £${amt}.00`}</button>
       <p class="muted" style="margin:0;font-size:13px;text-align:center">🔒 Simulated checkout with prefilled test details. This is not a real transaction and no card is charged.</p></div>`;
     } else if (S.step === "done") {
       const p = S.picked;
@@ -389,8 +367,8 @@ export function initHero(signal: AbortSignal) {
       const p = S.picked;
       h = `<div class="center"><div class="badge" style="background:var(--color-accent-2-200);color:var(--color-accent-2-800)"><svg class="icon" style="width:28px;height:28px" viewBox="0 0 24 24"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg></div>
       <h2 style="font-size:28px">${p.time} is reserved for ${esc(S.pet || "your pet")}</h2>
-      <div class="summary"><div><span>When</span><b>${p.day}, ${p.time}</b></div><div><span>Pet stylist</span><b>${p.who}</b></div><div><span>Cost to reserve</span><b>Nothing</b></div></div>
-      <p class="muted" style="margin:0;font-size:15px">No one else can take this time. We'll text you a link to finish booking when you're ready.</p>
+      <div class="summary"><div><span>When</span><b>${p.day}, ${p.time}</b></div><div><span>Pet stylist</span><b>${p.who}</b></div><div><span>Reservation fee</span><b>£${NO_SHOW_FEE_GBP} paid · refundable</b></div><div><span>Confirmation number</span><b style="font-family:ui-monospace,monospace;letter-spacing:.08em">${S.code}</b></div></div>
+      <p class="muted" style="margin:0;font-size:15px">No one else can take this time. Your £${NO_SHOW_FEE_GBP} is refunded or taken off the bill when you finish booking and attend; it is kept only if the slot is missed or released within 24 hours. Simulated payment, nothing was charged.</p>
       <button class="btn btn-primary" data-go="details">Finish booking now</button><button class="btn btn-ghost" data-go="times">Choose another time</button></div>`;
     } else if (S.step === "clash") {
       const alts = clashAlts(S.picked, S.stylist === "Any available");
@@ -458,11 +436,20 @@ export function initHero(signal: AbortSignal) {
       if (cb) cb.textContent = S.prepay ? "Confirm and pay" : "Confirm booking";
       return;
     }
+    if (e.target.closest("#reservepay")) {
+      S.payFor = "reserve";
+      return go("pay");
+    }
     if (e.target.closest("#paynow") && !S.paying) {
       S.paying = true;
       go("pay");
       window.setTimeout(() => {
         S.paying = false;
+        if (S.payFor === "reserve") {
+          S.payFor = "";
+          S.code = hexCode();
+          return go("reserved");
+        }
         S.paid = true;
         go("done");
       }, 1200);
@@ -470,6 +457,7 @@ export function initHero(signal: AbortSignal) {
     }
     if (e.target.closest("#confirm")) {
       S.discounted = false;
+      S.payFor = "";
       return confirm();
     }
     const a = e.target.closest("[data-alt]");
