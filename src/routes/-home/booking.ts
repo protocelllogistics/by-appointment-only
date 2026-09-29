@@ -311,6 +311,8 @@ export function initHero(signal: AbortSignal) {
           ? `<div class="note">${availabilityError}</div>`
           : OPEN.map((d, i) => {
               const sl = daySlots(key, S.when, i);
+              // Today with no bookable times left (e.g. after hours) is simply not shown.
+              if (!sl.length && isoDay(d) === londonNow().date) return "";
               return `<div class="day"><div class="dayh"><b>${dayLong(i)}</b><span>${sl.length ? sl.length + " free" : "Fully booked"}</span></div>
             <div class="times">${sl.map(([t, w]) => `<button class="slot" data-t="${t}" data-w="${w}" data-i="${i}"><b>${t}</b><span>${w}</span></button>`).join("")}</div></div>`;
             }).join("") + `<div class="muted">Finish your book to confirm appointment time.</div>`;
