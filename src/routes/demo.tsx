@@ -749,16 +749,21 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     const t = toTime(arrive);
     if (a.mine) {
       const st = stylist ? fits(stylist)! : undefined;
-      liveCallTo(`Outgoing call · By Appointment Only`, t, [
-        { who: "note", text: `Calling ${SHOP_PHONE} · ${t}` },
-        { who: "me", text: `Hi, it's ${CUSTOMER.name.split(" ")[0]} — I'm so sorry, we're outside with ${a.pet} now. Is there any chance you can still fit us in?` },
-        { who: "shop", text: "Let me just check the day for you…" },
+      const first = CUSTOMER.name.split(" ")[0];
+      liveCallTo(`Returning missed call · By Appointment Only`, t, [
+        { who: "note", text: `Returning missed call · ${SHOP_PHONE} · ${t}` },
+        { who: "me", text: `Hi, it's ${first} — I've just seen your missed call. I'm so sorry, I completely forgot about ${a.pet}'s appointment. I didn't check my calendar this morning.` },
+        { who: "me", text: "Is there any way we could still recover the appointment today?" },
+        { who: "shop", text: "Don't worry at all, these things happen. Let me just check the day for you…" },
+        { who: "note", text: `System flag: loyal regular client · released time held as flexible tasks for ${a.stylist} · recovery recommended` },
         st != null
-          ? { who: "shop", text: `Yes — ${stylist} can take ${a.pet} at ${toTime(st)}. The no-show fee is swapped for a £${LATE_FEE_GBP} late fee; I'll text you the link.` }
-          : { who: "shop", text: "Today's fully committed now, but I've held the next safe slot for you and I'll text you the details." },
-        { who: "me", text: "Thank you so much, that's really kind." },
-        { who: "note", text: "Call ended · logged to the booking" },
+          ? { who: "shop", text: `Good news — yes, we can still do ${a.pet}'s ${a.service.toLowerCase()}. ${stylist} can take ${a.pet} at ${toTime(st)}. We'll waive the no-show fee and just apply the £${LATE_FEE_GBP} late fee — I'll text you the link.` }
+          : { who: "shop", text: `Today's fully committed now, but I've held the next safe slot for ${a.pet} and we'll waive the no-show fee. I'll text you the details.` },
+        { who: "me", text: "That's so kind, thank you — I really appreciate it." },
+        { who: "shop", text: `Not at all, ${first}. Thank you for choosing By Appointment Only — we look forward to welcoming you and ${a.pet}.` },
+        { who: "note", text: "Call ended · short note logged to the booking" },
       ], false);
+      addLog(`${a.customer} returned the missed call and asked to recover. Profile: loyal regular → system recommended recovery; no-show fee waived, late fee applied.`, t);
     }
     if (stylist) {
       const start = fits(stylist)!;
@@ -882,6 +887,8 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     }
     addLog(`${dur(recovered.reduce((n, t) => n + t.minutes, 0))} of ${a.stylist}'s released time converted to tasks.`, t);
     addTasks(recovered);
+    // The customer returns the missed call a little later and asks to recover.
+    if (a.mine) window.setTimeout(() => simulateLateShow(), 16000);
   }
   function runScenario(kind: "late" | "noshow") {
     const mine = apptsRef.current.find((x) => x.mine && x.date === TODAY && x.status === "Confirmed" && !x.lateBy);
