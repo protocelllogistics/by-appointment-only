@@ -114,3 +114,21 @@
 .dm-drawer::-webkit-scrollbar-track{background:transparent}
 .dm-drawer::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--ink) 18%,transparent);border-radius:999px}
 .dm-drawer::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--ink) 30%,transparent)}
+
+/* Today fills the full dashboard width; messages live in their own floating area. */
+.dm-today{grid-template-columns:minmax(0,1fr)!important}
+.dm-recovered{margin-top:4px}
+.dm-fab{position:absolute;right:20px;bottom:20px;z-index:8;width:52px;height:52px;border-radius:999px;border:0;background:var(--teal-dark);color:var(--paper);display:grid;place-items:center;box-shadow:0 8px 22px color-mix(in srgb,var(--ink) 28%,transparent)}
+.dm-fab i{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;border-radius:999px;background:var(--coral);color:var(--paper);font-style:normal;font-size:11px;display:grid;place-items:center}
+.dm-inbox-panel{position:absolute;right:20px;bottom:82px;z-index:9;width:340px;max-height:460px;display:flex;flex-direction:column;background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 34px color-mix(in srgb,var(--ink) 22%,transparent);overflow:hidden}
+.dm-inbox-panel header{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:1px solid var(--line)}
+.dm-inbox-panel header button{border:0;background:transparent;font-size:20px;line-height:1;color:var(--muted)}
+.dm-inbox-thread{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin}
+.dm-ib{max-width:85%;border-radius:12px;padding:7px 10px;background:var(--bg);align-self:flex-start}
+.dm-ib[data-from=shop]{align-self:flex-end;background:var(--teal-soft)}
+.dm-ib[data-from=note]{align-self:stretch;max-width:none;background:transparent;border:1px dashed var(--line)}
+.dm-ib small{display:block;color:var(--muted);font-size:10px}
+.dm-ib p{margin:2px 0 0;font-size:12.5px}
+.dm-inbox-replies{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;border-top:1px solid var(--line)}
+.dm-inbox-replies button{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:5px 10px;font-size:12px;color:var(--ink)}
+.dm-auto-list em{font-style:normal;font-size:12px;color:var(--teal-dark)}

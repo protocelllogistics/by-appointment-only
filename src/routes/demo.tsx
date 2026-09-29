@@ -1344,6 +1344,63 @@ const subjectKey = (k: Automation) =>
     advance: "Pay in advance",
   })[k];
 
+const STAFF_REPLIES = [
+  "Thanks for letting us know, see you soon!",
+  "No problem, we've noted that on the booking.",
+  "We'll give you a quick call to sort this.",
+];
+function MessagesFab({ messages, calls, onReply }: { messages: Msg[]; calls: CallLog[]; onReply: (t: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const inbound = messages.filter((m) => m.from === "me").length;
+  const items = [
+    ...messages.map((m) => ({ id: m.id, kind: "msg" as const, m })),
+    ...calls.map((c) => ({ id: c.id, kind: "call" as const, c })),
+  ].sort((x, y) => x.id - y.id);
+  return (
+    <>
+      <button className="dm-fab" aria-label="Messages" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        <MessageCircle size={20} />
+        {inbound > 0 && !open && <i>1</i>}
+      </button>
+      {open && (
+        <section className="dm-inbox-panel" aria-label="Messages">
+          <header>
+            <b>Messages · {CUSTOMER.name}</b>
+            <button aria-label="Close messages" onClick={() => setOpen(false)}>×</button>
+          </header>
+          <div className="dm-inbox-thread">
+            {items.length === 0 && <p className="dm-muted">No messages yet.</p>}
+            {items.map((it) =>
+              it.kind === "msg" ? (
+                <div key={it.id} className="dm-ib" data-from={it.m.from}>
+                  <small>{it.m.from === "shop" ? "BAO" : it.m.channel === "Email" ? "Customer · Email" : "Customer"} · {it.m.time}</small>
+                  <p>{it.m.subject && it.m.from === "shop" ? <b>{it.m.subject}</b> : null}{it.m.subject && it.m.from === "shop" ? " " : ""}{it.m.text.split("\n")[0]}</p>
+                </div>
+              ) : (
+                <div key={it.id} className="dm-ib" data-from="note">
+                  <small>Staff note · {it.c.time}</small>
+                  <p>{callNote(it.c)}</p>
+                </div>
+              ),
+            )}
+          </div>
+          <div className="dm-inbox-replies">
+            {STAFF_REPLIES.map((r) => (
+              <button key={r} onClick={() => onReply(r)}>{r}</button>
+            ))}
+          </div>
+        </section>
+      )}
+    </>
+  );
+}
+function callNote(c: CallLog) {
+  const text = c.lines.map((l) => l.text).join(" ").toLowerCase();
+  if (text.includes("voicemail") || text.includes("no answer")) return "Called, no answer. Voicemail left, text follow-up sent.";
+  if (text.includes("late")) return "Spoke to customer: running late, arrival time noted.";
+  if (text.includes("book")) return "Phone contact: booking request, options offered.";
+  return `Phone contact: ${c.subject}.`;
+}
 function SimplePanel({ title, body }: { title: string; body: string }) {
   return (
     <div className="dm-simple">

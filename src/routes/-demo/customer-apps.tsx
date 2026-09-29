@@ -282,7 +282,7 @@ function LiveCall({ call, onEnd }: { call: CallLog; onEnd: () => void }) {
             <small key={i} className="dm-tx-note">{l.text}</small>
           ) : (
             <p key={i} data-who={l.who}>
-              <em>{l.who === "shop" ? "Shop" : "You"}</em>“{l.text}”
+              <em>{l.who === "shop" ? "BAO" : "You"}</em>“{l.text}”
             </p>
           ),
         )}
@@ -358,7 +358,7 @@ function Dialer({ onCall, calls = [] }: { onCall: () => void; calls?: CallLog[] 
                   <small key={i} className="dm-tx-note">{l.text}</small>
                 ) : (
                   <p key={i} data-who={l.who}>
-                    <em>{l.who === "shop" ? "Shop" : "You"}</em> “{l.text}”
+                    <em>{l.who === "shop" ? "BAO" : "You"}</em> “{l.text}”
                   </p>
                 ),
               )}
