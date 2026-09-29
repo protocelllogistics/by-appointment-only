@@ -54,8 +54,9 @@ export const Route = createFileRoute("/demo")({
 
 // The demo day is the real UK day and time (clamped to opening hours).
 const LIVE = londonNow();
+// Always the real UK minute right now — never a time that has already passed.
+const nowMin = () => londonNow().minutes;
 const TODAY = LIVE.date,
-  NOW = Math.max(toMin("09:00"), Math.min(LIVE.minutes, CLOSE_MIN)),
   DAYS = [TODAY, addDays(TODAY, 1), addDays(TODAY, 3)];
 const SERVICES = ["Full style", "Bath & tidy", "Nail trim", "Puppy intro"];
 const BREEDS = ["Cockapoo", "Poodle", "Spaniel", "Shih Tzu", "Siberian Husky", "Labrador"];
@@ -81,7 +82,7 @@ const LATE_GRACE = 15,
 const INTRO_MS = 12000,
   OVERRUN_BUFFER = 20,
   STILL_GOING_LEAD = 10,
-  SIM_MIN_MS = 1500,
+
   ENGAGE_WINDOW_MS = 30000;
 const isActive = (a: Appt) => ACTIVE.includes(a.status);
 
@@ -264,8 +265,8 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
   const [appts, setAppts] = useState(seed),
     [messages, setMessages] = useState<Msg[]>(() => [pastConfirmation()]),
     [guide, setGuide] = useState<{ title: string; body: string; time: string }>(),
-    [clock, setClock] = useState(NOW),
-    [log, setLog] = useState([`${toTime(NOW)} · Diary opened. Calendar is up to date.`]),
+    [clock, setClock] = useState(nowMin()),
+    [log, setLog] = useState([`${toTime(nowMin())} · Diary opened. Calendar is up to date.`]),
     [day, setDay] = useState(TODAY),
     [adminTab, setAdminTab] = useState("Today"),
     [panel, setPanel] = useState<AdminPanel>(null),
@@ -386,7 +387,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     if (links.length)
       send([{ channel: "Messages", from: "shop", time: m.time, ...(m.apptId != null ? { apptId: m.apptId } : {}), subject: subj, text: `As mentioned on the phone, here are your links.`, actions: links }]);
   }
-  const addLog = (text: string, time = toTime(NOW)) => setLog((all) => [`${time} · ${text}`, ...all]);
+  const addLog = (text: string, time = toTime(nowMin())) => setLog((all) => [`${time} · ${text}`, ...all]);
   // A live call on the customer's phone: the Phone app opens and the conversation is transcribed line by line.
   function liveCallTo(subject: string, time: string, lines: CallLog["lines"], incoming = true, missed = false) {
     const call: CallLog = { id: Date.now() + Math.random(), time, subject, lines, incoming, missed };
@@ -417,7 +418,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
       return { date, opts: opts.sort((a, b) => a.start - b.start).slice(0, 6) };
     });
 
-  function automate(kind: Automation, a: Appt, time = toTime(NOW)) {
+  function automate(kind: Automation, a: Appt, time = toTime(nowMin())) {
     const when = `${dayLabel(a.date)} at ${toTime(a.start)}`;
     const price = PRICE_GBP[a.service] ?? 40;
     const msgs: Record<Automation, { subject: string; text: string; actions: LinkAction[] }> = {
@@ -495,15 +496,9 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runId]);
   useEffect(() => {
-    setClock(NOW);
-    let id: number | undefined;
-    const start = window.setTimeout(() => {
-      id = window.setInterval(() => setClock((c) => Math.min(c + 1, CLOSE_MIN)), SIM_MIN_MS);
-    }, INTRO_MS);
-    return () => {
-      window.clearTimeout(start);
-      window.clearInterval(id);
-    };
+    setClock(nowMin());
+    const id = window.setInterval(() => setClock(nowMin()), 5000);
+    return () => window.clearInterval(id);
   }, [runId]);
   // Customer responded during the late window: no fee, arrives inside the included 15 minutes.
   function customerEngaged(how: string) {
@@ -611,14 +606,14 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
   }
   function changeAppointment(a: Appt, o: { stylist: string; start: number; size: Size }, date: string) {
     const z = allocate(a.service, o.size.index);
-    const lead = (Date.parse(`${a.date}T00:00:00Z`) - Date.parse(`${TODAY}T00:00:00Z`)) / 60000 + a.start - NOW;
+    const lead = (Date.parse(`${a.date}T00:00:00Z`) - Date.parse(`${TODAY}T00:00:00Z`)) / 60000 + a.start - nowMin();
     if (lead < 1440) {
       addLog(`${a.pet} changed with under 24h notice → £${NO_SHOW_FEE_GBP} no-show fee applied automatically.`);
       window.setTimeout(
         () =>
           notify({
             subject: `Late change · ${a.pet}`,
-            time: toTime(NOW),
+            time: toTime(nowMin()),
             apptId: a.id,
             text: `${a.pet}'s visit was changed less than 24 hours before the start, so the £${NO_SHOW_FEE_GBP} no-show fee applies.`,
             actions: ["pay-noshow"],
@@ -631,7 +626,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     addLog(`${a.pet} moved to ${dayLabel(date)} at ${toTime(o.start)}. Calendar entry updated.`);
     notify({
       subject: `New time for ${a.pet}`,
-      time: toTime(NOW),
+      time: toTime(nowMin()),
       apptId: a.id,
       text: `${a.pet}'s new time is ${dayLabel(date)} at ${toTime(o.start)} with ${o.stylist}. Update your calendar with the new event.`,
       actions: ["ics", "reschedule", "cancel"],
@@ -640,14 +635,14 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     setPhoneView("done");
   }
   function cancel(a: Appt, staff = false) {
-    const lead = (Date.parse(`${a.date}T00:00:00Z`) - Date.parse(`${TODAY}T00:00:00Z`)) / 60000 + a.start - NOW;
+    const lead = (Date.parse(`${a.date}T00:00:00Z`) - Date.parse(`${TODAY}T00:00:00Z`)) / 60000 + a.start - nowMin();
     if (!staff && lead < 1440) {
       addLog(`${a.pet} cancelled with ${dur(Math.max(0, Math.round(lead)))} notice (under 24h) → £${NO_SHOW_FEE_GBP} no-show fee applies automatically.`);
       window.setTimeout(
         () =>
           notify({
             subject: `Late cancellation · ${a.pet}`,
-            time: toTime(NOW),
+            time: toTime(nowMin()),
             apptId: a.id,
             text: `${a.pet}'s visit was cancelled less than 24 hours before the start, so the £${NO_SHOW_FEE_GBP} no-show fee applies.`,
             actions: ["pay-noshow", "rebook"],
@@ -661,7 +656,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     );
     notify({
       subject: `Cancelled · ${a.pet}`,
-      time: toTime(NOW),
+      time: toTime(nowMin()),
       apptId: a.id,
       text: `${a.pet}'s ${a.service} has been cancelled.`,
       actions: ["rebook"],
@@ -937,7 +932,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     addLog(`${a.pet} moved to ${toTime(start)} by staff. Calendar and customer message updated.`);
     notify({
       subject: `New time for ${a.pet}`,
-      time: toTime(NOW),
+      time: toTime(nowMin()),
       apptId: a.id,
       text: `${a.pet}'s appointment has moved to ${toTime(start)} with ${a.stylist}.`,
       actions: ["ics", "reschedule", "cancel"],
@@ -950,7 +945,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
   }
   function customerSays(text: string, channel: Channel) {
     customerEngaged(channel === "Email" ? "emailed" : "messaged");
-    send([{ channel, from: "me", time: toTime(NOW), text, subject: channel === "Email" ? "Re: booking" : undefined }]);
+    send([{ channel, from: "me", time: toTime(nowMin()), text, subject: channel === "Email" ? "Re: booking" : undefined }]);
     addLog(`New ${channel === "Email" ? "email" : "message"} from ${CUSTOMER.name}: “${text}”`);
     window.setTimeout(
       () =>
@@ -958,7 +953,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
           {
             channel,
             from: "shop",
-            time: toTime(NOW),
+            time: toTime(nowMin()),
             subject: channel === "Email" ? "Re: booking" : undefined,
             text: `Thanks ${CUSTOMER.name.split(" ")[0]}! The front desk has your message and will reply shortly. You can also call us on ${SHOP_PHONE}.`,
           },
@@ -974,7 +969,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     if (c.thenDone) window.setTimeout(() => setPhoneView("done"), 1400);
     notify({
       subject: "Payment receipt",
-      time: toTime(NOW),
+      time: toTime(nowMin()),
       apptId: c.apptId,
       text: `Receipt #${newCode()}\n£${c.amount.toFixed(2)} · ${c.label}${c.kind === "pay-advance" ? "\nFast check-out is on — just collect." : ""}`,
     });
