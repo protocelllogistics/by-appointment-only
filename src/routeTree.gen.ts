@@ -10,19 +10,24 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CookiesPolicyRouteImport } from './routes/cookies-policy'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as NoShowPolicyRouteImport } from './routes/no-show-policy'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as TermsAndConditionsRouteImport } from './routes/terms-and-conditions'
 import { Route as WhyBaowowRouteImport } from './routes/why-baowow'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as StaffSplatRouteImport } from './routes/staff.$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -33,11 +38,6 @@ const AuthRoute = AuthRouteImport.update({
 const CookiesPolicyRoute = CookiesPolicyRouteImport.update({
   id: '/cookies-policy',
   path: '/cookies-policy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoRoute = DemoRouteImport.update({
@@ -65,6 +65,11 @@ const WhyBaowowRoute = WhyBaowowRouteImport.update({
   path: '/why-baowow',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const StaffSplatRoute = StaffSplatRouteImport.update({
   id: '/staff/$',
   path: '/staff/$',
@@ -75,37 +80,38 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/cookies-policy': typeof CookiesPolicyRoute
-  '/dashboard': typeof DashboardRoute
   '/demo': typeof DemoRoute
   '/no-show-policy': typeof NoShowPolicyRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/why-baowow': typeof WhyBaowowRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/staff/$': typeof StaffSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/cookies-policy': typeof CookiesPolicyRoute
-  '/dashboard': typeof DashboardRoute
   '/demo': typeof DemoRoute
   '/no-show-policy': typeof NoShowPolicyRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/why-baowow': typeof WhyBaowowRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/staff/$': typeof StaffSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/cookies-policy': typeof CookiesPolicyRoute
-  '/dashboard': typeof DashboardRoute
   '/demo': typeof DemoRoute
   '/no-show-policy': typeof NoShowPolicyRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/why-baowow': typeof WhyBaowowRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/staff/$': typeof StaffSplatRoute
 }
 export interface FileRouteTypes {
@@ -114,44 +120,45 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/cookies-policy'
-    | '/dashboard'
     | '/demo'
     | '/no-show-policy'
     | '/privacy-policy'
     | '/terms-and-conditions'
     | '/why-baowow'
+    | '/dashboard'
     | '/staff/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/cookies-policy'
-    | '/dashboard'
     | '/demo'
     | '/no-show-policy'
     | '/privacy-policy'
     | '/terms-and-conditions'
     | '/why-baowow'
+    | '/dashboard'
     | '/staff/$'
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/auth'
     | '/cookies-policy'
-    | '/dashboard'
     | '/demo'
     | '/no-show-policy'
     | '/privacy-policy'
     | '/terms-and-conditions'
     | '/why-baowow'
+    | '/_authenticated/dashboard'
     | '/staff/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   CookiesPolicyRoute: typeof CookiesPolicyRoute
-  DashboardRoute: typeof DashboardRoute
   DemoRoute: typeof DemoRoute
   NoShowPolicyRoute: typeof NoShowPolicyRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
@@ -169,6 +176,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -181,13 +195,6 @@ declare module '@tanstack/react-router' {
       path: '/cookies-policy'
       fullPath: '/cookies-policy'
       preLoaderRoute: typeof CookiesPolicyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo': {
@@ -225,6 +232,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WhyBaowowRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/staff/$': {
       id: '/staff/$'
       path: '/staff/$'
@@ -235,11 +249,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   CookiesPolicyRoute: CookiesPolicyRoute,
-  DashboardRoute: DashboardRoute,
   DemoRoute: DemoRoute,
   NoShowPolicyRoute: NoShowPolicyRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
