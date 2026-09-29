@@ -54,8 +54,7 @@ const SECTIONS: Section[] = [
     id: "demo-content",
     title: "4. Demonstration content",
     paragraphs: [
-      "The demonstration is pre-filled with fictional content by default, so that no personal data can be entered. The only field that can be changed is a pet name.",
-      "Nothing you do in the demonstration is saved or transmitted. It is cleared when your session ends, when you close your browser, or when you clear your browsing history.",
+      "The demonstration is pre-filled with fictional content by default, so that no personal data can be entered. The only field that can be changed is a pet name. Nothing you do in the demonstration is saved or transmitted. It is cleared when your session ends, when you close your browser, or when you clear your browsing history.",
     ],
   },
   {
@@ -69,8 +68,7 @@ const SECTIONS: Section[] = [
     id: "governance",
     title: "6. Governance and ownership",
     paragraphs: [
-      "This site and its contents are governed by PROTOCELL IO. The owner is Dr Emmanuel Gonzalez-Escobar.",
-      "PROTOCELL IO is a brand name of Protocell Logistics, a trade mark registered in the United Kingdom.",
+      "This site and its contents are governed by PROTOCELL IO. The owner is Dr Emmanuel Gonzalez-Escobar. PROTOCELL IO is a brand name of Protocell Logistics, a trade mark registered in the United Kingdom.",
       `${CONTACT} is the public contact for the website and product owner, and for all governance matters.`,
     ],
   },
@@ -78,8 +76,7 @@ const SECTIONS: Section[] = [
     id: "ip",
     title: "7. Intellectual property",
     paragraphs: [
-      "All designs, logic, rules, system intelligence and written content on this site were designed by Dr Emmanuel Gonzalez-Escobar via PROTOCELL IO, and are protected by intellectual property law.",
-      "You may view the site for personal and evaluation purposes. You may not copy, reproduce, adapt or use its designs, logic or content for commercial purposes without written permission from PROTOCELL IO.",
+      "All designs, logic, rules, system intelligence and written content on this site were designed by Dr Emmanuel Gonzalez-Escobar via PROTOCELL IO, and are protected by intellectual property law. You may view the site for personal and evaluation purposes. You may not copy, reproduce, adapt or use its designs, logic or content for commercial purposes without written permission from PROTOCELL IO.",
       "Lovable, Contra and any other third-party names or marks belong to their respective owners and are used only to give credit.",
     ],
   },
@@ -87,8 +84,7 @@ const SECTIONS: Section[] = [
     id: "warranty",
     title: "8. No warranty",
     paragraphs: [
-      "The site is provided “as is” and “as available”, without warranties of any kind. As a prototype, it may contain errors, change without notice or be taken offline at any time.",
-      "Figures, durations, recommendations and outcomes shown in the demonstration are illustrative and based on fictional data. They are not advice and should not be used to run a real business.",
+      "The site is provided “as is” and “as available”, without warranties of any kind. As a prototype, it may contain errors, change without notice or be taken offline at any time. Figures, durations, recommendations and outcomes shown in the demonstration are illustrative and based on fictional data. They are not advice and should not be used to run a real business.",
     ],
   },
   {
@@ -102,8 +98,7 @@ const SECTIONS: Section[] = [
     id: "simulated-payments",
     title: "10. Simulated payments",
     paragraphs: [
-      "Any fee shown in the booking form or demonstration, including pay-in-advance fast check-out, slot reservation, late or no-show fees, uses a simulated checkout. The name on the card always matches the automatically generated fictional booker, and the card details are pre-filled test numbers.",
-      "No real card, payment or customer details can be entered, and no money is taken at any point.",
+      "Any fee shown in the booking form or demonstration, including pay-in-advance fast check-out, slot reservation, late or no-show fees, uses a simulated checkout. The name on the card always matches the automatically generated fictional booker, and the card details are pre-filled test numbers. No real card, payment or customer details can be entered, and no money is taken at any point.",
     ],
   },
   {
