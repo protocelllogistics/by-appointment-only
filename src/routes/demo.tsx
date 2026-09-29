@@ -389,7 +389,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
   const addLog = (text: string, time = toTime(NOW)) => setLog((all) => [`${time} · ${text}`, ...all]);
   // A live call on the customer's phone: the Phone app opens and the conversation is transcribed line by line.
   function liveCallTo(subject: string, time: string, lines: CallLog["lines"], incoming = true, missed = false) {
-    const call: CallLog = { id: Date.now() + Math.random(), time, subject, lines, incoming };
+    const call: CallLog = { id: Date.now() + Math.random(), time, subject, lines, incoming, missed };
     setCalls((all) => [...all, call]);
     setLiveCall(call.id);
     setPhoneApp("phone");
@@ -871,7 +871,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
         { who: "note", text: "No answer · voicemail" },
         { who: "shop", text: `Hi ${CUSTOMER.name.split(" ")[0]}, it's ${a.stylist} at By Appointment Only. ${a.pet} was due at ${toTime(a.start)} and we haven't seen you, so we've had to release the slot. I'll text you the details and a link to rebook — hope everything's alright.` },
         { who: "note", text: "Voicemail saved · text follow-up sent" },
-      ]);
+      ], true, true);
       automate("noshow", a, t);
     }
     else addLog(`No-show fee link (£${NO_SHOW_FEE_GBP}) sent to ${a.customer} by SMS.`, t);
