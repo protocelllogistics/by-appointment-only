@@ -275,11 +275,6 @@ export function initHero(signal: AbortSignal) {
     done: "taps",
     checking: "details",
   };
-  $("back").onclick = () => {
-    const b = BACK[S.step] || "taps";
-    go(b);
-    if (b === "taps") openTaps();
-  };
   $("close").onclick = () => {
     go("taps");
     closeTaps();
