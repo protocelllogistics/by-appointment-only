@@ -873,7 +873,18 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
         { who: "shop", text: `Hi ${CUSTOMER.name.split(" ")[0]}, it's ${a.stylist} at By Appointment Only. ${a.pet} was due at ${toTime(a.start)} and we haven't seen you, so we've had to release the slot. I'll text you the details and a link to rebook — hope everything's alright.` },
         { who: "note", text: "Voicemail saved · text follow-up sent" },
       ], true, true);
-      automate("noshow", a, t);
+      // Scripted scope: nothing further happens until the customer acts
+      // (reply, pay, rebook or return the missed call).
+      const follow: Omit<Msg, "id" | "channel" | "from"> = {
+        time: t,
+        apptId: a.id,
+        subject: `You missed ${a.pet}'s appointment`,
+        text: `We tried calling — ${a.pet} was due at ${toTime(a.start)} and the slot has been released. A £${NO_SHOW_FEE_GBP} no-show fee applies.\nWhat next: call us back on ${SHOP_PHONE}, reply here, pay the fee or book a new time below.`,
+        actions: ["call", "pay-noshow", "rebook"],
+      };
+      send([{ ...follow, channel: "Messages", from: "shop" }]);
+      if (prefer.current === "Email") send([{ ...follow, channel: "Email", from: "shop" }]);
+      addLog(`No-show confirmed for ${a.pet}. Call went to voicemail; text follow-up sent${prefer.current === "Email" ? " and emailed" : ""}.`, t);
     }
     else addLog(`No-show fee link (£${NO_SHOW_FEE_GBP}) sent to ${a.customer} by SMS.`, t);
     addLog(`${a.pet} did not arrive. Index ${a.index}→${z.index}; next booking will need a deposit and ${dur(z.minutes)}.`, t);
@@ -902,8 +913,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     }
     addLog(`${dur(recovered.reduce((n, t) => n + t.minutes, 0))} of ${a.stylist}'s released time converted to tasks.`, t);
     addTasks(recovered);
-    // The customer returns the missed call a little later and asks to recover.
-    if (a.mine) returnTimerRef.current = window.setTimeout(() => simulateLateShow(), 16000);
+    // No automatic call-back: recovery only starts when the customer returns the call.
   }
   // Tapping the return-call icon on the missed call jumps straight into the
   // call-back instead of waiting for the customer to ring back on their own.
