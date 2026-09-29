@@ -364,7 +364,7 @@ function HomePage() {
                 <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
                 <circle cx="12" cy="10" r="3" />
               </Icon>
-              14 Paws Street, Barking, London
+              16 Paws Street, Barking, Greater London
             </div>
           </div>
 
@@ -562,11 +562,11 @@ function HomePage() {
                   <circle cx="12" cy="10" r="3" />
                 </Icon>
                 <address>
-                  14 Paws Street,
+                  16 Paws Street,
                   <br />
-                  Stoke Newington,
+                  Barking,
                   <br />
-                  London N16
+                  Greater London
                 </address>
               </div>
               <div className="find-tags" aria-label="Ways to book">
@@ -623,7 +623,7 @@ function HomePage() {
           </div>
           <footer className="site-footer">
             <div className="footer-brand">By Appointment Only</div>
-            <div className="footer-addr">14 Paws Street, Barking, London</div>
+            <div className="footer-addr">16 Paws Street, Barking, Greater London</div>
             <nav className="footer-legal" aria-label="Legal">
               <a href="/terms-and-conditions">Terms & Conditions</a>
               <a href="/privacy-policy">Privacy Policy</a>
