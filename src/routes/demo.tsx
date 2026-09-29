@@ -1132,7 +1132,8 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
               run={(k) => automate(k, target)}
             />
           ) : (
-            <>
+            <div className="dm-today">
+            <div className="dm-today-main">
               <div className="dm-daybar">
                 {DAYS.map((d) => (
                   <Button key={d} data-on={day === d} onClick={() => setDay(d)}>
@@ -1149,23 +1150,6 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
                         {a.pet}: {dur(a.minutes)} protected ({signed(a.minutes - a.standard)} buffer). Open to see why.
                       </span>
                     </button>
-                  ))}
-                </div>
-              )}
-              {tasks.length > 0 && (
-                <div className="dm-recovered">
-                  <b>
-                    {dur(tasks.reduce((n, t) => n + t.minutes, 0))} converted to tasks
-                  </b>
-                  {tasks.map((t) => (
-                    <div key={t.id} data-kind={t.kind}>
-                      <span>{t.time}</span>
-                      <em>{t.kind}</em>
-                      <p>
-                        {t.stylist}: {t.text}
-                      </p>
-                      <small>{dur(t.minutes)}</small>
-                    </div>
                   ))}
                 </div>
               )}
@@ -1256,310 +1240,67 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
                     </button>
                   ))}
               </div>
-              <div className="dm-log">
+            </div>
+            <aside className="dm-rail" aria-label="Customer messages and system activity">
+              <section className="dm-rail-card">
+                <h3>Messages</h3>
+                <small>Every text, email and call with {CUSTOMER.name}, sent by the system.</small>
+                <div className="dm-rail-thread">
+                  {[
+                    ...messages.map((m) => ({ id: m.id, kind: "msg" as const, m })),
+                    ...calls.map((c) => ({ id: c.id, kind: "call" as const, c })),
+                  ]
+                    .sort((x, y) => x.id - y.id)
+                    .map((it) =>
+                      it.kind === "msg" ? (
+                        <div key={it.id} className="dm-rail-msg" data-from={it.m.from}>
+                          <span>
+                            {it.m.from === "shop" ? `Shop → ${it.m.channel === "Email" ? "Email" : "Text"}` : "Customer"} · {it.m.time}
+                          </span>
+                          {it.m.subject && <b>{it.m.subject}</b>}
+                          <p>{it.m.text}</p>
+                        </div>
+                      ) : (
+                        <div key={it.id} className="dm-rail-msg" data-from="call">
+                          <span>Call · {it.c.time}{liveCall === it.c.id ? " · live" : ""}</span>
+                          <b>{it.c.subject}</b>
+                          {it.c.lines
+                            .filter((l) => l.who !== "note")
+                            .map((l, i) => (
+                              <p key={i}>
+                                <em>{l.who === "shop" ? "Shop" : "Customer"}:</em> “{l.text}”
+                              </p>
+                            ))}
+                        </div>
+                      ),
+                    )}
+                </div>
+              </section>
+              {tasks.length > 0 && (
+                <div className="dm-recovered dm-rail-card">
+                  <b>
+                    {dur(tasks.reduce((n, t) => n + t.minutes, 0))} converted to tasks
+                  </b>
+                  {tasks.map((t) => (
+                    <div key={t.id} data-kind={t.kind}>
+                      <span>{t.time}</span>
+                      <em>{t.kind}</em>
+                      <p>
+                        {t.stylist}: {t.text}
+                      </p>
+                      <small>{dur(t.minutes)}</small>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <section className="dm-rail-card dm-log">
+                <h3>System log</h3>
                 {log.map((x, i) => (
                   <div key={i}>{x}</div>
                 ))}
-              </div>
-            </>
-          )}
-          {panel && (
-            <AdminDrawer
-              panel={panel}
-              appts={appts}
-              sizes={sizes}
-              shift={shift}
-              setShift={setShift}
-              form={form}
-              setForm={setForm}
-              prepareTimes={prepareAdminTimes}
-              slotsFor={slotsFor}
-              setPanel={setPanel}
-              cancel={cancel}
-              noShow={noShow}
-              reschedule={staffReschedule}
-              flow={{ checkIn, stillGoing, markDone, checkOut, lateShow: simulateLateShow }}
-              clock={clock}
-              dueOut={dueOut}
-              log={log}
-              createBooking={createBooking}
-            />
-          )}
-        </section>
-        <PhoneShell
-          app={phoneApp}
-          openApp={openApp}
-          view={phoneView}
-          setView={setPhoneView}
-          messages={messages}
-          unread={unread}
-          notif={notif}
-          guide={guide}
-          clock={clock}
-          onAlert={(how: "messages" | "phone") => { setGuide(undefined); openApp(how); }}
-          calls={calls}
-          liveCall={calls.find((c) => c.id === liveCall)}
-          endCall={() => setLiveCall(undefined)}
-          appts={appts}
-          checkout={checkout}
-          onPaid={onPaid}
-          customerSays={customerSays}
-          form={form}
-          setForm={setForm}
-          prepay={prepay}
-          setPrepay={setPrepay}
-          errors={errors}
-          busy={busy}
-          sizes={sizes}
-          slotsFor={slotsFor}
-          createBooking={createBooking}
-          current={current}
-          prepareTimes={prepareTimes}
-          selectAction={selectAction}
-          codeInput={codeInput}
-          setCodeInput={setCodeInput}
-          changeAppointment={changeAppointment}
-          cancel={cancel}
-          pending={pending}
-          setPending={setPending}
-          onCall={() => {
-            if (awaiting.current) return customerEngaged("called");
-            setPanel({ kind: "new", fromCall: true });
-            setAdminTab("Bookings");
-            addLog(`Incoming call from ${CUSTOMER.name}. Phone-booking recommendations opened for staff.`);
-          }}
-        />
-      </div>
-      <div className="dm-disclaimer">
-        <p>
-          This is a prototype of BAOWOW, an application prototype for automated appointment-based businesses
-          developed by{" "}
-          <a href="https://protocell.io" target="_blank" rel="noopener noreferrer">
-            PROTOCELL IO
-          </a>
-          , intended for demonstration purposes only.
-        </p>
-        <nav aria-label="Legal">
-          <Link to="/terms-and-conditions">Terms &amp; Conditions</Link>
-          <span aria-hidden="true">·</span>
-          <Link to="/privacy-policy">Privacy Policy</Link>
-        </nav>
-      </div>
-    </div>
-  );
-}
-
-function AutomationsPanel({
-  target,
-  messages,
-  channel,
-  run,
-}: {
-  target: Appt;
-  messages: Msg[];
-  channel: Channel;
-  run: (k: Automation) => void;
-}) {
-  const inbound = messages.filter((m) => m.from === "me");
-  return (
-    <div className="dm-simple dm-auto">
-      <h2>Automated messages</h2>
-      <p>
-        Sent by the customer’s preferred contact method (<b>{channel}</b>) with calendar, payment and fee links.
-        Target: <b>{target.pet}</b> · {dayLabel(target.date)} {toTime(target.start)} · {target.status}
-      </p>
-      <div className="dm-auto-list">
-        {AUTOMATIONS.map((x) => {
-          const sent = messages.some((m) => m.from === "shop" && m.apptId === target.id && m.subject?.startsWith(subjectKey(x.kind)));
-          return (
-            <div key={x.kind}>
-              <BellRing size={16} />
-              <span>
-                <b>{x.title}</b>
-                <small>{x.when}</small>
-              </span>
-              {sent && <em>Sent</em>}
-              <Button
-                variant="ghost"
-                disabled={target.status !== "Confirmed" && x.kind !== "noshow"}
-                onClick={() => run(x.kind)}
-              >
-                Send now
-              </Button>
+              </section>
+            </aside>
             </div>
-          );
-        })}
-      </div>
-      <h3>Customer conversation</h3>
-      {inbound.length === 0 ? (
-        <p className="dm-muted">No customer replies yet — try messaging the shop from the phone.</p>
-      ) : (
-        inbound.map((m) => (
-          <p key={m.id} className="dm-note-card">
-            <b>{m.channel}</b> · {m.time} — {m.text}
-          </p>
-        ))
-      )}
-    </div>
-  );
-}
-const subjectKey = (k: Automation) =>
-  ({
-    confirm: "Booking confirmed",
-    tomorrow: "Reminder:",
-    today: "Today:",
-    "2h": "In 2 hours",
-    late: "Running late",
-    latefee: "Late arrival fee",
-    noshow: "You missed",
-    advance: "Pay in advance",
-  })[k];
-
-function SimplePanel({ title, body }: { title: string; body: string }) {
-  return (
-    <div className="dm-simple">
-      <h2>{title}</h2>
-      <p>{body}</p>
-    </div>
-  );
-}
-function RotaPanel() {
-  return (
-    <div className="dm-simple">
-      <h2>Staff rota</h2>
-      <div className="dm-rota">
-        {STYLISTS.map((s) => (
-          <div key={s}>
-            <b>{s}</b>
-            <span>
-              {DEMO_ROTA[s]?.[5]?.start ?? "Off"}–{DEMO_ROTA[s]?.[5]?.end ?? ""}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-function IndexBreakdown({
-  standard,
-  minutes,
-  tell,
-  service,
-}: {
-  standard: number;
-  minutes: number;
-  tell: number;
-  service: string;
-}) {
-  return (
-    <div className="dm-breakdown">
-      <div>
-        <span>Standard {service.toLowerCase()}</span>
-        <b>{dur(standard)}</b>
-      </div>
-      <div>
-        <span>Risk buffer from Index</span>
-        <b>{signed(minutes - standard)}</b>
-      </div>
-      <div data-strong>
-        <span>Allocated (staff diary)</span>
-        <b>{dur(minutes)}</b>
-      </div>
-      <div>
-        <span>Told to customer</span>
-        <b>
-          {about(tell)} <small>({offsetLabel(tell - minutes)})</small>
-        </b>
-      </div>
-    </div>
-  );
-}
-function AdminDrawer({
-  panel,
-  appts,
-  sizes,
-  shift,
-  setShift,
-  form,
-  setForm,
-  prepareTimes,
-  slotsFor,
-  setPanel,
-  cancel,
-  noShow,
-  reschedule,
-  flow,
-  clock,
-  dueOut,
-  log,
-  createBooking,
-}: {
-  clock: number;
-  dueOut: (a: Appt) => number;
-  panel: AdminPanel;
-  appts: Appt[];
-  sizes: Record<string, Size> | null;
-  shift: number;
-  setShift: (n: number) => void;
-  form: any;
-  setForm: (x: any) => void;
-  prepareTimes: () => Promise<void>;
-  slotsFor: (
-    x: Record<string, Size>,
-    id?: number,
-  ) => { date: string; opts: { stylist: string; start: number; size: Size }[] }[];
-  setPanel: (x: AdminPanel) => void;
-  cancel: (a: Appt, staff?: boolean) => void;
-  noShow: (a: Appt) => void;
-  reschedule: (a: Appt) => void;
-  flow: Record<"checkIn" | "stillGoing" | "markDone" | "checkOut", (a: Appt) => void> & { lateShow: () => void };
-  log: string[];
-  createBooking: (o: { stylist: string; start: number; size: Size }, d: string, s?: Appt["source"]) => void;
-}) {
-  const a = panel?.kind === "appointment" ? appts.find((x) => x.id === panel.id) : undefined;
-  return (
-    <aside className="dm-drawer">
-      <Button size="icon" variant="ghost" aria-label="Close details" onClick={() => setPanel(null)}>
-        <X size={18} />
-      </Button>
-      {a ? (
-        <>
-          <span className="dm-kick">Appointment details</span>
-          <h2>{a.pet}</h2>
-          <p>
-            {a.breed} · {a.customer}
-          </p>
-          <div className="dm-facts">
-            <div>
-              <span>When</span>
-              <b>
-                {dayLabel(a.date)}, {toTime(a.start)}
-              </b>
-            </div>
-            <div>
-              <span>Pet stylist</span>
-              <b>{a.stylist}</b>
-            </div>
-            <div>
-              <span>Source</span>
-              <b>{a.source}</b>
-            </div>
-            <div>
-              <span>Status</span>
-              <b>{a.status}</b>
-            </div>
-          </div>
-          <div className="dm-index">
-            <span>Index {a.index}</span>
-            <b>{dur(a.minutes)} allocated</b>
-            <IndexBreakdown standard={a.standard} minutes={a.minutes} tell={a.tell} service={a.service} />
-            <small className="dm-auto-note">Index updates automatically from check-ins, check-outs, lateness and no-shows.</small>
-            {a.flags?.length ? (
-              <div className="dm-behaviour-flags">
-                {a.flags.map((flag) => (
-                  <span key={flag}>{flag}</span>
-                ))}
-              </div>
             ) : null}
             {a.paid?.length ? (
               <div className="dm-behaviour-flags">
