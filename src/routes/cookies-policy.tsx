@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { PolicyPage } from "@/components/policy-page";
 
 export const Route = createFileRoute("/cookies-policy")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Cookies Policy — By Appointment Only" },

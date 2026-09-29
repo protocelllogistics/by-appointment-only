@@ -38,6 +38,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { NOTE_PRESETS, PET_NAMES, hexCode, icsHref, toggleNote } from "@/lib/demo-presets";
 
 export const Route = createFileRoute("/demo")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Live workflow demo — By Appointment Only" },

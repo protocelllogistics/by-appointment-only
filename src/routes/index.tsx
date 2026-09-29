@@ -122,6 +122,7 @@ const groupsHtml = (
   .join("");
 
 export const Route = createFileRoute("/")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "By Appointment Only (BAOWOW) — Real-day Salon Bookings" },

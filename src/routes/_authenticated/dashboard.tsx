@@ -18,6 +18,7 @@ const emptyDashboard: DashboardData = { staff: [], rota: [], exceptions: [], shi
 const emptyHistory: HistoryData = { bookings: [], clients: [], pets: [], behaviour: [], events: [], notes: [], failures: [] };
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Dashboard — By Appointment Only" },
