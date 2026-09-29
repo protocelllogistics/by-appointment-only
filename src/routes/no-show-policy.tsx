@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { PolicyPage } from "@/components/policy-page";
 
 export const Route = createFileRoute("/no-show-policy")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "No-Show Policy — By Appointment Only" },

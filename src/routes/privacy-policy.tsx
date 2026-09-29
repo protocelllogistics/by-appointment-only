@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { PolicyPage } from "@/components/policy-page";
 
 export const Route = createFileRoute("/privacy-policy")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Privacy Policy — By Appointment Only" },
