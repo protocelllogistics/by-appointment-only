@@ -34,6 +34,13 @@ export const getPublicAvailability = createServerFn({ method: "GET" })
       const minutes = { "Full style": 120, "Bath & tidy": 60, "Nail trim": 30, "Puppy intro": 45 }[data.service];
       list = demoPublicSlots(data.from, 18, minutes, data.stylist || null);
     }
+    // Never offer a time already past in the UK, nor one that runs beyond 17:30 close.
+    const { londonNow, CLOSE_MIN } = await import("./demo-rota");
+    const now = londonNow();
+    const len = { "Full style": 120, "Bath & tidy": 60, "Nail trim": 30, "Puppy intro": 45 }[data.service];
+    const mins = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+    list = list.filter((row) => row.slot_date > now.date || (row.slot_date === now.date && mins(row.starts_at) >= now.minutes + 30));
+    list = list.filter((row) => row.slot_date >= now.date && mins(row.starts_at) + len <= CLOSE_MIN);
     return list.filter((row) => data.when === "Earliest" || (data.when === "Morning" ? row.starts_at < "12:00:00" : row.starts_at >= "12:00:00"));
   });
 

@@ -3,7 +3,7 @@ export type RotaShift = { start: string; end: string; breakStart?: string; break
 export const DEMO_ROTA: Record<string, Partial<Record<number, RotaShift>>> = {
   Maya: { 1: { start: "09:00", end: "17:00", breakStart: "12:30", breakMin: 30 }, 2: { start: "09:00", end: "17:00", breakStart: "12:30", breakMin: 30 }, 3: { start: "09:00", end: "17:00", breakStart: "12:30", breakMin: 30 }, 5: { start: "09:00", end: "17:00", breakStart: "12:30", breakMin: 30 }, 6: { start: "09:00", end: "15:00" } },
   Tom: { 1: { start: "09:30", end: "17:30", breakStart: "13:00", breakMin: 30 }, 2: { start: "09:30", end: "17:30", breakStart: "13:00", breakMin: 30 }, 4: { start: "09:30", end: "17:30", breakStart: "13:00", breakMin: 30 }, 5: { start: "09:30", end: "17:30", breakStart: "13:00", breakMin: 30 }, 6: { start: "09:30", end: "15:30" } },
-  Priya: { 2: { start: "10:00", end: "18:00", breakStart: "13:30", breakMin: 30 }, 3: { start: "10:00", end: "18:00", breakStart: "13:30", breakMin: 30 }, 4: { start: "10:00", end: "18:00", breakStart: "13:30", breakMin: 30 }, 5: { start: "10:00", end: "18:00", breakStart: "13:30", breakMin: 30 } },
+  Priya: { 2: { start: "10:00", end: "17:30", breakStart: "13:30", breakMin: 30 }, 3: { start: "10:00", end: "17:30", breakStart: "13:30", breakMin: 30 }, 4: { start: "10:00", end: "17:30", breakStart: "13:30", breakMin: 30 }, 5: { start: "10:00", end: "17:30", breakStart: "13:30", breakMin: 30 } },
   Sam: { 1: { start: "09:00", end: "16:30", breakStart: "12:00", breakMin: 30 }, 3: { start: "09:00", end: "16:30", breakStart: "12:00", breakMin: 30 }, 4: { start: "09:00", end: "16:30", breakStart: "12:00", breakMin: 30 }, 5: { start: "09:00", end: "16:30", breakStart: "12:00", breakMin: 30 } },
 };
 export const STYLISTS = Object.keys(DEMO_ROTA);
@@ -19,7 +19,7 @@ export type Busy = { stylist: string; date: string; start: number; end: number }
 export function freeStarts(stylist: string, date: string, minutes: number, busy: Busy[], step = 15, after = 0) {
   const shift = DEMO_ROTA[stylist]?.[isoWeekday(date)];
   if (!shift) return [];
-  const s = toMin(shift.start), e = toMin(shift.end);
+  const s = toMin(shift.start), e = Math.min(toMin(shift.end), CLOSE_MIN);
   const bs = shift.breakStart ? toMin(shift.breakStart) : -1, be = bs + (shift.breakMin ?? 0);
   const out: number[] = [];
   for (let t = Math.max(s, after); t + minutes <= e; t += step) {
@@ -42,4 +42,12 @@ export function demoPublicSlots(from: string, days: number, minutes: number, sty
     }
   }
   return rows.sort((a, b) => (a.slot_date + a.starts_at).localeCompare(b.slot_date + b.starts_at));
+}
+
+/** Business closes at 17:30; no appointment may run past it. */
+export const CLOSE_MIN = 17 * 60 + 30;
+/** Current UK (Europe/London) date and minute of day. */
+export function londonNow(at = new Date()) {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(at).map((p) => [p.type, p.value]));
+  return { date: `${parts.year}-${parts.month}-${parts.day}`, minutes: Number(parts.hour) * 60 + Number(parts.minute) };
 }
