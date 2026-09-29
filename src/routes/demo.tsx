@@ -1337,6 +1337,8 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
           clock={clock}
           onAlert={(how: "messages" | "phone") => { setGuide(undefined); openApp(how); }}
           calls={calls}
+          liveCall={calls.find((c) => c.id === liveCall)}
+          endCall={() => setLiveCall(undefined)}
           appts={appts}
           checkout={checkout}
           onPaid={onPaid}
