@@ -59,11 +59,21 @@ export function BookingClash({ onClose }: { onClose: () => void }) {
   const wrap = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const [fit, setFit] = useState(1);
+  const [stageHeight, setStageHeight] = useState(0);
 
   useEffect(() => () => timers.current.forEach(window.clearTimeout), []);
   useLayoutEffect(() => {
-    const f = () => { if (!wrap.current || !stage.current) return; setFit(Math.min(1, wrap.current.clientWidth / stage.current.offsetWidth)); };
-    f(); const ro = new ResizeObserver(f); if (wrap.current) ro.observe(wrap.current); return () => ro.disconnect();
+    const f = () => {
+      if (!wrap.current || !stage.current) return;
+      const nextFit = Math.min(1, wrap.current.clientWidth / stage.current.offsetWidth);
+      setFit(nextFit);
+      setStageHeight(stage.current.offsetHeight * nextFit);
+    };
+    f();
+    const ro = new ResizeObserver(f);
+    if (wrap.current) ro.observe(wrap.current);
+    if (stage.current) ro.observe(stage.current);
+    return () => ro.disconnect();
   }, []);
   const later = (fn: () => void, ms: number) => timers.current.push(window.setTimeout(fn, ms));
   const reset = () => { timers.current.forEach(window.clearTimeout); timers.current = []; setStep("taps"); setA(""); setB(""); setAFinal(null); setN(null); setP(INIT); };
@@ -92,8 +102,8 @@ export function BookingClash({ onClose }: { onClose: () => void }) {
 
   return (
     <section className="clash4a" aria-label="Booking clash demonstration">
-      <div ref={wrap} className="clash4a-wrap">
-        <div ref={stage} className="clash4a-stage" style={{ zoom: fit }}>
+      <div ref={wrap} className="clash4a-wrap" style={{ height: stageHeight || undefined }}>
+        <div ref={stage} className="clash4a-stage" style={{ transform: `translateX(-50%) scale(${fit})` }}>
           <div style={{ display: "flex", alignItems: "flex-end", gap: 16, padding: "0 8px" }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--color-accent-700)" }}>Clash demo</div>
