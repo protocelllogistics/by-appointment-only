@@ -887,6 +887,8 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     }
     addLog(`${dur(recovered.reduce((n, t) => n + t.minutes, 0))} of ${a.stylist}'s released time converted to tasks.`, t);
     addTasks(recovered);
+    // The customer returns the missed call a little later and asks to recover.
+    if (a.mine) window.setTimeout(() => simulateLateShow(), 16000);
   }
   function runScenario(kind: "late" | "noshow") {
     const mine = apptsRef.current.find((x) => x.mine && x.date === TODAY && x.status === "Confirmed" && !x.lateBy);
