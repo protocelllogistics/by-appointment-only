@@ -1279,6 +1279,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
           calls={calls}
           liveCall={calls.find((c) => c.id === liveCall)}
           endCall={() => setLiveCall(undefined)}
+          returnCall={returnMissedCall}
           appts={appts}
           checkout={checkout}
           onPaid={onPaid}
