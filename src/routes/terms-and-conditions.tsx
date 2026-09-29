@@ -99,22 +99,30 @@ const SECTIONS: Section[] = [
     ],
   },
   {
+    id: "simulated-payments",
+    title: "10. Simulated payments",
+    paragraphs: [
+      "Any fee shown in the booking form or demonstration, including pay-in-advance fast check-out, slot reservation, late or no-show fees, uses a simulated checkout. The name on the card always matches the automatically generated fictional booker, and the card details are pre-filled test numbers.",
+      "No real card, payment or customer details can be entered, and no money is taken at any point.",
+    ],
+  },
+  {
     id: "changes",
-    title: "10. Changes to these terms",
+    title: "11. Changes to these terms",
     paragraphs: [
       "These terms may be updated from time to time. The date at the top of this page shows when they were last changed. Continuing to use the site means you accept the current version.",
     ],
   },
   {
     id: "law",
-    title: "11. Governing law",
+    title: "12. Governing law",
     paragraphs: [
       "These terms are governed by the laws of England and Wales, and the courts of England and Wales have jurisdiction over any dispute relating to them.",
     ],
   },
   {
     id: "contact",
-    title: "12. Contact",
+    title: "13. Contact",
     paragraphs: [`For questions about these terms, governance or access, email ${CONTACT}.`],
   },
 ];
