@@ -343,6 +343,14 @@ function HomePage() {
                 Why BAOWOW?
               </Link>
             </div>
+            <div className="hero-access">
+              <a className="access-link" href="mailto:apps@protocell.io">
+                Request Product Access
+              </a>
+              <Link className="access-link" to="/demo">
+                View Demo
+              </Link>
+            </div>
             <div className="photo">
               <img src={teamSalonPhoto.url} alt="The By Appointment Only team in the salon with their dogs" />
             </div>
@@ -352,14 +360,6 @@ function HomePage() {
               <path d="M0 102 C230 92 470 88 720 104 C470 93 230 99 0 109 Z" fill="var(--color-accent-2-800)" />
               <path d="M0 118 C220 124 450 146 670 182 C450 150 220 132 0 126 Z" fill="var(--color-accent-400)" />
             </svg>
-            <div className="hero-access">
-              <a className="access-link" href="mailto:apps@protocell.io">
-                Request Product Access
-              </a>
-              <Link className="access-link" to="/demo">
-                View Demo
-              </Link>
-            </div>
             <div className="addr">
               <Icon>
                 <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
