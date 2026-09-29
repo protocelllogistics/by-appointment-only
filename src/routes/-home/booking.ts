@@ -250,14 +250,6 @@ export function initHero(signal: AbortSignal) {
     S.step = step;
     S.breedOpen = false;
     const inFlow = step !== "taps";
-    if (!inFlow && flowHome) {
-      flowHome.replaceWith($("flow"));
-      flowHome = null;
-    }
-    if (!inFlow) {
-      $("flow").classList.remove("modal");
-      document.documentElement.classList.remove("book-modal");
-    }
     $("flow").classList.toggle("on", inFlow);
     $("taps").classList.toggle("hidden", inFlow && desktop());
     if (!desktop()) {
