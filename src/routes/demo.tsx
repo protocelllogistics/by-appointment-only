@@ -1998,7 +1998,7 @@ function PhoneShell({
         {inBrowser && <BrowserBar url={url} />}
         <div className="dm-phone-body">
           {view === "app" && app === "phone" ? (
-            <DialerApp onCall={onCall} calls={calls} live={liveCall} onEndLive={endCall} />
+            <DialerApp onCall={onCall} calls={calls} live={liveCall} onEndLive={endCall} onReturn={returnCall} />
           ) : view === "app" && app === "messages" ? (
             <MessagesApp
               list={messages.filter((m: Msg) => m.channel === "Messages")}
