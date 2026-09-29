@@ -106,6 +106,7 @@ function mk(
   return { code: "", mobile: "", email: "", ...a, standard: z.standard, minutes: z.minutes, tell: z.tell };
 }
 const MY_SEED_ID = 5;
+type Recovery = { id: number; stylist: string; start?: number; applying: boolean };
 type RecoveredTask = { id: number; time: string; minutes: number; stylist: string; kind: "Task" | "Walk-in"; text: string };
 const seed: Appt[] = [
   mk({
