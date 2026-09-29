@@ -621,26 +621,6 @@ function HomePage() {
               </div>
             </div>
           </div>
-          <footer className="site-footer">
-            <div className="footer-brand">By Appointment Only</div>
-            <div className="footer-addr">16 Paws Street, Barking, Greater London</div>
-            <nav className="footer-legal" aria-label="Legal">
-              <a href="/terms-and-conditions">Terms & Conditions</a>
-              <a href="/privacy-policy">Privacy Policy</a>
-              <a href="/no-show-policy">No-Show Policy</a>
-              <a href="/cookies-policy">Cookies Policy</a>
-              <Link to="/dashboard">Login</Link>
-            </nav>
-            <p className="footer-disclaimer">
-              This is a prototype of BAOWOW, an application prototype for automated appointment-based businesses
-              developed by{" "}
-              <a href="https://protocell.io" target="_blank" rel="noopener noreferrer">
-                PROTOCELL IO
-              </a>
-              , intended for demonstration purposes only.
-            </p>
-            <div className="footer-copy">© {new Date().getFullYear()} By Appointment Only. All rights reserved.</div>
-          </footer>
         </section>
       </div>
 
