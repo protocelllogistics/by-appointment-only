@@ -2,10 +2,10 @@ import { createFileRoute, useHydrated } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getDashboardStaffData } from "@/lib/dashboard-data.functions";
 import { getDashboardHistory } from "@/lib/dashboard-history.functions";
-import { DashboardApp } from "./-dashboard/dashboard-app";
-import { Handheld } from "./-dashboard/handheld";
+import { DashboardApp } from "../-dashboard/dashboard-app";
+import { Handheld } from "../-dashboard/handheld";
 import { usePhoneViewport } from "@/lib/use-phone-viewport";
-import type { HistoryData } from "./-dashboard/history-math";
+import type { HistoryData } from "../-dashboard/history-math";
 
 const historyQuery = { queryKey: ["dashboard-seed-history"], queryFn: () => getDashboardHistory() };
 
@@ -17,7 +17,7 @@ type DashboardData = Awaited<ReturnType<typeof getDashboardStaffData>>;
 const emptyDashboard: DashboardData = { staff: [], rota: [], exceptions: [], shifts: [], services: [], serviceSop: [], serviceInventory: [], serviceStaff: [], breeds: [] };
 const emptyHistory: HistoryData = { bookings: [], clients: [], pets: [], behaviour: [], events: [], notes: [], failures: [] };
 
-export const Route = createFileRoute("/dashboard")({
+export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
       { title: "Dashboard — By Appointment Only" },
