@@ -1125,6 +1125,11 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
           ) : (
             <div className="dm-today">
             <div className="dm-today-main">
+              <div className="dm-today-kicker">
+                <span>
+                  {kickerLabel(TODAY)} · <b>{toTime(clock)}</b>
+                </span>
+              </div>
               <div className="dm-daybar">
                 {DAYS.map((d) => (
                   <Button key={d} data-on={day === d} onClick={() => setDay(d)}>
