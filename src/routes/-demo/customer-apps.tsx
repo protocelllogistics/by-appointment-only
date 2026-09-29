@@ -338,13 +338,15 @@ export function DialerApp({
   calls = [],
   live,
   onEndLive,
+  onReturn,
 }: {
   onCall: () => void;
   calls?: CallLog[];
   live?: CallLog;
   onEndLive?: () => void;
+  onReturn?: () => void;
 }) {
-  if (live) return <LiveCall call={live} onEnd={() => onEndLive?.()} />;
+  if (live) return <LiveCall call={live} onEnd={() => onEndLive?.()} onReturn={onReturn} />;
   return <Dialer onCall={onCall} calls={calls} />;
 }
 
