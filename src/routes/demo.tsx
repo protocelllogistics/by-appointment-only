@@ -388,7 +388,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
   }
   const addLog = (text: string, time = toTime(NOW)) => setLog((all) => [`${time} · ${text}`, ...all]);
   // A live call on the customer's phone: the Phone app opens and the conversation is transcribed line by line.
-  function liveCallTo(subject: string, time: string, lines: CallLog["lines"], incoming = true) {
+  function liveCallTo(subject: string, time: string, lines: CallLog["lines"], incoming = true, missed = false) {
     const call: CallLog = { id: Date.now() + Math.random(), time, subject, lines, incoming };
     setCalls((all) => [...all, call]);
     setLiveCall(call.id);
