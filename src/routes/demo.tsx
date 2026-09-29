@@ -1084,9 +1084,19 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
           <DialogContent className="max-w-3xl rounded-md bg-background font-sans text-foreground">
             <DialogHeader>
               <DialogTitle>Demo walkthrough</DialogTitle>
-              <DialogDescription>The walkthrough video is coming soon.</DialogDescription>
+              <DialogDescription>Watch the walkthrough of the demo and product.</DialogDescription>
             </DialogHeader>
-            <div className="flex aspect-video flex-col items-center justify-center gap-3 rounded-md bg-primary text-primary-foreground"><Play size={36} aria-hidden="true" /><span>Video coming soon</span></div>
+            <div className="aspect-video w-full overflow-hidden rounded-md border">
+              <iframe
+                className="h-full w-full"
+                src="https://www.youtube.com/embed/AO68FWT0XMk"
+                title="BAOWOW demo walkthrough"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+                loading="lazy"
+              />
+            </div>
           </DialogContent>
         </Dialog>
         <Button asChild className="dm-pill">
