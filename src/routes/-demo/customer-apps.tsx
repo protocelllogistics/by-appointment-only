@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { CalendarPlus, CreditCard, Download, Lock, Phone, PhoneOff } from "lucide-react";
+import { CalendarPlus, CreditCard, Download, Lock, Phone, PhoneCall, PhoneOff } from "lucide-react";
 import { toTime } from "@/lib/demo-rota";
 import { REPLY_PRESETS, TEST_CARDS, cycle } from "@/lib/demo-presets";
 import type { CallLog } from "./types";
@@ -250,7 +250,15 @@ export function CheckoutApp({
   );
 }
 
-function LiveCall({ call, onEnd }: { call: CallLog; onEnd: () => void }) {
+function LiveCall({
+  call,
+  onEnd,
+  onReturn,
+}: {
+  call: CallLog;
+  onEnd: () => void;
+  onReturn?: (() => void) | undefined;
+}) {
   const [shown, setShown] = useState(1);
   const [secs, setSecs] = useState(0);
   const endRef = useRef<HTMLDivElement>(null);
@@ -271,6 +279,36 @@ function LiveCall({ call, onEnd }: { call: CallLog; onEnd: () => void }) {
     endRef.current?.scrollIntoView({ block: "nearest" });
   }, [shown]);
   const finished = shown >= call.lines.length;
+  // A call the customer never answered is not one they can hang up on: the
+  // screen ends on the missed call, with a return-call affordance instead.
+  if (call.missed)
+    return (
+      <div className="dm-native dm-live" data-call="true" data-missed="true">
+        <span>{finished ? "Missed call" : "Incoming call"}</span>
+        <h2>By Appointment Only</h2>
+        <p>{finished ? "No answer · voicemail left" : `Ringing · Voicemail transcription`}</p>
+        <div className="dm-transcript" aria-live="polite">
+          {call.lines.slice(0, shown).map((l, i) =>
+            l.who === "note" ? (
+              <small key={i} className="dm-tx-note">{l.text}</small>
+            ) : (
+              <p key={i} data-who={l.who}>
+                <em>{l.who === "shop" ? "BAO" : "You"}</em>“{l.text}”
+              </p>
+            ),
+          )}
+          <div ref={endRef} />
+        </div>
+        {finished && onReturn && (
+          <>
+            <button className="dm-call dm-callback" onClick={onReturn} aria-label="Return missed call">
+              <PhoneCall />
+            </button>
+            <small className="dm-call-cap">Return missed call</small>
+          </>
+        )}
+      </div>
+    );
   return (
     <div className="dm-native dm-live" data-call="true">
       <span>{call.incoming ? "Incoming call" : "Calling"}</span>
@@ -300,13 +338,15 @@ export function DialerApp({
   calls = [],
   live,
   onEndLive,
+  onReturn,
 }: {
   onCall: () => void;
   calls?: CallLog[];
   live?: CallLog;
   onEndLive?: () => void;
+  onReturn?: () => void;
 }) {
-  if (live) return <LiveCall call={live} onEnd={() => onEndLive?.()} />;
+  if (live) return <LiveCall call={live} onEnd={() => { onEndLive?.(); }} onReturn={onReturn} />;
   return <Dialer onCall={onCall} calls={calls} />;
 }
 

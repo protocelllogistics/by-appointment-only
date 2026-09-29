@@ -388,8 +388,8 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
   }
   const addLog = (text: string, time = toTime(NOW)) => setLog((all) => [`${time} · ${text}`, ...all]);
   // A live call on the customer's phone: the Phone app opens and the conversation is transcribed line by line.
-  function liveCallTo(subject: string, time: string, lines: CallLog["lines"], incoming = true) {
-    const call: CallLog = { id: Date.now() + Math.random(), time, subject, lines, incoming };
+  function liveCallTo(subject: string, time: string, lines: CallLog["lines"], incoming = true, missed = false) {
+    const call: CallLog = { id: Date.now() + Math.random(), time, subject, lines, incoming, missed };
     setCalls((all) => [...all, call]);
     setLiveCall(call.id);
     setPhoneApp("phone");
@@ -738,6 +738,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
   }
   // Customer turns up after the system already released the slot.
   const recoveringRef = useRef<number | null>(null);
+  const returnTimerRef = useRef<number | undefined>(undefined);
   function simulateLateShow(fromCall = false) {
     const a = [...apptsRef.current].reverse().find((x) => x.date === TODAY && x.status === "No-show");
     if (!a) return addLog("No no-show to recover yet — simulate a no-show first.");
@@ -871,7 +872,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
         { who: "note", text: "No answer · voicemail" },
         { who: "shop", text: `Hi ${CUSTOMER.name.split(" ")[0]}, it's ${a.stylist} at By Appointment Only. ${a.pet} was due at ${toTime(a.start)} and we haven't seen you, so we've had to release the slot. I'll text you the details and a link to rebook — hope everything's alright.` },
         { who: "note", text: "Voicemail saved · text follow-up sent" },
-      ]);
+      ], true, true);
       automate("noshow", a, t);
     }
     else addLog(`No-show fee link (£${NO_SHOW_FEE_GBP}) sent to ${a.customer} by SMS.`, t);
@@ -902,7 +903,15 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
     addLog(`${dur(recovered.reduce((n, t) => n + t.minutes, 0))} of ${a.stylist}'s released time converted to tasks.`, t);
     addTasks(recovered);
     // The customer returns the missed call a little later and asks to recover.
-    if (a.mine) window.setTimeout(() => simulateLateShow(), 16000);
+    if (a.mine) returnTimerRef.current = window.setTimeout(() => simulateLateShow(), 16000);
+  }
+  // Tapping the return-call icon on the missed call jumps straight into the
+  // call-back instead of waiting for the customer to ring back on their own.
+  function returnMissedCall() {
+    if (returnTimerRef.current) window.clearTimeout(returnTimerRef.current);
+    returnTimerRef.current = undefined;
+    setLiveCall(undefined);
+    simulateLateShow(true);
   }
   function runScenario(kind: "late" | "noshow") {
     const mine = apptsRef.current.find((x) => x.mine && x.date === TODAY && x.status === "Confirmed" && !x.lateBy);
@@ -1270,6 +1279,7 @@ function DemoPage({ mobile = false }: { mobile?: boolean }) {
           calls={calls}
           liveCall={calls.find((c) => c.id === liveCall)}
           endCall={() => setLiveCall(undefined)}
+          returnCall={returnMissedCall}
           appts={appts}
           checkout={checkout}
           onPaid={onPaid}
@@ -1875,6 +1885,7 @@ function PhoneShell({
   calls,
   liveCall,
   endCall,
+  returnCall,
   appts,
   checkout,
   onPaid,
@@ -1987,7 +1998,7 @@ function PhoneShell({
         {inBrowser && <BrowserBar url={url} />}
         <div className="dm-phone-body">
           {view === "app" && app === "phone" ? (
-            <DialerApp onCall={onCall} calls={calls} live={liveCall} onEndLive={endCall} />
+            <DialerApp onCall={onCall} calls={calls} live={liveCall} onEndLive={endCall} onReturn={returnCall} />
           ) : view === "app" && app === "messages" ? (
             <MessagesApp
               list={messages.filter((m: Msg) => m.channel === "Messages")}
