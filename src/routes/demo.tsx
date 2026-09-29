@@ -2015,7 +2015,7 @@ function PhoneShell({
           ) : view === "app" && app === "calendar" ? (
             <CalendarApp events={appts.filter((a: Appt) => a.mine && a.inCalendar)} dayLabel={dayLabel} />
           ) : view === "checkout" && checkout ? (
-            <CheckoutApp key={checkout.apptId + checkout.kind} checkout={checkout} email={CUSTOMER.email} onPaid={onPaid} />
+            <CheckoutApp key={checkout.apptId + checkout.kind} checkout={checkout} email={CUSTOMER.email} name={CUSTOMER.name} onPaid={onPaid} />
           ) : view === "browser" ? (
             <BookingStart form={form} setForm={setForm} errors={errors} busy={busy} prepareTimes={prepareTimes} />
           ) : view === "times" || view === "reschedule" ? (
