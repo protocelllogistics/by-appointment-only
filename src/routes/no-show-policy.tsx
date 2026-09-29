@@ -44,42 +44,34 @@ const SECTIONS: Section[] = [
   {
     id: "late-fee",
     title: "3. Late arrival fee — £10",
-    paragraphs: [
-      "If you arrive more than 15 minutes after your appointment's start time, a £10 late fee applies.",
-      "The fee covers the real cost of the delay: the stylist and the station were held for you, and the rest of the day has to absorb the difference. Arriving later than that may also shorten the service so the next client's appointment is not affected.",
-    ],
+    paragraphs: ["If you arrive more than 15 minutes after your appointment's start time, a £10 late fee applies."],
   },
   {
     id: "no-show",
     title: "4. No-show — £25 after 25 minutes",
     paragraphs: [
       "If you have not arrived or made contact within 25 minutes of your appointment's start time, the appointment is marked as a no-show. Your slot is released and a £25 no-show fee applies.",
-      "A no-show is different from being late: the reserved time was lost entirely, not just shortened, so the fee is higher.",
     ],
   },
   {
     id: "cancellations",
     title: "5. Cancellations and changes within 24 hours",
     paragraphs: [
-      "Appointments can be cancelled or changed free of charge up to 24 hours before the start time.",
-      "Within the last 24 hours, cancelling or changing an appointment applies the £25 no-show fee, because that is usually the point when the time can no longer be filled by another client.",
+      "Appointments can be cancelled or changed free of charge up to 24 hours before the start time. Within the last 24 hours, cancelling or changing an appointment applies the £25 no-show fee.",
     ],
   },
   {
     id: "reservation",
     title: "6. Reserving a slot",
     paragraphs: [
-      "If you are not ready to confirm a booking, you can reserve a slot with a £25 refundable reservation fee.",
-      "The fee is refunded — or taken off your bill — when you finish booking and attend. It is only kept if the reserved slot is missed or released within 24 hours of the appointment.",
+      "If you are not ready to confirm a booking, you can reserve a slot with a £25 refundable reservation fee. The fee is refunded — or taken off your bill — when you finish booking and attend.",
     ],
   },
   {
     id: "inclusivity",
     title: "7. Our inclusivity approach",
     paragraphs: [
-      "People arrive late, miss appointments or cancel for many reasons: caring responsibilities, health conditions and disabilities, unpredictable work shifts, transport disruptions, differences in memory, attention and executive function, anxiety, and situations we will never know about.",
-      "This policy is written to work for all of those people, not against them. The system applies the same rules to every client in the same situation, without judgement, and it adapts automatically to what actually happens rather than what was planned.",
-      "If an appointment is missed, reaching out is always enough to reopen the conversation. We will look for a way to fit you in, and where a fee can be waived, it will be waived — the goal is to keep clients, not to punish them.",
+      "We understand that days are dynamic, which measn that sometimes we arrive late, miss appointments or cancel for many reasons. This policy is written to work for all of these circumstances. If you are running late for an appoinment or have missed it entirely, reaching out is always is the best plan of action. We will look for a way to fit you in, and where a fee can be waived, it will be waived. We want to make sure your Pet is well taken care off and healthy, especially if they were looking forward to the visit.",
     ],
   },
   {
@@ -87,15 +79,13 @@ const SECTIONS: Section[] = [
     title: "8. How fees are applied",
     paragraphs: [
       "Fees are applied automatically based on the appointment's real timeline: the reserved slot, the actual arrival, and any cancellation or change. You receive the payment link by your preferred contact method, and paying it before check-out keeps everything quick.",
-      "Fees are not applied by anyone's judgement of you personally — they follow the same rules every time, for every client.",
     ],
   },
   {
     id: "prototype",
     title: "9. This is a prototype",
     paragraphs: [
-      "By Appointment Only is a prototype built by PROTOCELL IO for demonstration purposes. This policy shows how the product is designed to behave — it uses realistic rules and figures, including the £10 late fee and the £25 no-show fee — but no money is ever charged and no real appointment exists.",
-      "Any payment you see in the demo is simulated with fictional details and is never transmitted.",
+      "By Appointment Only is a prototype built by PROTOCELL IO for demonstration purposes. This policy shows how the product is designed to behave [it uses realistic rules and figures, including the £10 late fee and the £25 no-show fee] but no money is ever charged and no real appointment exists. Any payment you see in the demo is simulated with fictional details and is never transmitted.",
     ],
   },
   {
@@ -112,9 +102,9 @@ function NoShowPage() {
       updated={LAST_UPDATED}
       introduction={
         <p>
-          This policy sets out what happens when an appointment runs late, is missed or is cancelled — the same
-          rules for every client, applied automatically. It is written with real, realistic parameters so the
-          product can be judged as it would actually behave.
+          This policy sets out what happens when an appointment runs late, is missed or is cancelled — the same rules
+          for every client, applied automatically. It is written with real, realistic parameters so the product can be
+          judged as it would actually behave.
         </p>
       }
     >
@@ -133,9 +123,9 @@ function NoShowPage() {
         <article className="policy-body">
           <div className="policy-notice">
             <p>
-              <b>Prototype notice:</b> this is an example policy for demonstration purposes, built by PROTOCELL IO.
-              The rules and amounts shown here reflect how By Appointment Only is designed to work, but no money is
-              ever charged and no real appointment exists. All payments in the demo are simulated.
+              <b>Prototype notice:</b> this is an example policy for demonstration purposes, built by PROTOCELL IO. The
+              rules and amounts shown here reflect how By Appointment Only is designed to work, but no money is ever
+              charged and no real appointment exists. All payments in the demo are simulated.
             </p>
           </div>
 
