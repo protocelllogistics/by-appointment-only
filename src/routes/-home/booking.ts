@@ -25,7 +25,8 @@ export function initHero(signal: AbortSignal) {
   };
   const MINUTES = { "Full style": 120, "Bath & tidy": 60, "Nail trim": 30, "Puppy intro": 45 };
   const CONTACT_ICONS = {
-    Phone: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
+    Phone:
+      '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
     Messages: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/>',
     Email: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
   };
@@ -105,13 +106,28 @@ export function initHero(signal: AbortSignal) {
     n.setDate(n.getDate() + 1);
     return d.toDateString() === n.toDateString();
   }
-  const isoDay = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-  let liveSlots = [], availabilityError = "", availabilityLoading = false;
+  const isoDay = (d) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  let liveSlots = [],
+    availabilityError = "",
+    availabilityLoading = false;
   function daySlots(key, when, i) {
-    return liveSlots.filter((x) => x.slot_date === isoDay(OPEN[i])).map((x) => [x.starts_at.slice(0,5), x.staff_name]).slice(0,8);
+    return liveSlots
+      .filter((x) => x.slot_date === isoDay(OPEN[i]))
+      .map((x) => [x.starts_at.slice(0, 5), x.staff_name])
+      .slice(0, 8);
   }
   function clashAlts(p, any) {
-    return liveSlots.filter(x=>!(x.slot_date===p.date&&x.starts_at.slice(0,5)===p.time&&x.staff_name===p.who)).map(x=>({time:x.starts_at.slice(0,5),who:x.staff_name,i:OPEN.findIndex(d=>isoDay(d)===x.slot_date),date:x.slot_date})).filter(x=>x.i>=0).slice(0,3);
+    return liveSlots
+      .filter((x) => !(x.slot_date === p.date && x.starts_at.slice(0, 5) === p.time && x.staff_name === p.who))
+      .map((x) => ({
+        time: x.starts_at.slice(0, 5),
+        who: x.staff_name,
+        i: OPEN.findIndex((d) => isoDay(d) === x.slot_date),
+        date: x.slot_date,
+      }))
+      .filter((x) => x.i >= 0)
+      .slice(0, 3);
   }
 
   /* ---------- State ---------- */
@@ -222,10 +238,20 @@ export function initHero(signal: AbortSignal) {
       // Only times still genuinely bookable in UK time: 30 min lead today, finishing by 17:30 close.
       const now = londonNow();
       liveSlots = demoPublicSlots(isoDay(OPEN[0]), 18, minutes, S.stylist === "Any available" ? null : S.stylist)
-        .filter((row) => row.slot_date > now.date || (row.slot_date === now.date && toMin(row.starts_at.slice(0, 5)) >= now.minutes + 30))
+        .filter(
+          (row) =>
+            row.slot_date > now.date ||
+            (row.slot_date === now.date && toMin(row.starts_at.slice(0, 5)) >= now.minutes + 30),
+        )
         .filter((row) => toMin(row.starts_at.slice(0, 5)) + minutes <= CLOSE_MIN)
-        .filter((row) => S.when === "Earliest" || (S.when === "Morning" ? row.starts_at < "12:00:00" : row.starts_at >= "12:00:00"));
-    } catch { liveSlots = []; availabilityError = "We couldn't load available times. Please try again."; }
+        .filter(
+          (row) =>
+            S.when === "Earliest" || (S.when === "Morning" ? row.starts_at < "12:00:00" : row.starts_at >= "12:00:00"),
+        );
+    } catch {
+      liveSlots = [];
+      availabilityError = "We couldn't load available times. Please try again.";
+    }
     availabilityLoading = false;
     if (S.step === "times" || S.step === "clash") render();
   }
@@ -281,8 +307,7 @@ export function initHero(signal: AbortSignal) {
       if (S.step !== "taps") {
         go("taps");
         closeTaps();
-      }
-      else closeTaps();
+      } else closeTaps();
     },
     { signal },
   );
@@ -316,8 +341,7 @@ export function initHero(signal: AbortSignal) {
               return `<div class="day"><div class="dayh"><b>${dayLong(i)}</b><span>${sl.length ? sl.length + " free" : "Fully booked"}</span></div>
             <div class="times">${sl.map(([t, w]) => `<button class="slot" data-t="${t}" data-w="${w}" data-i="${i}"><b>${t}</b><span>${w}</span></button>`).join("")}</div></div>`;
             }).join("") + `<div class="muted">Finish your book to confirm appointment time.</div>`;
-      h =
-        `<div class="kicker">Step 1 of 2</div><h2 style="font-size:28px">${S.when === "Earliest" ? "Pick a time" : S.when + " times"}</h2>
+      h = `<div class="kicker">Step 1 of 2</div><h2 style="font-size:28px">${S.when === "Earliest" ? "Pick a time" : S.when + " times"}</h2>
       <div class="muted" style="margin-top:-6px">${key === "Any" ? "Across all pet stylists" : "With " + esc(S.stylist) + " only"}</div>${availabilityContent}`;
     } else if (S.step === "details") {
       const p = S.picked;
@@ -333,10 +357,17 @@ export function initHero(signal: AbortSignal) {
       <div class="field"><label id="l-breed">Breed</label><div class="pick"><button type="button" id="breedBtn" aria-haspopup="listbox" aria-expanded="${S.breedOpen}" aria-labelledby="l-breed breedBtn"><span style="flex:1">${esc(S.breed)}</span><span class="chev"><svg class="icon" style="width:14px;height:14px" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></button>
         <ul role="listbox" class="${S.breedOpen ? "on" : ""}" aria-labelledby="l-breed">${BREEDS.map(([n, z]) => `<li role="option" tabindex="0" data-breed="${esc(n)}" aria-selected="${n === S.breed}"><span class="sz" style="background:${SIZE_C[z]}">${z}</span><span style="flex:1">${esc(n)}</span>${n === S.breed ? '<span style="color:var(--color-accent-700);font-weight:700">✓</span>' : ""}</li>`).join("")}</ul></div></div></div>
       <div class="field"><label id="l-notes">Anything we should know?</label><div class="note-chips" role="group" aria-labelledby="l-notes">${NOTE_PRESETS.map((n) => `<button type="button" class="note-chip" data-note="${esc(n)}" aria-pressed="${S.notes.split(" · ").includes(n)}">${esc(n)}</button>`).join("")}</div></div>
-      <div class="field"><label id="l-contact">Send me updates by</label><div class="contact-seg" role="radiogroup" aria-labelledby="l-contact">${Object.keys(CONTACT_ICONS).map((c) => `<button type="button" role="radio" aria-checked="${S.contact === c}" aria-label="${c === "Messages" ? "Text message" : c}" title="${c === "Messages" ? "Text message" : c}" data-contact="${c}"><svg class="icon" viewBox="0 0 24 24">${CONTACT_ICONS[c]}</svg></button>`).join("")}</div></div>
+      <div class="field"><label id="l-contact">Send me updates by</label><div class="contact-seg" role="radiogroup" aria-labelledby="l-contact">${Object.keys(
+        CONTACT_ICONS,
+      )
+        .map(
+          (c) =>
+            `<button type="button" role="radio" aria-checked="${S.contact === c}" aria-label="${c === "Messages" ? "Text message" : c}" title="${c === "Messages" ? "Text message" : c}" data-contact="${c}"><svg class="icon" viewBox="0 0 24 24">${CONTACT_ICONS[c]}</svg></button>`,
+        )
+        .join("")}</div></div>
       <label class="prepay"><input type="checkbox" id="prepay" ${S.prepay ? "checked" : ""}><span><b>Pay now for fast check-out · £${PRICE_GBP_PUBLIC[S.service]}</b><small>Skip paying at collection. Simulated checkout, no real transaction.</small></span></label>
       <button class="btn btn-primary btn-block" style="min-height:56px;font-size:17px;margin-top:4px" id="confirm">${S.prepay ? "Confirm and pay" : "Confirm booking"}</button>
-      <button class="btn btn-ghost" style="align-self:center;font-size:14px;margin-top:-6px" id="reservepay">Not sure yet? Reserve this slot · £${NO_SHOW_FEE_GBP} refundable</button>`;
+      <button class="btn btn-ghost" style="align-self:center;font-size:14px;margin-top:-6px" id="reservepay">Not sure yet? Reserve this slot for 72h · £${NO_SHOW_FEE_GBP} refundable</button>`;
     } else if (S.step === "checking") {
       h = `<div class="center" style="align-items:center;text-align:center"><div class="pulse"></div><h2 style="font-size:24px">Fluffing the towels for ${esc(S.pet || "your pet")}…</h2><p class="muted" style="margin:-8px 0 0">Securing your time…</p></div>`;
     } else if (S.step === "pay") {
@@ -418,7 +449,9 @@ export function initHero(signal: AbortSignal) {
     const ct = e.target.closest("[data-contact]");
     if (ct) {
       S.contact = ct.dataset.contact;
-      $("body").querySelectorAll("[data-contact]").forEach((x) => x.setAttribute("aria-checked", String(x === ct)));
+      $("body")
+        .querySelectorAll("[data-contact]")
+        .forEach((x) => x.setAttribute("aria-checked", String(x === ct)));
       return;
     }
     const pp = e.target.closest("#prepay");
