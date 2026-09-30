@@ -80,6 +80,7 @@
 
 .cookie-banner { position: fixed; z-index: 60; right: 14px; bottom: calc(100px + env(safe-area-inset-bottom)); left: 14px; border: 1px solid var(--color-neutral-300); border-radius: 20px; padding: 24px 18px 18px; background: var(--color-bg); color: var(--color-text); box-shadow: var(--shadow-md); }
 .cookie-banner p { margin: 0; font-size: 16px; line-height: 1.45; }
+.cookie-policy-link { color: var(--color-text); text-decoration: underline; text-underline-offset: 3px; }
 .cookie-actions { display: grid; gap: 8px; margin-top: 16px; }
 .cookie-actions button { min-height: 48px; height: auto; border-radius: 999px; padding: 8px 16px; white-space: normal; }
 .cookie-actions button:first-child { border: 2px solid var(--color-accent-2-700); background: transparent; color: var(--color-accent-2-900); }
