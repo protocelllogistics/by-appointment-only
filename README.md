@@ -1,14 +1,20 @@
-# Welcome to your Lovable project
+# Prod of BAOWOW
+
+Additionally prepare placeholder pages (no content in pages) for Terms & Conditions, Privacy Policy, No-Show Policy, Cookies Policy and a cute pet inspired cookies banner. 
+
+You must take the prompt as is, do not approximate values or estimate or assume.
 
 This project was built with [Lovable](https://lovable.dev).
 
+**Live app**: https://by-appointment-only.lovable.app
+
 ## Build with Lovable
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/dc14f98f-a18c-4eeb-b83c-cf0985a1a878).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -20,10 +26,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
